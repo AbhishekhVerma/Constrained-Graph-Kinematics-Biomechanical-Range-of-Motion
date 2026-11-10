@@ -1,0 +1,38 @@
+# Virtual environments
+.venv/
+venv/
+env/
+.conda/
+
+# Python caches & build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Large raw / regenerable processed datasets (keep splits/ and custom_gloved_dataset.npz)
+data/raw/
+data/processed/*.npz
+data/processed/*.pkl
+data/processed/*.npy
+
+# Generated HTML intermediate for PDF report (keep Final_Project_Report.pdf & .md)
+docs/Final_Project_Report.html
+docs/Final_Project_Report.pdf
+
+# Temporary recordings or local debug logs
+*.log
+*.tmp
+scratch/

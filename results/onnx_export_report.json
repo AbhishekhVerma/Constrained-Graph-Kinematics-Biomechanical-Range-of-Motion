@@ -1,0 +1,127 @@
+{
+  "status": "SUCCESS",
+  "student_kinematic_fk": {
+    "model_name": "StudentKinematicMLP (Distilled 6D-FK Student)",
+    "onnx_path": "checkpoints\\student_kinematic_fk.onnx",
+    "opset_version": 17,
+    "onnx_checker_passed": true,
+    "num_parameters": 78398,
+    "file_size_bytes": 443608,
+    "file_size_kb": 433.21,
+    "file_size_mb": 0.4231,
+    "max_parity_error_mm": 0.0002536773681640625,
+    "mean_parity_error_mm": 1.164853892987594e-05,
+    "max_rot6d_parity_error": 8.344650268554688e-07,
+    "onnx_bone_length_error_mm": 3e-06,
+    "onnx_biomechanical_validity_pct": 100.0,
+    "ort_sequence_latency_ms": 0.969,
+    "ort_sequence_mean_ms": 0.9866,
+    "ort_per_frame_latency_ms": 0.1211,
+    "ort_fps": 8256.4,
+    "checkpoint_info": {
+      "loaded_from_disk": true,
+      "checkpoint_path": "checkpoints\\student_kinematic_mlp.pt",
+      "checkpoint_meta": {
+        "model_name": "StudentKinematicMLP",
+        "num_parameters": 78398,
+        "eval_tiers": {
+          "occ_30": {
+            "mpjpe_all_mm": 4.077,
+            "mpjpe_visible_mm": 3.307,
+            "mpjpe_occluded_mm": 6.001,
+            "pa_mpjpe_mm": 2.757,
+            "bone_length_error_mm": 0.0,
+            "biomechanical_validity_pct": 100.0,
+            "temporal_jitter_mm_s2": 13.05
+          },
+          "occ_50": {
+            "mpjpe_all_mm": 5.052,
+            "mpjpe_visible_mm": 3.374,
+            "mpjpe_occluded_mm": 6.897,
+            "pa_mpjpe_mm": 3.433,
+            "bone_length_error_mm": 0.0,
+            "biomechanical_validity_pct": 100.0,
+            "temporal_jitter_mm_s2": 12.679
+          },
+          "occ_70": {
+            "mpjpe_all_mm": 8.364,
+            "mpjpe_visible_mm": 3.418,
+            "mpjpe_occluded_mm": 10.342,
+            "pa_mpjpe_mm": 5.624,
+            "bone_length_error_mm": 0.0,
+            "biomechanical_validity_pct": 100.0,
+            "temporal_jitter_mm_s2": 12.962
+          }
+        },
+        "epochs": 30
+      }
+    }
+  },
+  "student_unconstrained_xyz": {
+    "model_name": "UnconstrainedStudentMLP (Direct-XYZ Ablation Student)",
+    "onnx_path": "checkpoints\\student_unconstrained_xyz.onnx",
+    "opset_version": 17,
+    "onnx_checker_passed": true,
+    "num_parameters": 78527,
+    "file_size_bytes": 324031,
+    "file_size_kb": 316.44,
+    "file_size_mb": 0.309,
+    "max_parity_error_mm": 4.9591064453125e-05,
+    "mean_parity_error_mm": 6.675247277598828e-06,
+    "max_rot6d_parity_error": 0.0,
+    "onnx_bone_length_error_mm": 12.201899,
+    "onnx_biomechanical_validity_pct": 0.0,
+    "ort_sequence_latency_ms": 0.1698,
+    "ort_sequence_mean_ms": 0.1924,
+    "ort_per_frame_latency_ms": 0.0212,
+    "ort_fps": 47114.2,
+    "checkpoint_info": {
+      "loaded_from_disk": true,
+      "checkpoint_path": "checkpoints\\student_unconstrained_xyz.pt",
+      "checkpoint_meta": {
+        "model_name": "UnconstrainedStudentMLP",
+        "num_parameters": 78527,
+        "eval_tiers": {
+          "occ_30": {
+            "mpjpe_all_mm": 11.243,
+            "mpjpe_visible_mm": 6.218,
+            "mpjpe_occluded_mm": 23.804,
+            "pa_mpjpe_mm": 10.097,
+            "bone_length_error_mm": 4.20266,
+            "biomechanical_validity_pct": 38.65,
+            "temporal_jitter_mm_s2": 15.414
+          },
+          "occ_50": {
+            "mpjpe_all_mm": 15.032,
+            "mpjpe_visible_mm": 5.872,
+            "mpjpe_occluded_mm": 25.109,
+            "pa_mpjpe_mm": 12.34,
+            "bone_length_error_mm": 5.85051,
+            "biomechanical_validity_pct": 8.7,
+            "temporal_jitter_mm_s2": 15.166
+          },
+          "occ_70": {
+            "mpjpe_all_mm": 20.457,
+            "mpjpe_visible_mm": 5.407,
+            "mpjpe_occluded_mm": 26.476,
+            "pa_mpjpe_mm": 13.024,
+            "bone_length_error_mm": 8.45866,
+            "biomechanical_validity_pct": 0.0,
+            "temporal_jitter_mm_s2": 14.175
+          }
+        },
+        "epochs": 25
+      }
+    }
+  },
+  "summary": {
+    "primary_onnx_path": "checkpoints\\student_kinematic_fk.onnx",
+    "primary_size_kb": 433.21,
+    "primary_size_mb": 0.4231,
+    "primary_parameters": 78398,
+    "max_onnx_parity_error_mm": 0.0002536773681640625,
+    "ort_sequence_latency_ms": 0.969,
+    "ort_per_frame_latency_ms": 0.1211,
+    "ort_fps": 8256.4
+  }
+}
