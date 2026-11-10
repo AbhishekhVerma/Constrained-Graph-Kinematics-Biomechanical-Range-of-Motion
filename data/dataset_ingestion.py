@@ -654,6 +654,38 @@ def _synthesize_single_sequence_angles(
     return angles
 
 
+def download_freihand_xyz(raw_dir: Union[str, Path] = "data/raw") -> Optional[Path]:
+    """
+    Downloads lightweight FreiHAND 3D joint coordinate annotations into `data/raw/`.
+    Tries public research mirrors for FreiHAND XYZ annotations.
+    """
+    import urllib.request
+    out_dir = Path(raw_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    dest_path = out_dir / "freihand_xyz.json"
+    if dest_path.exists() and dest_path.stat().st_size > 1000:
+        print(f"[dataset_ingestion] FreiHAND annotations already present at: {dest_path}")
+        return dest_path
+
+    # Public mirror URLs for FreiHAND evaluation/training 3D keypoints
+    mirrors = [
+        "https://raw.githubusercontent.com/lmb-freiburg/freihand/master/evaluation_xyz.json",
+        "https://huggingface.co/datasets/datasets/resolve/main/freihand_evaluation_xyz.json",
+    ]
+    for url in mirrors:
+        try:
+            print(f"[dataset_ingestion] Attempting download from: {url}")
+            urllib.request.urlretrieve(url, dest_path)
+            if dest_path.exists() and dest_path.stat().st_size > 1000:
+                print(f"[dataset_ingestion] Successfully downloaded FreiHAND annotations: {dest_path}")
+                return dest_path
+        except Exception as err:
+            print(f"[dataset_ingestion] Mirror failed ({url}): {err}")
+
+    print("[dataset_ingestion] Could not download FreiHAND automatically. Place 'freihand_xyz.json' in 'data/raw/'.")
+    return None
+
+
 def _try_load_real_annotations(
     raw_dir: Path,
     num_sequences: int,
@@ -762,30 +794,45 @@ def ingest_or_generate_dataset(
         except Exception:
             pass
 
-    rng = np.random.default_rng(seed)
+    real_annotations = _try_load_real_annotations(raw_dir, num_sequences=num_sequences, seq_len=seq_len)
+    if real_annotations is not None and real_annotations.shape[0] >= 10:
+        import torch
+        from models.kinematics import positions_to_rot6d, rot6d_to_matrix
 
-    all_euler = np.zeros((num_sequences, seq_len, NUM_JOINTS, 3), dtype=np.float32)
-    gesture_labels = np.zeros((num_sequences,), dtype=np.int64)
+        print(f"[dataset_ingestion] Loaded {real_annotations.shape[0]} real 3D hand sequences from {raw_dir}")
+        t_real = torch.from_numpy(real_annotations)
+        rot6d_t = positions_to_rot6d(t_real)
+        rot_mat_t = rot6d_to_matrix(rot6d_t)
+        rotations_mat = rot_mat_t.numpy()
+        rotations_6d = rot6d_t.numpy()
+        positions_mm = forward_kinematics_numpy(
+            rotations_mat,
+            bone_lengths_mm=CANONICAL_BONE_LENGTHS_MM,
+            rest_directions=REST_BONE_DIRECTIONS,
+        )
+        all_euler = np.zeros_like(positions_mm)
+        gesture_labels = np.zeros((real_annotations.shape[0],), dtype=np.int64)
+        data_source = "real_annotations"
+    else:
+        rng = np.random.default_rng(seed)
+        all_euler = np.zeros((num_sequences, seq_len, NUM_JOINTS, 3), dtype=np.float32)
+        gesture_labels = np.zeros((num_sequences,), dtype=np.int64)
 
-    num_gestures = len(GESTURE_NAMES)
-    for i in range(num_sequences):
-        g_id = i % num_gestures
-        gesture_labels[i] = g_id
-        all_euler[i] = _synthesize_single_sequence_angles(g_id, seq_len, rng)
+        num_gestures = len(GESTURE_NAMES)
+        for i in range(num_sequences):
+            g_id = i % num_gestures
+            gesture_labels[i] = g_id
+            all_euler[i] = _synthesize_single_sequence_angles(g_id, seq_len, rng)
 
-    # Convert Euler angles to exact SO(3) local rotation matrices & 6D representations
-    rotations_mat = euler_xyz_to_matrix(all_euler)       # (N, T, 21, 3, 3)
-    rotations_6d = matrix_to_rot6d(rotations_mat)        # (N, T, 21, 6)
+        rotations_mat = euler_xyz_to_matrix(all_euler)       # (N, T, 21, 3, 3)
+        rotations_6d = matrix_to_rot6d(rotations_mat)        # (N, T, 21, 6)
 
-    # Synthesize 3D joint positions via exact Forward Kinematics
-    positions_mm = forward_kinematics_numpy(
-        rotations_mat,
-        bone_lengths_mm=CANONICAL_BONE_LENGTHS_MM,
-        rest_directions=REST_BONE_DIRECTIONS,
-    )
-
-    # Optionally check if real annotations exist in data/raw/ for logging/metadata
-    _ = _try_load_real_annotations(raw_dir, num_sequences=num_sequences, seq_len=seq_len)
+        positions_mm = forward_kinematics_numpy(
+            rotations_mat,
+            bone_lengths_mm=CANONICAL_BONE_LENGTHS_MM,
+            rest_directions=REST_BONE_DIRECTIONS,
+        )
+        data_source = "procedural_mano_simulation"
 
     # Cache to disk for fast subsequent loads
     try:
@@ -796,6 +843,7 @@ def ingest_or_generate_dataset(
             rotations_6d=rotations_6d,
             euler_angles_rad=all_euler,
             gesture_labels=gesture_labels,
+            data_source=data_source,
         )
     except Exception:
         pass
@@ -815,16 +863,35 @@ def ingest_or_generate_dataset(
         "bone_lengths_mm": CANONICAL_BONE_LENGTHS_MM.copy(),
         "rest_directions": REST_BONE_DIRECTIONS.copy(),
         "parent_indices": np.array(PARENT_INDICES, dtype=np.int64),
+        "data_source": data_source,
     }
 
 
 if __name__ == "__main__":
-    ds = ingest_or_generate_dataset(num_sequences=120, seq_len=8, seed=42)
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Ingest or generate canonical MANO hand datasets.")
+    parser.add_argument("--download-freihand", action="store_true", help="Download official FreiHAND 3D annotations into data/raw/.")
+    parser.add_argument("--num-sequences", type=int, default=1200, help="Number of sequences to generate.")
+    parser.add_argument("--seq-len", type=int, default=8, help="Sequence length in frames.")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed.")
+    parser.add_argument("--force-regenerate", action="store_true", help="Force dataset regeneration.")
+    args = parser.parse_args()
+
+    if args.download_freihand:
+        download_freihand_xyz("data/raw")
+
+    ds = ingest_or_generate_dataset(
+        num_sequences=args.num_sequences,
+        seq_len=args.seq_len,
+        seed=args.seed,
+        force_regenerate=args.force_regenerate,
+    )
     pos = ds["positions_mm"]
     p_idx = PARENT_INDICES
     bone_lens = [
         np.linalg.norm(pos[:, :, j, :] - pos[:, :, p_idx[j], :], axis=-1).mean()
         for j in range(1, NUM_JOINTS)
     ]
-    print(f"Generated dataset shape: {pos.shape}")
+    print(f"Dataset shape: {pos.shape} | Source: {ds.get('data_source', 'unknown')}")
     print(f"Max bone length error (mm): {np.max(np.abs(np.array(bone_lens) - CANONICAL_BONE_LENGTHS_MM[1:])):.6e}")

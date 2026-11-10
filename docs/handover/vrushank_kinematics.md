@@ -1,36 +1,48 @@
-# Module Handover: Vrushank — 6D Continuous Rotations & Edge Forward Kinematics
+# Module Handover: Vrushank — 6D Continuous Rotations, Public Dataset Ingestion & Fair Ablations
 
-**Owned Files:**
+**Owned Files & Responsibilities:**
 - `models/kinematics.py` (`rot6d_to_matrix`, `matrix_to_rot6d`, `BiomechanicalRoMClamper`, `check_biomechanical_validity`, `DifferentiableFK`, `positions_to_rot6d`, `EdgeFK`)
+- `data/dataset_ingestion.py` (Public `FreiHAND` / `HO-3D` 3D annotation ingestion & IK->FK harmonization into 6D rotations)
 - `tests/test_kinematics.py`
 
-**Git Branch Convention:** `feat/vrushank-*`
+**Git Branch Convention:** `feat/vrushank-kinematics`
 
 ---
 
-## Current Module State
-- **`rot6d_to_matrix`:** Pure PyTorch Gram-Schmidt 6D-to-`SO(3)` mapping (100% ONNX-exportable, `SO(3)` orthogonality error `2.79e-6`, determinant error `4.17e-7`).
-- **`BiomechanicalRoMClamper` & `check_biomechanical_validity`:** `tanh` soft-clamping guarantees **100.0% biomechanical validity** even under extreme random inputs.
-- **`DifferentiableFK` & `EdgeFK`:** Hierarchical Forward Kinematics along `PARENT_INDICES` with **`0.000011 mm`** max bone-length error and **`0.000023 mm`** PyTorch-vs-NumPy parity error.
-- **Bare-Metal NumPy `EdgeFK` Speed (Windows x86_64 host):** `0.162 ms` single-frame (`6,192 FPS` / `6.19 kHz`), `0.233 ms` window `T=8`.
+## Concrete Tasks for Vrushank (Before Nov 17)
 
-## Upstream / Downstream Contracts
-- **Synced with Bhavya (`data/dataset_ingestion.py`):** Must keep `CANONICAL_BONE_LENGTHS_MM`, `REST_BONE_DIRECTIONS`, `ANATOMICAL_MIN_LIMITS_RAD`, `ANATOMICAL_MAX_LIMITS_RAD`, and `PARENT_INDICES` identical (currently imported from `data.dataset_ingestion` with exact fallback constants).
-- **Provides to Abhishekh & Kapish:**
-  - `DifferentiableFK(rot6d)` and `BiomechanicalRoMClamper(rot6d)` taking `(..., 21, 6)` and returning `(..., 21, 3)` in millimeters.
-  - Pure PyTorch ops only (no custom C++ extensions, no dynamic control flow that breaks `torch.onnx.export`).
+### Task 1: Ingest Real Public 3D Hand Annotations (`FreiHAND` / `HO-3D`) via 6D IK-FK Harmonization
+Previously, `_try_load_real_annotations()` in `data/dataset_ingestion.py` was not wired into the saved `.npz` files, so training only used procedural MANO trajectories.
+1. Pull the latest `main` into `feat/vrushank-kinematics`:
+   ```bash
+   git checkout feat/vrushank-kinematics
+   git pull origin main
+   ```
+2. Download or place the lightweight official **FreiHAND** 3D XYZ annotation file (`training_xyz.json` / `evaluation_xyz.json`, ~4 MB) into `data/raw/` using the built-in downloader:
+   ```bash
+   python data/dataset_ingestion.py --download-freihand
+   ```
+   *(Or place `training_xyz.json` directly into `data/raw/` and run `python data/dataset_ingestion.py`.)*
+3. Verify that `ingest_or_generate_dataset()` maps the real 3D MANO joints through `positions_to_rot6d` -> `DifferentiableFK` (`0.0000 mm` bone-length error) and reports `"data_source": "real_freihand_annotations"`.
 
-## Next Tasks for Vrushank's Agent
-1. Verify `tests/test_kinematics.py` and `EdgeFK` latency directly on the **MacBook Air (Apple Silicon)** and **NVIDIA Jetson Nano** (ARM64).
-2. Optional research/paper enhancement: Test per-subject palm-scale calibration (dynamically scaling `CANONICAL_BONE_LENGTHS_MM` using a live user's visible `WRIST -> MIDDLE_MCP` bone length during the first 10 frames of `live_demo.py`) without breaking the `0.0000 mm` normalized bone-length guarantee.
-3. Always run `python tests/test_kinematics.py` before committing any math updates.
+### Task 2: Verify 6D Kinematics & Fair Baseline Integrity (`models/kinematics.py`, `tests/test_kinematics.py`)
+1. Run the full kinematics and ONNX parity suite on your machine:
+   ```bash
+   python tests/test_kinematics.py
+   ```
+2. Optional enhancement for live camera demos: In `models/kinematics.py`, verify/tune live palm-scale calibration (scaling `CANONICAL_BONE_LENGTHS_MM` by a scalar factor $\alpha$ estimated from visible `WRIST -> MIDDLE_MCP` length during the first unoccluded frames of a camera stream while keeping relative bone lengths locked to `0.0000 mm` variance).
+3. Commit and push to `feat/vrushank-kinematics`, logging your dataset ingestion stats and test results in `HANDOVER.md` and below so Abhishekh can re-run the final training on the real FreiHAND trajectories!
+
+---
+
+## Shared Contracts to Preserve
+- `CANONICAL_BONE_LENGTHS_MM`, `REST_BONE_DIRECTIONS`, `ANATOMICAL_MIN_LIMITS_RAD`, `ANATOMICAL_MAX_LIMITS_RAD`, and `PARENT_INDICES` must stay identical between `data/dataset_ingestion.py` and `models/kinematics.py`.
+- Pure PyTorch tensor ops only in `rot6d_to_matrix`, `BiomechanicalRoMClamper`, and `DifferentiableFK` so `torch.onnx.export` succeeds without C++ extensions.
 
 ---
 
 ## Session History
 
-### Session: 2026-11-10 18:05 (UTC+4) — Abhishekh / Orchestrator Agent
-- **Git Branch & Base Commit:** `main` (initial repo setup)
-- **Objective:** Establish verified `models/kinematics.py` and unit tests.
-- **Commands & Tests Executed:** `.\.venv\Scripts\python.exe tests/test_kinematics.py` -> Exit code 0, all assertions passed (`0.000011 mm` bone error, `100.0%` bio-validity).
-- **Handover to Next Agent:** Create `feat/vrushank-*` before modifying any kinematics code, keep `torch.onnx.export` compatibility intact, and log every benchmark or math update in `HANDOVER.md`.
+### Session: 2026-11-10 18:25 (UTC+4) — Abhishekh / Orchestrator Agent
+- **Git Branch:** `main` -> `feat/vrushank-kinematics`
+- **Summary:** Fixed `data/dataset_ingestion.py` so `_try_load_real_annotations()` actually processes real `FreiHAND`/`HO-3D` 3D JSON/NPY annotations in `data/raw/` and added `--download-freihand`. Removed artificial handicaps from `SpatialOnlyGAE` and `UnconstrainedStudentMLP`. Assigned public dataset ingestion & kinematics verification to Vrushank (swapped MacBook Air physical benchmark to Bhavya).

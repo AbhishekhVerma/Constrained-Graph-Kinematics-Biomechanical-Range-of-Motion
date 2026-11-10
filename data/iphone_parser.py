@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from collections import deque
 import json
+from pathlib import Path
 import socket
 import time
 from typing import Any, Deque, Dict, List, Optional, Tuple, Union
@@ -31,8 +32,9 @@ from data.dataset_ingestion import (
     DEFAULT_PALM_SCALE_MM,
     JOINT_NAMES,
     NUM_JOINTS,
+    PARENT_INDICES,
     REST_BONE_DIRECTIONS,
-     _synthesize_single_sequence_angles,
+    _synthesize_single_sequence_angles,
     euler_xyz_to_matrix,
     forward_kinematics_numpy,
 )
@@ -449,14 +451,14 @@ def build_jetson_csi_pipeline(
 
 class MediaPipeCameraStreamer:
     """
-    Live 3D Hand Keypoint Streamer using OpenCV + `mediapipe.solutions.hands`.
+    Live 3D Hand Keypoint Streamer using OpenCV + MediaPipe HandLandmarker.
 
     Supports:
       - MacBook Air built-in FaceTime HD webcam (`camera_index=0`)
       - iPhone Continuity Camera (`camera_index=1`)
       - NVIDIA Jetson Nano with Raspberry Pi CSI Camera (`use_jetson_csi=True`)
-      - Automatic graceful fallback to a simulated biomechanical stream when
-        running in headless environments without a physical camera.
+      - Automatic fallback to `mediapipe.solutions.hands` for legacy Linux/Jetson
+      - Graceful fallback to a simulated biomechanical stream in headless environments.
     """
 
     def __init__(
@@ -469,6 +471,7 @@ class MediaPipeCameraStreamer:
         seq_len: int = 8,
         simulate_if_unavailable: bool = True,
         simulated_occlusion_rate: float = 0.30,
+        task_model_path: str = "checkpoints/hand_landmarker.task",
     ) -> None:
         self.camera_index = int(camera_index)
         self.use_jetson_csi = bool(use_jetson_csi)
@@ -478,9 +481,12 @@ class MediaPipeCameraStreamer:
         self.seq_len = int(seq_len)
         self.simulate_if_unavailable = bool(simulate_if_unavailable)
         self.simulated_occlusion_rate = float(simulated_occlusion_rate)
+        self.task_model_path = Path(task_model_path)
+        self.tool_box: Optional[Tuple[int, int, int, int]] = None  # (x1, y1, x2, y2)
 
         self._cap: Any = None
-        self._mp_hands: Any = None
+        self._landmarker: Any = None
+        self._mp_legacy_hands: Any = None
         self._is_simulated: bool = False
         self._step_counter: int = 0
 
@@ -495,17 +501,45 @@ class MediaPipeCameraStreamer:
             import cv2
             import mediapipe as mp
 
-            mp_hands_mod = getattr(mp, "solutions", None)
-            if mp_hands_mod is None or not hasattr(mp_hands_mod, "hands"):
-                raise RuntimeError("mediapipe.solutions.hands unavailable")
+            # Try modern Tasks API (mediapipe >= 0.10 / 1.2+) first
+            landmarker = None
+            resolved_task = self.task_model_path
+            if not resolved_task.is_absolute():
+                candidate = (Path(__file__).resolve().parent.parent / resolved_task).resolve()
+                if candidate.exists():
+                    resolved_task = candidate
 
-            self._mp_hands = mp_hands_mod.hands.Hands(
-                static_image_mode=False,
-                max_num_hands=1,
-                model_complexity=1,
-                min_detection_confidence=self.min_detection_confidence,
-                min_tracking_confidence=self.min_tracking_confidence,
-            )
+            if resolved_task.exists():
+                try:
+                    from mediapipe.tasks import python as mp_python
+                    from mediapipe.tasks.python import vision
+
+                    base_opts = mp_python.BaseOptions(model_asset_path=str(resolved_task))
+                    options = vision.HandLandmarkerOptions(
+                        base_options=base_opts,
+                        num_hands=1,
+                        min_hand_detection_confidence=self.min_detection_confidence,
+                        min_tracking_confidence=self.min_tracking_confidence,
+                    )
+                    landmarker = vision.HandLandmarker.create_from_options(options)
+                    self._landmarker = landmarker
+                except Exception:
+                    self._landmarker = None
+
+            # Fallback to legacy solutions.hands if Tasks API is unavailable
+            if self._landmarker is None:
+                mp_hands_mod = getattr(mp, "solutions", None)
+                if mp_hands_mod is not None and hasattr(mp_hands_mod, "hands"):
+                    self._mp_legacy_hands = mp_hands_mod.hands.Hands(
+                        static_image_mode=False,
+                        max_num_hands=1,
+                        model_complexity=1,
+                        min_detection_confidence=self.min_detection_confidence,
+                        min_tracking_confidence=self.min_tracking_confidence,
+                    )
+
+            if self._landmarker is None and self._mp_legacy_hands is None:
+                raise RuntimeError("Neither MediaPipe HandLandmarker task nor solutions.hands available.")
 
             cap = None
             if self.use_jetson_csi:
@@ -526,7 +560,8 @@ class MediaPipeCameraStreamer:
                 self._is_simulated = True
         except Exception:
             self._cap = None
-            self._mp_hands = None
+            self._landmarker = None
+            self._mp_legacy_hands = None
             self._is_simulated = True
 
         if self._is_simulated and not self.simulate_if_unavailable:
@@ -535,32 +570,159 @@ class MediaPipeCameraStreamer:
                 "or MediaPipe is unavailable and simulate_if_unavailable=False."
             )
 
-    def read_frame(self) -> Dict[str, Any]:
+    def _render_synthetic_canvas(
+        self,
+        positions_mm: np.ndarray,
+        visibility_mask: np.ndarray,
+        width: int = 640,
+        height: int = 480,
+    ) -> np.ndarray:
+        """Renders an intuitive 2D projection of the hand skeleton onto a synthetic BGR canvas."""
+        import cv2
+
+        canvas = np.zeros((height, width, 3), dtype=np.uint8)
+        canvas[:] = (26, 20, 15)  # dark slate BGR
+
+        # Project 3D mm (wrist at 0,0,0) -> 2D screen coordinates
+        # Center wrist at (width/2, height*0.75)
+        cx, cy = width // 2, int(height * 0.78)
+        scale = min(width, height) / 280.0
+
+        coords_2d = np.zeros((NUM_JOINTS, 2), dtype=np.int32)
+        for j in range(NUM_JOINTS):
+            # x lateral, y distal (upwards in screen -> negative cy)
+            px = int(cx + positions_mm[j, 0] * scale)
+            py = int(cy - positions_mm[j, 1] * scale)
+            coords_2d[j] = [px, py]
+
+        # Draw bones
+        for j in range(1, NUM_JOINTS):
+            p = PARENT_INDICES[j]
+            vis_j = visibility_mask[j] > 0.5
+            vis_p = visibility_mask[p] > 0.5
+            color = (80, 200, 120) if (vis_j and vis_p) else (60, 60, 220)
+            thickness = 2 if (vis_j and vis_p) else 1
+            cv2.line(canvas, tuple(coords_2d[p]), tuple(coords_2d[j]), color, thickness)
+
+        # Draw joints
+        for j in range(NUM_JOINTS):
+            vis = visibility_mask[j] > 0.5
+            color = (255, 255, 255) if j == 0 else ((100, 240, 150) if vis else (40, 40, 230))
+            radius = 5 if j == 0 else (4 if vis else 3)
+            cv2.circle(canvas, tuple(coords_2d[j]), radius, color, -1)
+
+        # Overlay virtual tool box if defined
+        if self.tool_box is not None:
+            x1, y1, x2, y2 = self.tool_box
+            cv2.rectangle(canvas, (x1, y1), (x2, y2), (0, 165, 255), 2)
+            cv2.putText(
+                canvas,
+                "SURGICAL TOOL ROI",
+                (x1 + 4, max(y1 - 6, 16)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.45,
+                (0, 165, 255),
+                1,
+            )
+
+        cv2.putText(
+            canvas,
+            "SIMULATED HARDWARE TELEMETRY STREAM",
+            (14, 26),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (0, 200, 255),
+            1,
+        )
+        return canvas
+
+    def read_frame(
+        self,
+        tool_box: Optional[Tuple[int, int, int, int]] = None,
+    ) -> Dict[str, Any]:
         """
         Captures a single frame from the camera (or simulated stream) and extracts
-        21 3D hand world landmarks in millimeters plus `[x, y, z, m]` features.
+        21 3D hand world landmarks in millimeters plus `[x, y, z, m]` features,
+        returning the image frame (`frame_bgr`) and 2D pixel coordinates (`landmarks_2d`).
         """
-        if not self._is_simulated and self._cap is not None and self._mp_hands is not None:
+        if tool_box is not None:
+            self.tool_box = tool_box
+
+        if not self._is_simulated and self._cap is not None:
             import cv2
+            import mediapipe as mp
 
             ok, bgr_frame = self._cap.read()
             if ok and bgr_frame is not None:
+                h_img, w_img = bgr_frame.shape[:2]
                 rgb_frame = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2RGB)
-                results = self._mp_hands.process(rgb_frame)
-                if getattr(results, "multi_hand_world_landmarks", None):
-                    hand_world = results.multi_hand_world_landmarks[0]
-                    raw_mm = np.zeros((NUM_JOINTS, 3), dtype=np.float32)
-                    vis_mask = np.ones((NUM_JOINTS,), dtype=np.float32)
 
-                    for j_idx in range(NUM_JOINTS):
-                        lm = hand_world.landmark[j_idx]
-                        # MediaPipe world landmarks are in meters; convert to mm
-                        raw_mm[j_idx, 0] = float(lm.x) * 1000.0
-                        raw_mm[j_idx, 1] = -float(lm.y) * 1000.0  # +Y distal
-                        raw_mm[j_idx, 2] = -float(lm.z) * 1000.0
-                        vis = float(getattr(lm, "visibility", 1.0) or 1.0)
-                        if vis < 0.35:
-                            vis_mask[j_idx] = 0.0
+                raw_mm = np.zeros((NUM_JOINTS, 3), dtype=np.float32)
+                landmarks_2d = np.zeros((NUM_JOINTS, 2), dtype=np.float32)
+                vis_mask = np.ones((NUM_JOINTS,), dtype=np.float32)
+                detected = False
+
+                # 1. Try HandLandmarker (Tasks API)
+                if self._landmarker is not None:
+                    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+                    det_result = self._landmarker.detect(mp_image)
+                    if det_result.hand_world_landmarks and len(det_result.hand_world_landmarks) > 0:
+                        detected = True
+                        world_lms = det_result.hand_world_landmarks[0]
+                        screen_lms = (
+                            det_result.hand_landmarks[0]
+                            if det_result.hand_landmarks
+                            else None
+                        )
+                        for j_idx in range(NUM_JOINTS):
+                            lm = world_lms[j_idx]
+                            raw_mm[j_idx, 0] = float(lm.x) * 1000.0
+                            raw_mm[j_idx, 1] = -float(lm.y) * 1000.0
+                            raw_mm[j_idx, 2] = -float(lm.z) * 1000.0
+                            if screen_lms is not None:
+                                slm = screen_lms[j_idx]
+                                landmarks_2d[j_idx, 0] = float(slm.x) * w_img
+                                landmarks_2d[j_idx, 1] = float(slm.y) * h_img
+
+                # 2. Try legacy solutions.hands fallback
+                elif self._mp_legacy_hands is not None:
+                    results = self._mp_legacy_hands.process(rgb_frame)
+                    if getattr(results, "multi_hand_world_landmarks", None):
+                        detected = True
+                        hand_world = results.multi_hand_world_landmarks[0]
+                        hand_screen = (
+                            results.multi_hand_landmarks[0]
+                            if getattr(results, "multi_hand_landmarks", None)
+                            else None
+                        )
+                        for j_idx in range(NUM_JOINTS):
+                            lm = hand_world.landmark[j_idx]
+                            raw_mm[j_idx, 0] = float(lm.x) * 1000.0
+                            raw_mm[j_idx, 1] = -float(lm.y) * 1000.0
+                            raw_mm[j_idx, 2] = -float(lm.z) * 1000.0
+                            if hand_screen is not None:
+                                slm = hand_screen.landmark[j_idx]
+                                landmarks_2d[j_idx, 0] = float(slm.x) * w_img
+                                landmarks_2d[j_idx, 1] = float(slm.y) * h_img
+
+                if detected:
+                    # Apply tool occlusion region if specified
+                    if self.tool_box is not None:
+                        bx1, by1, bx2, by2 = self.tool_box
+                        for j in range(1, NUM_JOINTS):
+                            jx, jy = landmarks_2d[j]
+                            if bx1 <= jx <= bx2 and by1 <= jy <= by2:
+                                vis_mask[j] = 0.0
+                                raw_mm[j] = 0.0
+                        cv2.rectangle(bgr_frame, (bx1, by1), (bx2, by2), (0, 140, 255), 2)
+                    elif self.simulated_occlusion_rate > 0.0:
+                        rng = np.random.default_rng(self._step_counter + 10)
+                        for j in range(1, NUM_JOINTS):
+                            # Distal joints occlude with higher probability
+                            prob = self.simulated_occlusion_rate * (1.3 if j in (4, 8, 12, 16, 20) else 0.8)
+                            if rng.uniform(0.0, 1.0) < prob:
+                                vis_mask[j] = 0.0
+                                raw_mm[j] = 0.0
 
                     vis_mask[0] = 1.0
                     norm_xyz, _, _ = normalize_hand_sequence(
@@ -577,11 +739,19 @@ class MediaPipeCameraStreamer:
                         "features_4d": features_4d,
                         "positions_mm": centered_mm,
                         "visibility_mask": vis_mask,
+                        "landmarks_2d": landmarks_2d,
+                        "frame_bgr": bgr_frame,
                         "scale_mm": self.scale_mm,
                         "simulated": False,
                     }
 
         # Fallback: generate simulated MediaPipe world landmarks frame
+        if not self.simulate_if_unavailable:
+            raise RuntimeError(
+                f"Camera {self.camera_index} produced no valid hand tracking frame "
+                "and simulate_if_unavailable=False."
+            )
+
         mock_pkt = build_mock_arkit_packet_dict(
             step_idx=self._step_counter,
             occlusion_rate=self.simulated_occlusion_rate,
@@ -593,6 +763,14 @@ class MediaPipeCameraStreamer:
         parser.close()
         parsed = parser.parse_arkit_json_packet(mock_pkt)
         parsed["simulated"] = True
+
+        # Generate a synthetic BGR frame with 2D skeleton rendering
+        synth_bgr = self._render_synthetic_canvas(
+            positions_mm=parsed["positions_mm"],
+            visibility_mask=parsed["visibility_mask"],
+        )
+        parsed["frame_bgr"] = synth_bgr
+        parsed["landmarks_2d"] = np.zeros((NUM_JOINTS, 2), dtype=np.float32)
 
         self._step_counter += 1
         self._frame_buffer.append(parsed["features_4d"])
@@ -615,6 +793,8 @@ class MediaPipeCameraStreamer:
             "features_4d": frames_4d,
             "positions_mm": pos_mm,
             "visibility_mask": mask,
+            "frame_bgr": last_frame.get("frame_bgr"),
+            "landmarks_2d": last_frame.get("landmarks_2d"),
             "scale_mm": self.scale_mm,
             "simulated": bool(last_frame.get("simulated", True)),
         }
@@ -629,12 +809,18 @@ class MediaPipeCameraStreamer:
             except Exception:
                 pass
             self._cap = None
-        if self._mp_hands is not None:
+        if self._landmarker is not None:
             try:
-                self._mp_hands.close()
+                self._landmarker.close()
             except Exception:
                 pass
-            self._mp_hands = None
+            self._landmarker = None
+        if self._mp_legacy_hands is not None:
+            try:
+                self._mp_legacy_hands.close()
+            except Exception:
+                pass
+            self._mp_legacy_hands = None
 
     def __enter__(self) -> "MediaPipeCameraStreamer":
         return self

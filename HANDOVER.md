@@ -28,26 +28,27 @@
 
 ### Held-Out 20% Test Split (50% Surgical Tool Occlusion + Glove Stiffness/Jitter)
 - **Corrupted Input:** MPJPE `48.18 mm` | Occluded MPJPE `92.13 mm` | Bone Error `19.47 mm` | Bio-Validity `0.0%` | Jitter `29.81 mm/frame^2`
-- **Unconstrained Student MLP (Direct XYZ):** MPJPE `15.03 mm` | Occluded `25.11 mm` | Bone Error `5.85 mm` | Bio-Validity `8.7%` | Jitter `15.17 mm/frame^2`
-- **Spatial-Only GAT + 6D DFK (No GRU):** MPJPE `6.20 mm` | Occluded `9.03 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `15.96 mm/frame^2`
-- **Teacher ST-GAE (Full GAT + GRU + 6D DFK):** MPJPE `3.79 mm` | Occluded `4.82 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `12.31 mm/frame^2`
-- **Distilled Student MLP + Edge 6D FK (Ours):** MPJPE `5.05 mm` | Occluded `6.90 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `12.68 mm/frame^2`
+- **Unconstrained Student MLP (Direct XYZ, Un-Rigged Baseline):** MPJPE `10.18 mm` | Occluded `14.20 mm` | Bone Error `2.94 mm` | Bio-Validity `88.4%` | Jitter `14.85 mm/frame^2`
+- **Spatial-Only GAT + 6D DFK (No GRU Ablation):** MPJPE `11.00 mm` | Occluded `15.41 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `16.76 mm/frame^2`
+- **Teacher ST-GAE (Full GAT + GRU + 6D DFK):** MPJPE `6.64 mm` | Occluded `8.79 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `12.03 mm/frame^2`
+- **Distilled Student MLP + Edge 6D FK (Ours):** MPJPE `6.51 mm` | Occluded `8.97 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `12.36 mm/frame^2`
 
 ### Custom Gloved Benchmark (`data/custom_gloved_dataset.npz`, 50% Occlusion)
-- **Teacher ST-GAE:** MPJPE `3.60 mm` | **Distilled Student MLP (Ours):** MPJPE `4.85 mm`, Bone Error `0.0000 mm`, Bio-Validity `100.0%`
+- **Teacher ST-GAE:** MPJPE `6.64 mm` | **Distilled Student MLP (Ours):** MPJPE `6.51 mm`, Bone Error `0.0000 mm`, Bio-Validity `100.0%`
 
-### ONNX Host Runtime (`results/edge_benchmark.json`)
-- **Student ONNX (`CPUExecutionProvider`):** `0.964 ms` single-frame `T=1` (`1,037 FPS`), `0.709 ms` window `T=8`, `0.000145 mm` max PyTorch-vs-ONNX parity error.
+### ONNX Host Runtime (`results/edge_benchmark.json` / `results/benchmark_windows_pc.json`)
+- **Student ONNX (`CPUExecutionProvider` on x86_64 CPU):** `1.792 ms` single-frame `T=1` (`558 FPS`), `2.546 ms` window `T=8`, `0.000141 mm` max PyTorch-vs-ONNX parity error.
+- **Physical Hardware Status:** Windows PC CPU is physically measured; MacBook Air M-Series (Bhavya) and Jetson Nano (Kapish) are flagged `PENDING_PHYSICAL_MEASUREMENT`.
 
 ---
 
 ## 3. Active Remaining Work Before Nov 17 Presentation
 
-1. **Real-World Hardware Runs & Recording (All Teammates):**
-   - **Bhavya / Abhishekh:** Record real gloved + scalpel/tool gestures using `data/record_custom_gloved.py --mode mediapipe` (and/or `--mode udp` from iPhone) to replace/augment the synthetic benchmark in `data/custom_gloved_dataset.npz` with real captured footage, then re-run `training/evaluate_and_plot.py`.
-   - **Bhavya:** Optionally ingest real FreiHAND / HO-3D raw JSON coordinates into `data/raw/` and run real-vs-synthetic cross-validation.
-   - **Kapish / Vrushank:** Run `deployment/benchmark_edge.py` natively on the **MacBook Air (Apple Silicon)** and **NVIDIA Jetson Nano (+ Raspberry Pi CSI Camera)** to replace projected numbers in `results/edge_benchmark.json` and the report with directly measured device numbers!
-   - **All:** Test `deployment/live_demo.py --source mediapipe --camera 0` (MacBook / Continuity Camera) and `--jetson-csi` (Jetson Nano), and rehearse the 11-slide deck in `docs/final_presentation_slides.md`.
+1. **Physical Hardware Benchmarks & Gloved Recording (Teammates):**
+   - **Bhavya (MacBook Air M-Series):** Clone repo on MacBook Air, run `python deployment/benchmark_edge.py --output results/benchmark_macbook_air.json`, record gloved sequences with built-in FaceTime / iPhone Continuity Camera (`python data/record_custom_gloved.py --mode mediapipe`), and commit.
+   - **Kapish (NVIDIA Jetson Nano + Raspberry Pi CSI Camera):** Run `python deployment/benchmark_edge.py --output results/benchmark_jetson_nano.json` on Jetson Nano, test CSI camera live demo (`python deployment/live_demo.py --source mediapipe --jetson-csi`), and commit.
+   - **Vrushank (FreiHAND Ingestion & Kinematics Parity):** Verify real FreiHAND annotation loading (`python data/dataset_ingestion.py --download-freihand`), run kinematics unit tests (`python tests/test_kinematics.py`).
+   - **Abhishekh (Repository Lead):** Merge hardware benchmark JSONs (`python deployment/benchmark_edge.py --merge results/benchmark_windows_pc.json results/benchmark_macbook_air.json results/benchmark_jetson_nano.json`), finalize presentation slides and IEEE report, and compile `Final_Project_Report.pdf`.
 
 ---
 
@@ -73,4 +74,6 @@ Raw / Camera / UDP Input (mm)
 
 | Date (UTC+4) | Teammate / Agent | Branch / Commit | Summary of Changes | Verification Run | Open Handoff / Next Action |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 2026-11-10 | Abhishekh (Orchestrator Agent) | `main` (Initial Repo Setup) | Initialized Git repository, `.gitignore`, `.gitattributes`, CI workflow, PR template, `AGENTS.md`, `HANDOVER.md`, and 4 module handover docs in `docs/handover/`. Baseline codebase, checkpoints, 300-DPI figures, 11-slide deck, and `Final_Project_Report.pdf` are already built and verified. | `tests/test_kinematics.py`, `evaluate_and_plot.py`, `benchmark_edge.py`, `live_demo.py --source replay` | Push `main` to GitHub remote; teammates clone repo, create `feat/<name>-*` branches, run real hardware recordings/benchmarks on MacBook Air, iPhone, and Jetson Nano + RPi Camera, and log results here. |
+| 2026-11-10 | Abhishekh (Orchestrator Agent) | `main` | Initialized Git repository, `.gitignore`, `.gitattributes`, CI workflow, PR template, `AGENTS.md`, `HANDOVER.md`, and 4 module handover docs in `docs/handover/`. | `tests/test_kinematics.py` | Initial repo setup. |
+| 2026-11-10 | Abhishekh (Orchestrator Agent) | `main` | Removed baseline rigging; integrated official Google MediaPipe Tasks HandLandmarker; updated live recording, edge benchmark `--merge`, and 60 FPS OpenCV HUD demo; retrained Teacher & Student models honestly; generated 300-DPI publication figures. | `test_kinematics.py`, `train_teacher.py`, `distill_student.py`, `export_models.py`, `evaluate_and_plot.py`, `benchmark_edge.py`, `live_demo.py` | Bhavya runs MacBook Air benchmarks; Kapish runs Jetson Nano benchmarks; Vrushank checks FreiHAND; Abhishekh merges results. |
+| 2026-11-10 | Abhishekh (Teacher & Eval Lead) | `feat/abhishekh-teacher` | Updated `docs/final_presentation_slides.md` and `docs/Final_Project_Report.md` with honest empirical metrics; recompiled `Final_Project_Report.pdf`; verified all kinematics tests; updated handover docs. | `tests/test_kinematics.py` (All PASS), `docs/build_report_pdf.py` (PDF OK) | Bhavya benchmarks MacBook Air M-Series; Kapish benchmarks Jetson Nano; Vrushank verifies FreiHAND; Abhishekh merges benchmarks. |

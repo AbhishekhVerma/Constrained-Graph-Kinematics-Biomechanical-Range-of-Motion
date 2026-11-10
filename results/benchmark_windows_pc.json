@@ -1,0 +1,402 @@
+{
+  "project": "Constrained Graph Kinematics: Biomechanical Range-of-Motion for Occluded Hand Gesture Telemetry",
+  "module_owners": "Kapish & Vrushank (Edge Student Architecture, Kinematics & Multi-Hardware Deployment)",
+  "timestamp": "2026-11-10T15:02:29Z",
+  "host_hardware": {
+    "os": "Windows 11",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "architecture": "AMD64",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "cpu_count_logical": 24,
+    "board_model": null,
+    "is_jetson_nano": false,
+    "is_apple_silicon": false,
+    "is_raspberry_pi": false,
+    "python_version": "3.12.14",
+    "numpy_version": "2.5.4",
+    "pytorch_version": "2.15.0+cpu",
+    "onnxruntime_version": "1.31.1",
+    "pytorch_backends": {
+      "CUDA": false,
+      "MPS": false,
+      "CPU": true,
+      "preferred_device": "cpu",
+      "cuda_device_name": null,
+      "cuda_capability": null
+    },
+    "onnxruntime_providers": {
+      "installed_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "target_providers_status": {
+        "TensorrtExecutionProvider": false,
+        "CUDAExecutionProvider": false,
+        "CoreMLExecutionProvider": false,
+        "CPUExecutionProvider": true
+      },
+      "selected_provider_priority": [
+        "CPUExecutionProvider"
+      ],
+      "primary_provider": "CPUExecutionProvider"
+    }
+  },
+  "model_complexity": {
+    "Teacher_SpatioTemporalGAE": {
+      "total_params": 520189,
+      "trainable_params": 520189,
+      "buffer_elements": 2163,
+      "size_fp32_kb": 2040.44,
+      "size_fp32_mb": 1.9926,
+      "size_fp16_kb": 1020.22,
+      "size_fp16_mb": 0.9963,
+      "flops_per_frame": 22427490,
+      "flops_per_window_T8": 179419920,
+      "kflops_per_frame": 22427.49,
+      "mflops_per_frame": 22.427,
+      "mflops_per_window_T8": 179.42,
+      "flops_reduction_ratio_vs_student": 137.3
+    },
+    "Ablation_SpatialOnlyGAE": {
+      "total_params": 461693,
+      "trainable_params": 461693,
+      "buffer_elements": 2163,
+      "size_fp32_kb": 1811.94,
+      "size_fp32_mb": 1.7695,
+      "size_fp16_kb": 905.97,
+      "size_fp16_mb": 0.8847
+    },
+    "StudentKinematicMLP": {
+      "total_params": 78398,
+      "trainable_params": 78398,
+      "buffer_elements": 840,
+      "size_fp32_kb": 309.52,
+      "size_fp32_mb": 0.3023,
+      "size_fp16_kb": 154.76,
+      "size_fp16_mb": 0.1511,
+      "flops_per_frame": 163398,
+      "flops_per_window_T8": 1307184,
+      "kflops_per_frame": 163.4,
+      "mflops_per_frame": 0.163,
+      "mflops_per_window_T8": 1.307
+    },
+    "UnconstrainedStudentMLP": {
+      "total_params": 78527,
+      "trainable_params": 78527,
+      "buffer_elements": 126,
+      "size_fp32_kb": 307.24,
+      "size_fp32_mb": 0.3,
+      "size_fp16_kb": 153.62,
+      "size_fp16_mb": 0.15,
+      "flops_per_frame": 157928,
+      "flops_per_window_T8": 1263424,
+      "kflops_per_frame": 157.93,
+      "mflops_per_frame": 0.158,
+      "mflops_per_window_T8": 1.263
+    },
+    "EdgeFK_NumPy": {
+      "total_params": 0,
+      "size_fp32_kb": 0.84,
+      "flops_per_frame": 3810,
+      "flops_per_window_T8": 30480,
+      "kflops_per_frame": 3.81,
+      "mflops_per_frame": 0.0038,
+      "mflops_per_window_T8": 0.0305
+    },
+    "compression_ratio_params_x": 6.64,
+    "compression_ratio_flops_x": 137.3
+  },
+  "measured_benchmarks": {
+    "numpy_edge_fk": {
+      "description": "Bare-Metal NumPy EdgeFK (20-bone 6D Gram-Schmidt + Hierarchical FK)",
+      "backend": "NumPy CPU (Vectorized)",
+      "parameters": 0,
+      "size_kb": 0.84,
+      "flops_per_frame": 3810,
+      "single_frame_T1": {
+        "mean_ms": 0.1994,
+        "median_ms": 0.1953,
+        "p95_ms": 0.2157,
+        "p99_ms": 0.2314,
+        "min_ms": 0.1834,
+        "std_ms": 0.0378,
+        "fps": 5014.5,
+        "khz": 5.015
+      },
+      "window_T8": {
+        "mean_ms": 0.2882,
+        "median_ms": 0.2841,
+        "p95_ms": 0.3176,
+        "p99_ms": 0.3356,
+        "min_ms": 0.2679,
+        "std_ms": 0.0268,
+        "fps": 3469.6,
+        "khz": 3.47
+      },
+      "bone_length_error_mm": 8e-06,
+      "pytorch_parity_max_diff_mm": 8e-06
+    },
+    "pytorch_teacher_st_gae": {
+      "description": "PyTorch Teacher ST-GAE (3-Layer 4-Head GAT + Bi-GRU + DifferentiableFK)",
+      "backend": "PyTorch (CPU)",
+      "total_params": 520189,
+      "trainable_params": 520189,
+      "buffer_elements": 2163,
+      "size_fp32_kb": 2040.44,
+      "size_fp32_mb": 1.9926,
+      "size_fp16_kb": 1020.22,
+      "size_fp16_mb": 0.9963,
+      "flops_per_frame": 22427490,
+      "flops_per_window_T8": 179419920,
+      "kflops_per_frame": 22427.49,
+      "mflops_per_frame": 22.427,
+      "mflops_per_window_T8": 179.42,
+      "flops_reduction_ratio_vs_student": 137.3,
+      "single_frame_T1": {
+        "mean_ms": 22.0941,
+        "median_ms": 21.821,
+        "p95_ms": 24.1605,
+        "p99_ms": 24.9759,
+        "min_ms": 20.6519,
+        "std_ms": 0.9317,
+        "fps": 45.3,
+        "khz": 0.045
+      },
+      "window_T8": {
+        "mean_ms": 29.3399,
+        "median_ms": 30.2286,
+        "p95_ms": 34.313,
+        "p99_ms": 44.2721,
+        "min_ms": 14.7478,
+        "std_ms": 5.6879,
+        "fps": 34.1,
+        "khz": 0.034
+      },
+      "bone_length_error_mm": 0.0
+    },
+    "pytorch_unconstrained_student_mlp": {
+      "description": "PyTorch UnconstrainedStudentMLP (Direct-XYZ Ablation Baseline)",
+      "backend": "PyTorch (CPU)",
+      "total_params": 78527,
+      "trainable_params": 78527,
+      "buffer_elements": 126,
+      "size_fp32_kb": 307.24,
+      "size_fp32_mb": 0.3,
+      "size_fp16_kb": 153.62,
+      "size_fp16_mb": 0.15,
+      "flops_per_frame": 157928,
+      "flops_per_window_T8": 1263424,
+      "kflops_per_frame": 157.93,
+      "mflops_per_frame": 0.158,
+      "mflops_per_window_T8": 1.263,
+      "single_frame_T1": {
+        "mean_ms": 1.8187,
+        "median_ms": 1.7801,
+        "p95_ms": 2.0986,
+        "p99_ms": 2.2743,
+        "min_ms": 1.5894,
+        "std_ms": 0.1443,
+        "fps": 549.8,
+        "khz": 0.55
+      },
+      "window_T8": {
+        "mean_ms": 2.9765,
+        "median_ms": 2.8807,
+        "p95_ms": 3.5696,
+        "p99_ms": 3.6817,
+        "min_ms": 2.5671,
+        "std_ms": 0.2743,
+        "fps": 336.0,
+        "khz": 0.336
+      }
+    },
+    "pytorch_student_kinematic": {
+      "description": "PyTorch StudentKinematicMLP (6D Rotations + RoM Clamper + DifferentiableFK)",
+      "backend": "PyTorch (CPU)",
+      "total_params": 78398,
+      "trainable_params": 78398,
+      "buffer_elements": 840,
+      "size_fp32_kb": 309.52,
+      "size_fp32_mb": 0.3023,
+      "size_fp16_kb": 154.76,
+      "size_fp16_mb": 0.1511,
+      "flops_per_frame": 163398,
+      "flops_per_window_T8": 1307184,
+      "kflops_per_frame": 163.4,
+      "mflops_per_frame": 0.163,
+      "mflops_per_window_T8": 1.307,
+      "single_frame_T1": {
+        "mean_ms": 8.2371,
+        "median_ms": 8.1505,
+        "p95_ms": 8.9648,
+        "p99_ms": 9.3116,
+        "min_ms": 7.7188,
+        "std_ms": 0.3462,
+        "fps": 121.4,
+        "khz": 0.121
+      },
+      "window_T8": {
+        "mean_ms": 9.7575,
+        "median_ms": 9.7267,
+        "p95_ms": 10.3752,
+        "p99_ms": 10.6758,
+        "min_ms": 9.03,
+        "std_ms": 0.3706,
+        "fps": 102.5,
+        "khz": 0.102
+      },
+      "speedup_vs_teacher_T8_x": 3.01,
+      "bone_length_error_mm": 1.5e-05,
+      "biomechanical_valid_pct": 100.0
+    },
+    "onnx_student_kinematic": {
+      "description": "ONNX Runtime StudentKinematicMLP (6D Rotations + RoM Clamper + DifferentiableFK)",
+      "backend": "ONNX Runtime (CPUExecutionProvider)",
+      "total_params": 78398,
+      "trainable_params": 78398,
+      "buffer_elements": 840,
+      "size_fp32_kb": 309.52,
+      "size_fp32_mb": 0.3023,
+      "size_fp16_kb": 154.76,
+      "size_fp16_mb": 0.1511,
+      "flops_per_frame": 163398,
+      "flops_per_window_T8": 1307184,
+      "kflops_per_frame": 163.4,
+      "mflops_per_frame": 0.163,
+      "mflops_per_window_T8": 1.307,
+      "onnx_metadata": {
+        "onnx_path": "checkpoints\\student_kinematic_fk.onnx",
+        "loaded_from_existing_checkpoint": true,
+        "onnx_size_kb": 433.19,
+        "onnx_size_mb": 0.423,
+        "active_provider": "CPUExecutionProvider",
+        "session_providers": [
+          "CPUExecutionProvider"
+        ],
+        "input_name": "input",
+        "output_names": [
+          "positions_mm",
+          "rot6d"
+        ],
+        "supports_dynamic_seq": true
+      },
+      "single_frame_T1": {
+        "mean_ms": 1.7924,
+        "median_ms": 1.7653,
+        "p95_ms": 2.2204,
+        "p99_ms": 2.4143,
+        "min_ms": 1.0871,
+        "std_ms": 0.1978,
+        "fps": 557.9,
+        "khz": 0.558
+      },
+      "window_T8": {
+        "mean_ms": 2.5456,
+        "median_ms": 2.5219,
+        "p95_ms": 2.858,
+        "p99_ms": 3.0485,
+        "min_ms": 1.9426,
+        "std_ms": 0.1765,
+        "fps": 392.8,
+        "khz": 0.393
+      },
+      "speedup_vs_teacher_T8_x": 11.53,
+      "speedup_streaming_T1_vs_teacher_T8_x": 16.37,
+      "onnx_vs_pytorch_max_diff_mm": 0.000141,
+      "bone_length_error_mm": 1.1e-05,
+      "biomechanical_valid_pct": 100.0
+    }
+  },
+  "hardware_platform_profiles": {
+    "pc_x86_host": {
+      "platform_name": "PC Workstation (x86_64 CPU)",
+      "hardware_spec": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel (24 logical cores)",
+      "primary_backend": "CPUExecutionProvider",
+      "assigned_owner": "Abhishekh & Vrushank",
+      "measured_on_host": true,
+      "status": "PHYSICALLY_MEASURED",
+      "edge_fk_numpy_ms": 0.1994,
+      "edge_fk_numpy_khz": 5.02,
+      "teacher_st_gae_pytorch_t8_ms": 29.34,
+      "teacher_st_gae_pytorch_fps": 34.1,
+      "student_kinematic_pytorch_t1_ms": 8.237,
+      "student_kinematic_onnx_t1_ms": 1.792,
+      "student_kinematic_onnx_t8_ms": 2.546,
+      "student_kinematic_onnx_fps": 557.9,
+      "realtime_60fps_headroom_x": 9.3
+    },
+    "macbook_air_m_series": {
+      "platform_name": "Apple MacBook Air (M-Series M1/M2/M3/M4)",
+      "hardware_spec": "Apple Silicon M-Series (MPS / CoreML / AMX)",
+      "primary_backend": "CoreMLExecutionProvider / MPS",
+      "assigned_owner": "Bhavya (feat/bhavya-data)",
+      "camera_sources": "FaceTime HD Webcam (--camera 0) & iPhone Continuity Camera (--camera 1)",
+      "measured_on_host": false,
+      "status": "PENDING_PHYSICAL_MEASUREMENT",
+      "edge_fk_numpy_ms": null,
+      "edge_fk_numpy_khz": null,
+      "teacher_st_gae_mps_t8_ms": null,
+      "teacher_st_gae_mps_fps": null,
+      "student_kinematic_mps_t1_ms": null,
+      "student_kinematic_onnx_t1_ms": null,
+      "student_kinematic_onnx_t8_ms": null,
+      "student_kinematic_onnx_fps": null,
+      "realtime_60fps_headroom_x": null
+    },
+    "nvidia_jetson_nano": {
+      "platform_name": "NVIDIA Jetson Nano (4GB Developer Kit)",
+      "hardware_spec": "128-Core NVIDIA Maxwell GPU @ 921 MHz (472 GFLOPS FP16) + Quad-Core ARM Cortex-A57 @ 1.43 GHz",
+      "primary_backend": "TensorrtExecutionProvider (FP16) / CUDAExecutionProvider",
+      "assigned_owner": "Kapish (feat/kapish-deployment)",
+      "camera_sources": "Raspberry Pi CSI Camera v2 (IMX219) via GStreamer nvarguscamerasrc",
+      "measured_on_host": false,
+      "status": "PENDING_PHYSICAL_MEASUREMENT",
+      "edge_fk_numpy_ms": null,
+      "edge_fk_numpy_khz": null,
+      "teacher_st_gae_cuda_t8_ms": null,
+      "teacher_st_gae_cuda_fps": null,
+      "student_kinematic_pytorch_cuda_t1_ms": null,
+      "student_kinematic_onnx_trt_fp16_t1_ms": null,
+      "student_kinematic_onnx_trt_fp16_t8_ms": null,
+      "student_kinematic_onnx_fps": null,
+      "speedup_vs_teacher_on_jetson_x": null,
+      "realtime_30fps_camera_budget_pct": null
+    },
+    "raspberry_pi_arm": {
+      "platform_name": "Raspberry Pi 5 / 4B (ARM64 Embedded CPU)",
+      "hardware_spec": "Broadcom BCM2712 Quad-Core Cortex-A76 @ 2.4 GHz (Pi 5) / BCM2711 Cortex-A72 @ 1.8 GHz (Pi 4)",
+      "primary_backend": "ONNX Runtime CPUExecutionProvider (ARM64 NEON SIMD) + NumPy EdgeFK",
+      "assigned_owner": "Kapish (feat/kapish-deployment)",
+      "camera_sources": "Raspberry Pi Camera Module v2/v3 (CSI MIPI)",
+      "measured_on_host": false,
+      "status": "PENDING_PHYSICAL_MEASUREMENT",
+      "edge_fk_numpy_ms": null,
+      "edge_fk_numpy_khz": null,
+      "teacher_st_gae_cpu_t8_ms": null,
+      "student_kinematic_onnx_t1_ms": null,
+      "student_kinematic_onnx_t8_ms": null,
+      "student_kinematic_onnx_fps": null
+    },
+    "iphone_arkit_udp": {
+      "platform_name": "iPhone (ARKit Hand Skeleton UDP Port 5005 / Continuity Camera)",
+      "hardware_spec": "Apple A-Series Bionic Neural Engine (60 Hz ARKit Hand Tracking) -> Wi-Fi/USB UDP JSON Stream",
+      "primary_backend": "ARKitUDPStreamer (Port 5005) + Host ONNX Runtime StudentKinematicMLP",
+      "assigned_owner": "Bhavya & Kapish",
+      "measured_on_host": true,
+      "status": "PHYSICALLY_MEASURED",
+      "udp_packet_parse_and_retarget_ms": 0.08,
+      "onnx_student_repair_ms": 1.792,
+      "total_end_to_end_repair_latency_ms": 1.872,
+      "max_supported_telemetry_rate_hz": 534.2,
+      "sustains_60hz_arkit_stream": true
+    }
+  },
+  "verification": {
+    "edge_fk_bone_length_error_mm": 8e-06,
+    "onnx_bone_length_error_mm": 1.1e-05,
+    "onnx_pytorch_max_deviation_mm": 0.000141,
+    "biomechanical_valid_poses_pct": 100.0,
+    "meets_sub_5ms_edge_target": true,
+    "meets_zero_bone_error_target": true
+  }
+}

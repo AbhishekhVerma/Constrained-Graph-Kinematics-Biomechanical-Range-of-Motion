@@ -96,11 +96,11 @@ def export_single_student_to_onnx(
 
     output_names = ["positions_mm", "rot6d"] if has_rot6d_output else ["positions_mm"]
     dynamic_axes = {
-        "input": {0: "batch_size"},
-        "positions_mm": {0: "batch_size"},
+        "input": {0: "batch_size", 1: "seq_len"},
+        "positions_mm": {0: "batch_size", 1: "seq_len"},
     }
     if has_rot6d_output:
-        dynamic_axes["rot6d"] = {0: "batch_size"}
+        dynamic_axes["rot6d"] = {0: "batch_size", 1: "seq_len"}
 
     torch.onnx.export(
         model,

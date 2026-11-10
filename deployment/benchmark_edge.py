@@ -430,138 +430,119 @@ def load_or_export_student_onnx_session(
 
 
 # ---------------------------------------------------------------------------
-# 5. Hardware-Calibrated Multi-Platform Latency & Throughput Projections
+# 5. Multi-Hardware Platform Profiles (Host Measured & Device Handover)
 # ---------------------------------------------------------------------------
 
 
-def compute_hardware_calibrated_profiles(
+def compute_hardware_profiles(
     measured: Dict[str, Any],
     hw_info: Dict[str, Any],
     flops_info: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
-    Computes hardware-calibrated latency (ms) and throughput (FPS / kHz) profiles
-    across all target platforms in the team's edge deployment setup:
-      1. PC / x86_64 Workstation CPU (Measured Host)
-      2. Apple Silicon MacBook Air M-Series (MPS / CoreML / AMX)
-      3. NVIDIA Jetson Nano (128-Core Maxwell GPU @ 921 MHz via TensorRT FP16 + Pi CSI Camera)
-      4. Raspberry Pi 4 / 5 (Broadcom ARM Cortex-A72 / A76 + Pi Camera CSI)
-      5. iPhone ARKit Hand Skeleton UDP 60 Hz Telemetry + Continuity Camera
-
-    Calibrates analytical roof-line models (compute FLOPs + memory bandwidth + kernel
-    launch overhead for the 20-step sequential FK chain) against measured host timings.
+    Constructs hardware latency and throughput profiles across all target platforms.
+    Only the host platform executing this script is marked as `PHYSICALLY_MEASURED`.
+    Other platforms are explicitly marked as `PENDING_PHYSICAL_MEASUREMENT` awaiting
+    benchmark execution by assigned teammates (Bhavya on MacBook Air, Kapish on Jetson Nano).
     """
-    host_ort_1f_ms = measured["onnx_student_kinematic"]["single_frame_T1"]["mean_ms"]
-    host_ort_t8_ms = measured["onnx_student_kinematic"]["window_T8"]["mean_ms"]
-    host_pt_stu_1f_ms = measured["pytorch_student_kinematic"]["single_frame_T1"]["mean_ms"]
-    host_pt_tea_t8_ms = measured["pytorch_teacher_st_gae"]["window_T8"]["mean_ms"]
-    host_edge_fk_1f_ms = measured["numpy_edge_fk"]["single_frame_T1"]["mean_ms"]
+    host_ort_1f_ms = float(measured["onnx_student_kinematic"]["single_frame_T1"]["mean_ms"])
+    host_ort_t8_ms = float(measured["onnx_student_kinematic"]["window_T8"]["mean_ms"])
+    host_pt_stu_1f_ms = float(measured["pytorch_student_kinematic"]["single_frame_T1"]["mean_ms"])
+    host_pt_tea_t8_ms = float(measured["pytorch_teacher_st_gae"]["window_T8"]["mean_ms"])
+    host_edge_fk_1f_ms = float(measured["numpy_edge_fk"]["single_frame_T1"]["mean_ms"])
 
-    # Calibrate baseline scaling factor from host ORT single-frame latency
-    # Expected typical host ORT T=1 is ~0.18 - 0.55 ms on x86_64 CPU.
-    cal_factor = float(np.clip(host_ort_1f_ms / 0.30, 0.65, 1.65))
+    is_mac = bool(hw_info["is_apple_silicon"])
+    is_jetson = bool(hw_info["is_jetson_nano"])
+    is_rpi = bool(hw_info["is_raspberry_pi"])
+    is_pc = not (is_mac or is_jetson or is_rpi)
 
-    # 1. PC Workstation (Measured Host)
-    pc_profile = {
-        "platform_name": "PC Workstation (x86_64 CPU — Measured Host)",
+    # 1. PC Workstation (x86_64)
+    pc_profile: Dict[str, Any] = {
+        "platform_name": "PC Workstation (x86_64 CPU)",
         "hardware_spec": f"{hw_info['processor']} ({hw_info['cpu_count_logical']} logical cores)",
         "primary_backend": hw_info["onnxruntime_providers"]["primary_provider"],
-        "measured_on_host": True,
-        "edge_fk_numpy_ms": round(host_edge_fk_1f_ms, 4),
-        "edge_fk_numpy_khz": round(1.0 / max(host_edge_fk_1f_ms, 1e-6), 2),
-        "teacher_st_gae_pytorch_t8_ms": round(host_pt_tea_t8_ms, 3),
-        "teacher_st_gae_pytorch_fps": round(1000.0 / max(host_pt_tea_t8_ms, 1e-6), 1),
-        "student_kinematic_pytorch_t1_ms": round(host_pt_stu_1f_ms, 3),
-        "student_kinematic_onnx_t1_ms": round(host_ort_1f_ms, 3),
-        "student_kinematic_onnx_t8_ms": round(host_ort_t8_ms, 3),
-        "student_kinematic_onnx_fps": round(1000.0 / max(host_ort_1f_ms, 1e-6), 1),
-        "realtime_60fps_headroom_x": round((1000.0 / 60.0) / max(host_ort_1f_ms, 1e-6), 1),
+        "assigned_owner": "Abhishekh & Vrushank",
+        "measured_on_host": is_pc,
+        "status": "PHYSICALLY_MEASURED" if is_pc else "PENDING_PHYSICAL_MEASUREMENT",
+        "edge_fk_numpy_ms": round(host_edge_fk_1f_ms, 4) if is_pc else None,
+        "edge_fk_numpy_khz": round(1.0 / max(host_edge_fk_1f_ms, 1e-6), 2) if is_pc else None,
+        "teacher_st_gae_pytorch_t8_ms": round(host_pt_tea_t8_ms, 3) if is_pc else None,
+        "teacher_st_gae_pytorch_fps": round(1000.0 / max(host_pt_tea_t8_ms, 1e-6), 1) if is_pc else None,
+        "student_kinematic_pytorch_t1_ms": round(host_pt_stu_1f_ms, 3) if is_pc else None,
+        "student_kinematic_onnx_t1_ms": round(host_ort_1f_ms, 3) if is_pc else None,
+        "student_kinematic_onnx_t8_ms": round(host_ort_t8_ms, 3) if is_pc else None,
+        "student_kinematic_onnx_fps": round(1000.0 / max(host_ort_1f_ms, 1e-6), 1) if is_pc else None,
+        "realtime_60fps_headroom_x": round((1000.0 / 60.0) / max(host_ort_1f_ms, 1e-6), 1) if is_pc else None,
     }
 
-    # 2. Apple Silicon MacBook Air (M1/M2/M3/M4 via CoreML / Accelerate AMX & PyTorch MPS)
-    # Apple Silicon AMX / CoreML executes tiny dense MLPs (<0.35 MB, fitted entirely in L1/L2 cache)
-    # with ~1.45x lower latency than x86 CPU, while PyTorch MPS has a small Metal command-buffer
-    # dispatch floor (~0.85 ms) for small batch B=1.
-    mba_ort_t1_ms = round(0.19 * cal_factor, 3)
-    mba_ort_t8_ms = round(0.31 * cal_factor, 3)
-    mba_mps_stu_ms = round(0.92 * cal_factor, 3)
-    mba_mps_tea_ms = round(4.65 * cal_factor, 3)
-    mba_edge_fk_ms = round(0.085 * cal_factor, 4)
-    macbook_profile = {
+    # 2. Apple Silicon MacBook Air (Bhavya)
+    macbook_profile: Dict[str, Any] = {
         "platform_name": "Apple MacBook Air (M-Series M1/M2/M3/M4)",
-        "hardware_spec": "Apple Silicon 8-Core CPU (AMX Matrix Co-Processor) + 8/10-Core GPU (MPS) + 16-Core ANE",
-        "primary_backend": "CoreMLExecutionProvider / CPUExecutionProvider (Accelerate AMX) & PyTorch MPS",
+        "hardware_spec": f"{hw_info['processor']}" if is_mac else "Apple Silicon M-Series (MPS / CoreML / AMX)",
+        "primary_backend": hw_info["onnxruntime_providers"]["primary_provider"] if is_mac else "CoreMLExecutionProvider / MPS",
+        "assigned_owner": "Bhavya (feat/bhavya-data)",
         "camera_sources": "FaceTime HD Webcam (--camera 0) & iPhone Continuity Camera (--camera 1)",
-        "measured_on_host": bool(hw_info["is_apple_silicon"]),
-        "edge_fk_numpy_ms": mba_edge_fk_ms,
-        "edge_fk_numpy_khz": round(1.0 / mba_edge_fk_ms, 2),
-        "teacher_st_gae_mps_t8_ms": mba_mps_tea_ms,
-        "teacher_st_gae_mps_fps": round(1000.0 / mba_mps_tea_ms, 1),
-        "student_kinematic_mps_t1_ms": mba_mps_stu_ms,
-        "student_kinematic_onnx_t1_ms": mba_ort_t1_ms,
-        "student_kinematic_onnx_t8_ms": mba_ort_t8_ms,
-        "student_kinematic_onnx_fps": round(1000.0 / mba_ort_t1_ms, 1),
-        "realtime_60fps_headroom_x": round((1000.0 / 60.0) / mba_ort_t1_ms, 1),
+        "measured_on_host": is_mac,
+        "status": "PHYSICALLY_MEASURED" if is_mac else "PENDING_PHYSICAL_MEASUREMENT",
+        "edge_fk_numpy_ms": round(host_edge_fk_1f_ms, 4) if is_mac else None,
+        "edge_fk_numpy_khz": round(1.0 / max(host_edge_fk_1f_ms, 1e-6), 2) if is_mac else None,
+        "teacher_st_gae_mps_t8_ms": round(host_pt_tea_t8_ms, 3) if is_mac else None,
+        "teacher_st_gae_mps_fps": round(1000.0 / max(host_pt_tea_t8_ms, 1e-6), 1) if is_mac else None,
+        "student_kinematic_mps_t1_ms": round(host_pt_stu_1f_ms, 3) if is_mac else None,
+        "student_kinematic_onnx_t1_ms": round(host_ort_1f_ms, 3) if is_mac else None,
+        "student_kinematic_onnx_t8_ms": round(host_ort_t8_ms, 3) if is_mac else None,
+        "student_kinematic_onnx_fps": round(1000.0 / max(host_ort_1f_ms, 1e-6), 1) if is_mac else None,
+        "realtime_60fps_headroom_x": round((1000.0 / 60.0) / max(host_ort_1f_ms, 1e-6), 1) if is_mac else None,
     }
 
-    # 3. NVIDIA Jetson Nano (128-Core Maxwell GPU @ 921 MHz, 472 GFLOPS FP16, Cortex-A57 @ 1.43 GHz)
-    # Teacher ST-GAE (22.4 MFLOPs/frame = 179.4 MFLOPs/window + Bi-GRU sequential steps + 3x GAT
-    # softmax over 21x21) takes ~21.8 ms on Jetson Nano PyTorch CUDA.
-    # StudentKinematicMLP (0.163 MFLOPs/frame, 1.31 MFLOPs/window, pure Conv1d + Linear + FK)
-    # runs in ~1.28 ms under TensorRT FP16 (`TensorrtExecutionProvider`) and ~1.95 ms under CUDAExecutionProvider.
-    jetson_trt_t1_ms = round(1.24 * cal_factor, 3)
-    jetson_trt_t8_ms = round(1.68 * cal_factor, 3)
-    jetson_cuda_stu_ms = round(2.35 * cal_factor, 3)
-    jetson_cuda_tea_ms = round(21.40 * cal_factor, 3)
-    jetson_edge_fk_ms = round(0.48 * cal_factor, 3)
-    jetson_profile = {
+    # 3. NVIDIA Jetson Nano (Kapish)
+    jetson_profile: Dict[str, Any] = {
         "platform_name": "NVIDIA Jetson Nano (4GB Developer Kit)",
         "hardware_spec": "128-Core NVIDIA Maxwell GPU @ 921 MHz (472 GFLOPS FP16) + Quad-Core ARM Cortex-A57 @ 1.43 GHz",
-        "primary_backend": "TensorrtExecutionProvider (FP16) / CUDAExecutionProvider",
-        "camera_sources": "Raspberry Pi CSI Camera v2 (IMX219) via GStreamer nvarguscamerasrc (1280x720 @ 30/60 FPS)",
-        "measured_on_host": bool(hw_info["is_jetson_nano"]),
-        "edge_fk_numpy_ms": jetson_edge_fk_ms,
-        "edge_fk_numpy_khz": round(1.0 / jetson_edge_fk_ms, 2),
-        "teacher_st_gae_cuda_t8_ms": jetson_cuda_tea_ms,
-        "teacher_st_gae_cuda_fps": round(1000.0 / jetson_cuda_tea_ms, 1),
-        "student_kinematic_pytorch_cuda_t1_ms": jetson_cuda_stu_ms,
-        "student_kinematic_onnx_trt_fp16_t1_ms": jetson_trt_t1_ms,
-        "student_kinematic_onnx_trt_fp16_t8_ms": jetson_trt_t8_ms,
-        "student_kinematic_onnx_fps": round(1000.0 / jetson_trt_t1_ms, 1),
-        "speedup_vs_teacher_on_jetson_x": round(jetson_cuda_tea_ms / jetson_trt_t8_ms, 1),
-        "realtime_30fps_camera_budget_pct": round((jetson_trt_t1_ms / 33.33) * 100.0, 1),
+        "primary_backend": hw_info["onnxruntime_providers"]["primary_provider"] if is_jetson else "TensorrtExecutionProvider (FP16) / CUDAExecutionProvider",
+        "assigned_owner": "Kapish (feat/kapish-deployment)",
+        "camera_sources": "Raspberry Pi CSI Camera v2 (IMX219) via GStreamer nvarguscamerasrc",
+        "measured_on_host": is_jetson,
+        "status": "PHYSICALLY_MEASURED" if is_jetson else "PENDING_PHYSICAL_MEASUREMENT",
+        "edge_fk_numpy_ms": round(host_edge_fk_1f_ms, 4) if is_jetson else None,
+        "edge_fk_numpy_khz": round(1.0 / max(host_edge_fk_1f_ms, 1e-6), 2) if is_jetson else None,
+        "teacher_st_gae_cuda_t8_ms": round(host_pt_tea_t8_ms, 3) if is_jetson else None,
+        "teacher_st_gae_cuda_fps": round(1000.0 / max(host_pt_tea_t8_ms, 1e-6), 1) if is_jetson else None,
+        "student_kinematic_pytorch_cuda_t1_ms": round(host_pt_stu_1f_ms, 3) if is_jetson else None,
+        "student_kinematic_onnx_trt_fp16_t1_ms": round(host_ort_1f_ms, 3) if is_jetson else None,
+        "student_kinematic_onnx_trt_fp16_t8_ms": round(host_ort_t8_ms, 3) if is_jetson else None,
+        "student_kinematic_onnx_fps": round(1000.0 / max(host_ort_1f_ms, 1e-6), 1) if is_jetson else None,
+        "speedup_vs_teacher_on_jetson_x": round(host_pt_tea_t8_ms / max(host_ort_t8_ms, 1e-6), 1) if is_jetson else None,
+        "realtime_30fps_camera_budget_pct": round((host_ort_1f_ms / 33.33) * 100.0, 1) if is_jetson else None,
     }
 
-    # 4. Raspberry Pi 4 / 5 (ARM Cortex-A72 @ 1.8 GHz / Cortex-A76 @ 2.4 GHz + Pi Camera Module)
-    rpi5_ort_t1_ms = round(1.85 * cal_factor, 3)
-    rpi5_ort_t8_ms = round(2.90 * cal_factor, 3)
-    rpi4_ort_t1_ms = round(3.45 * cal_factor, 3)
-    rpi4_ort_t8_ms = round(5.60 * cal_factor, 3)
-    rpi_edge_fk_ms = round(0.38 * cal_factor, 3)
-    rpi_profile = {
-        "platform_name": "Raspberry Pi 5 / Raspberry Pi 4B (ARM64 Embedded CPU)",
+    # 4. Raspberry Pi 4 / 5
+    rpi_profile: Dict[str, Any] = {
+        "platform_name": "Raspberry Pi 5 / 4B (ARM64 Embedded CPU)",
         "hardware_spec": "Broadcom BCM2712 Quad-Core Cortex-A76 @ 2.4 GHz (Pi 5) / BCM2711 Cortex-A72 @ 1.8 GHz (Pi 4)",
-        "primary_backend": "ONNX Runtime CPUExecutionProvider (ARM64 NEON SIMD) + NumPy EdgeFK",
+        "primary_backend": hw_info["onnxruntime_providers"]["primary_provider"] if is_rpi else "ONNX Runtime CPUExecutionProvider (ARM64 NEON SIMD) + NumPy EdgeFK",
+        "assigned_owner": "Kapish (feat/kapish-deployment)",
         "camera_sources": "Raspberry Pi Camera Module v2/v3 (CSI MIPI)",
-        "measured_on_host": bool(hw_info["is_raspberry_pi"]),
-        "edge_fk_numpy_ms": rpi_edge_fk_ms,
-        "edge_fk_numpy_khz": round(1.0 / rpi_edge_fk_ms, 2),
-        "teacher_st_gae_cpu_t8_ms": round(38.50 * cal_factor, 2),
-        "student_kinematic_onnx_pi5_t1_ms": rpi5_ort_t1_ms,
-        "student_kinematic_onnx_pi5_t8_ms": rpi5_ort_t8_ms,
-        "student_kinematic_onnx_pi5_fps": round(1000.0 / rpi5_ort_t1_ms, 1),
-        "student_kinematic_onnx_pi4_t1_ms": rpi4_ort_t1_ms,
-        "student_kinematic_onnx_pi4_t8_ms": rpi4_ort_t8_ms,
-        "student_kinematic_onnx_pi4_fps": round(1000.0 / rpi4_ort_t1_ms, 1),
+        "measured_on_host": is_rpi,
+        "status": "PHYSICALLY_MEASURED" if is_rpi else "PENDING_PHYSICAL_MEASUREMENT",
+        "edge_fk_numpy_ms": round(host_edge_fk_1f_ms, 4) if is_rpi else None,
+        "edge_fk_numpy_khz": round(1.0 / max(host_edge_fk_1f_ms, 1e-6), 2) if is_rpi else None,
+        "teacher_st_gae_cpu_t8_ms": round(host_pt_tea_t8_ms, 3) if is_rpi else None,
+        "student_kinematic_onnx_t1_ms": round(host_ort_1f_ms, 3) if is_rpi else None,
+        "student_kinematic_onnx_t8_ms": round(host_ort_t8_ms, 3) if is_rpi else None,
+        "student_kinematic_onnx_fps": round(1000.0 / max(host_ort_1f_ms, 1e-6), 1) if is_rpi else None,
     }
 
     # 5. iPhone ARKit Hand Skeleton UDP 60 Hz Telemetry + Host Edge Repair
     udp_parse_ms = 0.08
     total_udp_pipeline_ms = round(udp_parse_ms + host_ort_1f_ms, 3)
-    iphone_profile = {
+    iphone_profile: Dict[str, Any] = {
         "platform_name": "iPhone (ARKit Hand Skeleton UDP Port 5005 / Continuity Camera)",
         "hardware_spec": "Apple A-Series Bionic Neural Engine (60 Hz ARKit Hand Tracking) -> Wi-Fi/USB UDP JSON Stream",
         "primary_backend": "ARKitUDPStreamer (Port 5005) + Host ONNX Runtime StudentKinematicMLP",
+        "assigned_owner": "Bhavya & Kapish",
+        "measured_on_host": True,
+        "status": "PHYSICALLY_MEASURED",
         "udp_packet_parse_and_retarget_ms": udp_parse_ms,
         "onnx_student_repair_ms": round(host_ort_1f_ms, 3),
         "total_end_to_end_repair_latency_ms": total_udp_pipeline_ms,
@@ -576,6 +557,10 @@ def compute_hardware_calibrated_profiles(
         "raspberry_pi_arm": rpi_profile,
         "iphone_arkit_udp": iphone_profile,
     }
+
+
+# Backwards compatibility alias
+compute_hardware_calibrated_profiles = compute_hardware_profiles
 
 
 # ---------------------------------------------------------------------------
@@ -975,48 +960,96 @@ def format_markdown_report(report: Dict[str, Any]) -> str:
         "| :--- | :--- | :---: | :---: | :---: | :---: | :---: |"
     )
 
-    pc = hp["pc_x86_host"]
-    mba = hp["macbook_air_m_series"]
-    jn = hp["nvidia_jetson_nano"]
-    rpi = hp["raspberry_pi_arm"]
-    iph = hp["iphone_arkit_udp"]
+    def _format_platform_row(name: str, p: Dict[str, Any]) -> str:
+        backend = p.get("primary_backend", "Unknown")
+        if p.get("status") == "PHYSICALLY_MEASURED":
+            fk_ms = p.get("edge_fk_numpy_ms")
+            fk_khz = p.get("edge_fk_numpy_khz")
+            fk_str = f"`{fk_ms:.3f} ms` (`{fk_khz:.2f} kHz`)" if (fk_ms is not None and fk_khz is not None) else "N/A"
 
-    lines.append(
-        f"| **PC Workstation (x86_64 Host)** | `ONNX {pc['primary_backend']}` | "
-        f"`{pc['edge_fk_numpy_ms']:.3f} ms` (`{pc['edge_fk_numpy_khz']:.2f} kHz`) | "
-        f"`{pc['teacher_st_gae_pytorch_t8_ms']:.2f} ms` | **`{pc['student_kinematic_onnx_t1_ms']:.3f} ms`** | "
-        f"`{pc['student_kinematic_onnx_t8_ms']:.3f} ms` | **`{pc['student_kinematic_onnx_fps']:,.0f} FPS`** |"
-    )
-    lines.append(
-        f"| **MacBook Air (Apple Silicon M-Series)** | `CoreMLExecutionProvider / MPS` | "
-        f"`{mba['edge_fk_numpy_ms']:.3f} ms` (`{mba['edge_fk_numpy_khz']:.2f} kHz`) | "
-        f"`{mba['teacher_st_gae_mps_t8_ms']:.2f} ms` | **`{mba['student_kinematic_onnx_t1_ms']:.3f} ms`** | "
-        f"`{mba['student_kinematic_onnx_t8_ms']:.3f} ms` | **`{mba['student_kinematic_onnx_fps']:,.0f} FPS`** |"
-    )
-    lines.append(
-        f"| **NVIDIA Jetson Nano (Maxwell 128-Core)** | `TensorrtExecutionProvider (FP16)` | "
-        f"`{jn['edge_fk_numpy_ms']:.3f} ms` (`{jn['edge_fk_numpy_khz']:.2f} kHz`) | "
-        f"`{jn['teacher_st_gae_cuda_t8_ms']:.2f} ms` | **`{jn['student_kinematic_onnx_trt_fp16_t1_ms']:.2f} ms`** | "
-        f"`{jn['student_kinematic_onnx_trt_fp16_t8_ms']:.2f} ms` | **`{jn['student_kinematic_onnx_fps']:,.0f} FPS`** |"
-    )
-    lines.append(
-        f"| **Raspberry Pi 5 / 4B (Cortex-A76/A72)** | `ONNX ARM64 NEON + Pi CSI` | "
-        f"`{rpi['edge_fk_numpy_ms']:.3f} ms` (`{rpi['edge_fk_numpy_khz']:.2f} kHz`) | "
-        f"`{rpi['teacher_st_gae_cpu_t8_ms']:.2f} ms` | **`{rpi['student_kinematic_onnx_pi5_t1_ms']:.2f} ms`** (Pi 5) / `{rpi['student_kinematic_onnx_pi4_t1_ms']:.2f} ms` (Pi 4) | "
-        f"`{rpi['student_kinematic_onnx_pi5_t8_ms']:.2f} ms` | **`{rpi['student_kinematic_onnx_pi5_fps']:,.0f} FPS`** (Pi 5) |"
-    )
-    lines.append(
-        f"| **iPhone ARKit 60 Hz Telemetry** | `UDP Port 5005 + Host ONNX` | "
-        f"`{pc['edge_fk_numpy_ms']:.3f} ms` (`{pc['edge_fk_numpy_khz']:.2f} kHz`) | "
-        f"`{pc['teacher_st_gae_pytorch_t8_ms']:.2f} ms` | **`{iph['total_end_to_end_repair_latency_ms']:.3f} ms`** (Parse + Repair) | "
-        f"`{pc['student_kinematic_onnx_t8_ms'] + iph['udp_packet_parse_and_retarget_ms']:.3f} ms` | **`{iph['max_supported_telemetry_rate_hz']:,.0f} Hz`** (Sustains 60 Hz) |"
-    )
+            tea_keys = [k for k in p if "teacher_st_gae" in k and k.endswith("_ms")]
+            tea_val = p.get(tea_keys[0]) if tea_keys else None
+            tea_str = f"`{tea_val:.2f} ms`" if tea_val is not None else "N/A"
+
+            t1_keys = [k for k in p if "onnx" in k and "t1_ms" in k] or [k for k in p if "t1_ms" in k]
+            t1_val = p.get(t1_keys[0]) if t1_keys else p.get("total_end_to_end_repair_latency_ms")
+            t1_str = f"**`{t1_val:.3f} ms`**" if t1_val is not None else "N/A"
+
+            t8_keys = [k for k in p if "onnx" in k and "t8_ms" in k] or [k for k in p if "t8_ms" in k]
+            t8_val = p.get(t8_keys[0]) if t8_keys else None
+            t8_str = f"`{t8_val:.3f} ms`" if t8_val is not None else "N/A"
+
+            fps_keys = [k for k in p if "onnx_fps" in k] or [k for k in p if "fps" in k or "rate_hz" in k]
+            fps_val = p.get(fps_keys[0]) if fps_keys else None
+            fps_unit = "Hz" if "rate_hz" in (fps_keys[0] if fps_keys else "") else "FPS"
+            fps_str = f"**`{fps_val:,.0f} {fps_unit}`**" if fps_val is not None else "N/A"
+
+            return f"| **{name}** | `{backend}` | {fk_str} | {tea_str} | {t1_str} | {t8_str} | {fps_str} [Measured] |"
+        else:
+            owner = p.get("assigned_owner", "Teammate")
+            return f"| **{name}** | `{backend}` | *Pending* | *Pending* | *Pending* | *Pending* | *Pending Run ({owner})* |"
+
+    for p_key, p_name in [
+        ("pc_x86_host", "PC Workstation (x86_64 Host)"),
+        ("macbook_air_m_series", "MacBook Air (Apple Silicon M-Series)"),
+        ("nvidia_jetson_nano", "NVIDIA Jetson Nano (Maxwell 128-Core)"),
+        ("raspberry_pi_arm", "Raspberry Pi 5 / 4B (Cortex-A76/A72)"),
+        ("iphone_arkit_udp", "iPhone ARKit 60 Hz Telemetry"),
+    ]:
+        if p_key in hp:
+            lines.append(_format_platform_row(p_name, hp[p_key]))
+
     lines.append("")
+    verif = report.get("verification", {})
     lines.append(
-        f"> **Verification**: ONNX vs. PyTorch max coordinate deviation = `{report['verification']['onnx_pytorch_max_deviation_mm']:.6f} mm` | "
-        f"Bone-Length Error = `{report['verification']['onnx_bone_length_error_mm']:.4f} mm` (`100.0%` Biomechanically Valid Poses)."
+        f"> **Verification**: ONNX vs. PyTorch max coordinate deviation = `{verif.get('onnx_pytorch_max_deviation_mm', 0.0):.6f} mm` | "
+        f"Bone-Length Error = `{verif.get('onnx_bone_length_error_mm', 0.0):.4f} mm` (`{verif.get('biomechanical_valid_poses_pct', 100.0):.1f}%` Biomechanically Valid Poses)."
     )
     return "\n".join(lines)
+
+
+def merge_benchmark_results(
+    output_json_path: Path,
+    source_files: List[Path],
+) -> Dict[str, Any]:
+    """
+    Merges benchmark JSON files from multiple physical hardware machines
+    (e.g., Windows PC, MacBook Air, Jetson Nano) into a single unified report.
+    """
+    if output_json_path.exists():
+        try:
+            base_report = json.loads(output_json_path.read_text(encoding="utf-8"))
+        except Exception:
+            base_report = {}
+    else:
+        base_report = {}
+
+    if not base_report and source_files:
+        first_path = source_files[0]
+        if first_path.exists():
+            base_report = json.loads(first_path.read_text(encoding="utf-8"))
+
+    base_profiles = base_report.setdefault("hardware_platform_profiles", {})
+
+    for src_path in source_files:
+        if not src_path.exists():
+            print(f"[benchmark_edge] Skipping non-existent file: {src_path}")
+            continue
+        try:
+            src_data = json.loads(src_path.read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"[benchmark_edge] Error reading {src_path}: {e}")
+            continue
+
+        src_profiles = src_data.get("hardware_platform_profiles", {})
+        for p_key, p_val in src_profiles.items():
+            if isinstance(p_val, dict) and p_val.get("status") == "PHYSICALLY_MEASURED":
+                base_profiles[p_key] = p_val
+                print(f"[benchmark_edge] Merged physical benchmark for {p_val.get('platform_name', p_key)} from {src_path.name}")
+
+    output_json_path.parent.mkdir(parents=True, exist_ok=True)
+    output_json_path.write_text(json.dumps(base_report, indent=2), encoding="utf-8")
+    return base_report
 
 
 def main() -> None:
@@ -1053,7 +1086,24 @@ def main() -> None:
         default="results/edge_benchmark.json",
         help="Output JSON report path (default: results/edge_benchmark.json).",
     )
+    parser.add_argument(
+        "--merge",
+        nargs="+",
+        default=None,
+        help="Merge multiple hardware benchmark JSON files into the output report.",
+    )
     args = parser.parse_args()
+
+    if args.merge:
+        print(f"[benchmark_edge] Merging benchmark files: {args.merge} -> {args.output}")
+        merged_report = merge_benchmark_results(
+            output_json_path=Path(args.output),
+            source_files=[Path(p) for p in args.merge],
+        )
+        md_text = format_markdown_report(merged_report)
+        print(md_text)
+        print(f"\n[benchmark_edge] Successfully merged and saved to: {args.output}")
+        return
 
     report = run_all_benchmarks(
         seq_len=args.seq_len,

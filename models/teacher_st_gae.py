@@ -442,23 +442,6 @@ class SpatialOnlyGAE(SpatioTemporalGAE):
             nn.Linear(hidden_dim, hidden_dim),
         )
 
-    def _extract_hand_pose_features(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Spatial-only frame representation using raw frame-wise masked coordinates
-        (without temporal smoothing across T).
-        """
-        xyz = x[..., :3]
-        vis = x[..., 3:4]
-        max_coord = torch.amax(torch.abs(xyz), dim=(-2, -1), keepdim=True)
-        xyz_norm = torch.where(max_coord > 10.0, xyz / self.palm_scale_mm, xyz)
-        # Raw frame-only masked input (sensitive to single-frame occlusion & glove spikes)
-        xyz_frame = xyz_norm * vis
-        bsz, seq_len = x.shape[0], x.shape[1]
-        flat_pose = torch.cat((xyz_frame, vis), dim=-1).reshape(
-            bsz, seq_len, NUM_JOINTS * self.in_channels
-        )
-        return self.hand_pose_proj(flat_pose)
-
     def _run_temporal_core(self, h_pose: torch.Tensor) -> torch.Tensor:
         """Purely frame-independent transformation (zero cross-frame memory)."""
         h_frame = self.temporal_norm(h_pose + self.frame_linear(h_pose))

@@ -254,9 +254,8 @@ def train_unconstrained_student_mlp(
             pred_pos = out["positions_mm"]
 
             # Standard unconstrained 3D coordinate MSE without FK or anatomical RoM constraints
-            mse_gt = F.mse_loss(pred_pos, all_gt_pos[idx])
-            mse_obs = F.mse_loss(pred_pos, obs_mm_all[idx])
-            loss = 0.76 * mse_gt + 0.24 * mse_obs
+            # Trained purely against ground-truth 3D joint coordinates
+            loss = F.mse_loss(pred_pos, all_gt_pos[idx])
             loss.backward()
             optimizer.step()
 

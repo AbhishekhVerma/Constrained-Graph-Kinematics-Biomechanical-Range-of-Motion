@@ -12,40 +12,40 @@
         "temporal_jitter_mm_s2": 34.98
       },
       "unconstrained_student_xyz": {
-        "mpjpe_all_mm": 11.24,
-        "mpjpe_visible_mm": 6.22,
-        "mpjpe_occluded_mm": 23.8,
-        "pa_mpjpe_mm": 10.1,
-        "bone_length_error_mm": 4.2027,
-        "biomechanical_validity_pct": 38.65,
-        "temporal_jitter_mm_s2": 15.41
+        "mpjpe_all_mm": 8.76,
+        "mpjpe_visible_mm": 6.89,
+        "mpjpe_occluded_mm": 13.45,
+        "pa_mpjpe_mm": 7.31,
+        "bone_length_error_mm": 2.597,
+        "biomechanical_validity_pct": 93.91,
+        "temporal_jitter_mm_s2": 14.43
       },
       "spatial_only_gae": {
-        "mpjpe_all_mm": 4.67,
-        "mpjpe_visible_mm": 3.55,
-        "mpjpe_occluded_mm": 7.46,
-        "pa_mpjpe_mm": 3.42,
+        "mpjpe_all_mm": 9.46,
+        "mpjpe_visible_mm": 7.41,
+        "mpjpe_occluded_mm": 14.58,
+        "pa_mpjpe_mm": 7.44,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 15.14
+        "temporal_jitter_mm_s2": 15.83
       },
       "teacher_st_gae": {
-        "mpjpe_all_mm": 3.33,
-        "mpjpe_visible_mm": 2.8,
-        "mpjpe_occluded_mm": 4.67,
-        "pa_mpjpe_mm": 1.97,
+        "mpjpe_all_mm": 6.05,
+        "mpjpe_visible_mm": 4.92,
+        "mpjpe_occluded_mm": 8.85,
+        "pa_mpjpe_mm": 4.6,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 12.96
+        "temporal_jitter_mm_s2": 12.43
       },
       "distilled_student_kinematic": {
-        "mpjpe_all_mm": 4.08,
-        "mpjpe_visible_mm": 3.31,
-        "mpjpe_occluded_mm": 6.0,
-        "pa_mpjpe_mm": 2.76,
+        "mpjpe_all_mm": 5.58,
+        "mpjpe_visible_mm": 4.4,
+        "mpjpe_occluded_mm": 8.51,
+        "pa_mpjpe_mm": 4.33,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 13.05
+        "temporal_jitter_mm_s2": 12.66
       }
     },
     "occ_50": {
@@ -59,40 +59,40 @@
         "temporal_jitter_mm_s2": 29.81
       },
       "unconstrained_student_xyz": {
-        "mpjpe_all_mm": 15.03,
-        "mpjpe_visible_mm": 5.87,
-        "mpjpe_occluded_mm": 25.11,
-        "pa_mpjpe_mm": 12.34,
-        "bone_length_error_mm": 5.8505,
-        "biomechanical_validity_pct": 8.7,
-        "temporal_jitter_mm_s2": 15.17
+        "mpjpe_all_mm": 10.18,
+        "mpjpe_visible_mm": 6.52,
+        "mpjpe_occluded_mm": 14.2,
+        "pa_mpjpe_mm": 8.29,
+        "bone_length_error_mm": 2.9376,
+        "biomechanical_validity_pct": 88.39,
+        "temporal_jitter_mm_s2": 14.85
       },
       "spatial_only_gae": {
-        "mpjpe_all_mm": 6.2,
-        "mpjpe_visible_mm": 3.62,
-        "mpjpe_occluded_mm": 9.03,
-        "pa_mpjpe_mm": 4.58,
+        "mpjpe_all_mm": 11.0,
+        "mpjpe_visible_mm": 6.99,
+        "mpjpe_occluded_mm": 15.41,
+        "pa_mpjpe_mm": 8.3,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 15.96
+        "temporal_jitter_mm_s2": 16.76
       },
       "teacher_st_gae": {
-        "mpjpe_all_mm": 3.79,
-        "mpjpe_visible_mm": 2.86,
-        "mpjpe_occluded_mm": 4.82,
-        "pa_mpjpe_mm": 2.11,
+        "mpjpe_all_mm": 6.64,
+        "mpjpe_visible_mm": 4.7,
+        "mpjpe_occluded_mm": 8.79,
+        "pa_mpjpe_mm": 4.78,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 12.31
+        "temporal_jitter_mm_s2": 12.03
       },
       "distilled_student_kinematic": {
-        "mpjpe_all_mm": 5.05,
-        "mpjpe_visible_mm": 3.37,
-        "mpjpe_occluded_mm": 6.9,
-        "pa_mpjpe_mm": 3.43,
+        "mpjpe_all_mm": 6.51,
+        "mpjpe_visible_mm": 4.27,
+        "mpjpe_occluded_mm": 8.97,
+        "pa_mpjpe_mm": 4.78,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 12.68
+        "temporal_jitter_mm_s2": 12.36
       }
     },
     "occ_70": {
@@ -106,40 +106,40 @@
         "temporal_jitter_mm_s2": 18.76
       },
       "unconstrained_student_xyz": {
-        "mpjpe_all_mm": 20.46,
-        "mpjpe_visible_mm": 5.41,
-        "mpjpe_occluded_mm": 26.48,
-        "pa_mpjpe_mm": 13.02,
-        "bone_length_error_mm": 8.4587,
-        "biomechanical_validity_pct": 0.0,
-        "temporal_jitter_mm_s2": 14.18
+        "mpjpe_all_mm": 13.4,
+        "mpjpe_visible_mm": 5.94,
+        "mpjpe_occluded_mm": 16.38,
+        "pa_mpjpe_mm": 10.1,
+        "bone_length_error_mm": 3.5374,
+        "biomechanical_validity_pct": 76.41,
+        "temporal_jitter_mm_s2": 14.92
       },
       "spatial_only_gae": {
-        "mpjpe_all_mm": 10.54,
-        "mpjpe_visible_mm": 3.78,
-        "mpjpe_occluded_mm": 13.24,
-        "pa_mpjpe_mm": 7.55,
+        "mpjpe_all_mm": 14.03,
+        "mpjpe_visible_mm": 5.92,
+        "mpjpe_occluded_mm": 17.28,
+        "pa_mpjpe_mm": 9.69,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 18.69
+        "temporal_jitter_mm_s2": 16.85
       },
       "teacher_st_gae": {
-        "mpjpe_all_mm": 6.35,
-        "mpjpe_visible_mm": 3.04,
-        "mpjpe_occluded_mm": 7.67,
-        "pa_mpjpe_mm": 3.76,
+        "mpjpe_all_mm": 9.58,
+        "mpjpe_visible_mm": 4.43,
+        "mpjpe_occluded_mm": 11.64,
+        "pa_mpjpe_mm": 6.32,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 12.52
+        "temporal_jitter_mm_s2": 11.67
       },
       "distilled_student_kinematic": {
-        "mpjpe_all_mm": 8.36,
-        "mpjpe_visible_mm": 3.42,
-        "mpjpe_occluded_mm": 10.34,
-        "pa_mpjpe_mm": 5.62,
+        "mpjpe_all_mm": 9.92,
+        "mpjpe_visible_mm": 4.08,
+        "mpjpe_occluded_mm": 12.26,
+        "pa_mpjpe_mm": 6.71,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 12.96
+        "temporal_jitter_mm_s2": 12.29
       }
     }
   },
@@ -155,40 +155,40 @@
         "temporal_jitter_mm_s2": 33.71
       },
       "unconstrained_student_xyz": {
-        "mpjpe_all_mm": 11.41,
-        "mpjpe_visible_mm": 6.28,
-        "mpjpe_occluded_mm": 24.22,
-        "pa_mpjpe_mm": 10.32,
-        "bone_length_error_mm": 4.1964,
-        "biomechanical_validity_pct": 37.29,
-        "temporal_jitter_mm_s2": 14.54
+        "mpjpe_all_mm": 9.05,
+        "mpjpe_visible_mm": 7.04,
+        "mpjpe_occluded_mm": 14.1,
+        "pa_mpjpe_mm": 7.61,
+        "bone_length_error_mm": 2.6485,
+        "biomechanical_validity_pct": 92.29,
+        "temporal_jitter_mm_s2": 13.54
       },
       "spatial_only_gae": {
-        "mpjpe_all_mm": 4.93,
-        "mpjpe_visible_mm": 3.69,
-        "mpjpe_occluded_mm": 8.02,
-        "pa_mpjpe_mm": 3.68,
+        "mpjpe_all_mm": 10.0,
+        "mpjpe_visible_mm": 7.7,
+        "mpjpe_occluded_mm": 15.76,
+        "pa_mpjpe_mm": 8.08,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 14.09
+        "temporal_jitter_mm_s2": 14.75
       },
       "teacher_st_gae": {
-        "mpjpe_all_mm": 3.28,
-        "mpjpe_visible_mm": 2.84,
-        "mpjpe_occluded_mm": 4.36,
-        "pa_mpjpe_mm": 1.87,
+        "mpjpe_all_mm": 6.32,
+        "mpjpe_visible_mm": 5.1,
+        "mpjpe_occluded_mm": 9.38,
+        "pa_mpjpe_mm": 4.99,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 11.87
+        "temporal_jitter_mm_s2": 11.31
       },
       "distilled_student_kinematic": {
-        "mpjpe_all_mm": 4.44,
-        "mpjpe_visible_mm": 3.48,
-        "mpjpe_occluded_mm": 6.84,
-        "pa_mpjpe_mm": 3.13,
+        "mpjpe_all_mm": 6.05,
+        "mpjpe_visible_mm": 4.74,
+        "mpjpe_occluded_mm": 9.32,
+        "pa_mpjpe_mm": 4.79,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 11.9
+        "temporal_jitter_mm_s2": 11.53
       }
     },
     "occ_50": {
@@ -202,40 +202,40 @@
         "temporal_jitter_mm_s2": 29.92
       },
       "unconstrained_student_xyz": {
-        "mpjpe_all_mm": 14.8,
-        "mpjpe_visible_mm": 5.97,
-        "mpjpe_occluded_mm": 24.52,
-        "pa_mpjpe_mm": 12.05,
-        "bone_length_error_mm": 5.7323,
-        "biomechanical_validity_pct": 10.31,
-        "temporal_jitter_mm_s2": 15.04
+        "mpjpe_all_mm": 9.99,
+        "mpjpe_visible_mm": 6.67,
+        "mpjpe_occluded_mm": 13.64,
+        "pa_mpjpe_mm": 8.11,
+        "bone_length_error_mm": 2.9569,
+        "biomechanical_validity_pct": 87.4,
+        "temporal_jitter_mm_s2": 14.67
       },
       "spatial_only_gae": {
-        "mpjpe_all_mm": 5.87,
-        "mpjpe_visible_mm": 3.6,
-        "mpjpe_occluded_mm": 8.38,
-        "pa_mpjpe_mm": 4.27,
+        "mpjpe_all_mm": 10.56,
+        "mpjpe_visible_mm": 7.09,
+        "mpjpe_occluded_mm": 14.38,
+        "pa_mpjpe_mm": 7.95,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 15.36
+        "temporal_jitter_mm_s2": 16.14
       },
       "teacher_st_gae": {
-        "mpjpe_all_mm": 3.6,
-        "mpjpe_visible_mm": 2.77,
-        "mpjpe_occluded_mm": 4.51,
-        "pa_mpjpe_mm": 1.95,
+        "mpjpe_all_mm": 6.68,
+        "mpjpe_visible_mm": 4.51,
+        "mpjpe_occluded_mm": 9.06,
+        "pa_mpjpe_mm": 4.96,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 11.9
+        "temporal_jitter_mm_s2": 11.74
       },
       "distilled_student_kinematic": {
-        "mpjpe_all_mm": 4.85,
-        "mpjpe_visible_mm": 3.26,
-        "mpjpe_occluded_mm": 6.61,
-        "pa_mpjpe_mm": 3.19,
+        "mpjpe_all_mm": 6.53,
+        "mpjpe_visible_mm": 4.2,
+        "mpjpe_occluded_mm": 9.09,
+        "pa_mpjpe_mm": 4.86,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 12.28
+        "temporal_jitter_mm_s2": 11.99
       }
     },
     "occ_70": {
@@ -249,40 +249,40 @@
         "temporal_jitter_mm_s2": 19.55
       },
       "unconstrained_student_xyz": {
-        "mpjpe_all_mm": 20.34,
-        "mpjpe_visible_mm": 5.54,
-        "mpjpe_occluded_mm": 26.27,
-        "pa_mpjpe_mm": 13.06,
-        "bone_length_error_mm": 8.4595,
-        "biomechanical_validity_pct": 0.0,
-        "temporal_jitter_mm_s2": 14.78
+        "mpjpe_all_mm": 13.51,
+        "mpjpe_visible_mm": 6.0,
+        "mpjpe_occluded_mm": 16.52,
+        "pa_mpjpe_mm": 10.07,
+        "bone_length_error_mm": 3.5707,
+        "biomechanical_validity_pct": 72.19,
+        "temporal_jitter_mm_s2": 15.57
       },
       "spatial_only_gae": {
-        "mpjpe_all_mm": 10.82,
-        "mpjpe_visible_mm": 3.81,
-        "mpjpe_occluded_mm": 13.63,
-        "pa_mpjpe_mm": 7.71,
+        "mpjpe_all_mm": 14.49,
+        "mpjpe_visible_mm": 6.07,
+        "mpjpe_occluded_mm": 17.86,
+        "pa_mpjpe_mm": 9.92,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 19.05
+        "temporal_jitter_mm_s2": 17.4
       },
       "teacher_st_gae": {
-        "mpjpe_all_mm": 6.47,
-        "mpjpe_visible_mm": 3.21,
-        "mpjpe_occluded_mm": 7.77,
-        "pa_mpjpe_mm": 3.83,
+        "mpjpe_all_mm": 9.92,
+        "mpjpe_visible_mm": 4.47,
+        "mpjpe_occluded_mm": 12.1,
+        "pa_mpjpe_mm": 6.51,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 12.03
+        "temporal_jitter_mm_s2": 11.62
       },
       "distilled_student_kinematic": {
-        "mpjpe_all_mm": 8.56,
-        "mpjpe_visible_mm": 3.51,
-        "mpjpe_occluded_mm": 10.58,
-        "pa_mpjpe_mm": 5.73,
+        "mpjpe_all_mm": 10.16,
+        "mpjpe_visible_mm": 4.11,
+        "mpjpe_occluded_mm": 12.58,
+        "pa_mpjpe_mm": 6.84,
         "bone_length_error_mm": 0.0,
         "biomechanical_validity_pct": 100.0,
-        "temporal_jitter_mm_s2": 12.91
+        "temporal_jitter_mm_s2": 12.23
       }
     }
   },
@@ -297,44 +297,44 @@
     "unconstrained_student_xyz": {
       "num_parameters": 78527,
       "model_size_mb": 0.3,
-      "sequence_latency_ms": 0.5234,
-      "per_frame_latency_ms": 0.0654,
-      "fps": 15283.2,
-      "ort_sequence_latency_ms": 0.1698,
-      "ort_per_frame_latency_ms": 0.0212,
-      "ort_fps": 47114.2
+      "sequence_latency_ms": 1.751,
+      "per_frame_latency_ms": 0.2189,
+      "fps": 4568.8,
+      "ort_sequence_latency_ms": 0.2717,
+      "ort_per_frame_latency_ms": 0.034,
+      "ort_fps": 29444.2
     },
     "spatial_only_gae": {
       "num_parameters": 461693,
       "model_size_mb": 1.7695,
-      "sequence_latency_ms": 4.717,
-      "per_frame_latency_ms": 0.5896,
-      "fps": 1696.0,
-      "ort_sequence_latency_ms": 4.717,
-      "ort_per_frame_latency_ms": 0.5896,
-      "ort_fps": 1696.0
+      "sequence_latency_ms": 14.6707,
+      "per_frame_latency_ms": 1.8338,
+      "fps": 545.3,
+      "ort_sequence_latency_ms": 14.6707,
+      "ort_per_frame_latency_ms": 1.8338,
+      "ort_fps": 545.3
     },
     "teacher_st_gae": {
       "num_parameters": 520189,
       "model_size_mb": 1.9926,
-      "sequence_latency_ms": 5.4085,
-      "per_frame_latency_ms": 0.6761,
-      "fps": 1479.2,
-      "ort_sequence_latency_ms": 5.4085,
-      "ort_per_frame_latency_ms": 0.6761,
-      "ort_fps": 1479.2
+      "sequence_latency_ms": 14.4552,
+      "per_frame_latency_ms": 1.8069,
+      "fps": 553.4,
+      "ort_sequence_latency_ms": 14.4552,
+      "ort_per_frame_latency_ms": 1.8069,
+      "ort_fps": 553.4
     },
     "distilled_student_kinematic": {
       "num_parameters": 78398,
       "model_size_mb": 0.3023,
-      "sequence_latency_ms": 1.9113,
-      "per_frame_latency_ms": 0.2389,
-      "fps": 4185.6,
-      "ort_sequence_latency_ms": 0.969,
-      "ort_per_frame_latency_ms": 0.1211,
-      "ort_fps": 8256.4,
-      "onnx_size_kb": 433.21,
-      "max_onnx_parity_error_mm": 0.0002536773681640625
+      "sequence_latency_ms": 4.6232,
+      "per_frame_latency_ms": 0.5779,
+      "fps": 1730.4,
+      "ort_sequence_latency_ms": 1.8224,
+      "ort_per_frame_latency_ms": 0.2278,
+      "ort_fps": 4389.9,
+      "onnx_size_kb": 433.19,
+      "max_onnx_parity_error_mm": 0.000194549560546875
     }
   },
   "method_labels": {

@@ -1,42 +1,62 @@
-# Module Handover: Bhavya — Data Pipeline & 3D Domain Adaptation
+# Module Handover: Bhavya — Data Pipeline, Real Gloved Capture & MacBook Air Benchmark
 
-**Owned Files:**
-- `data/dataset_ingestion.py` (Canonical 21-joint MANO topology, `CANONICAL_BONE_LENGTHS_MM`, `ingest_or_generate_dataset`)
+**Owned Files & Hardware Responsibilities:**
 - `data/transforms.py` (`SyntheticOcclusionTransform`, `SyntheticGloveTransform`)
 - `data/dataloader.py` (`normalize_hand_sequence`, `build_node_features_4d`, `get_dataloaders`, `data/splits/split_indices.json`)
-- `data/iphone_parser.py` (`ARKitUDPStreamer`, `MediaPipeCameraStreamer`, `build_jetson_csi_pipeline`)
+- `data/iphone_parser.py` (`ARKitUDPStreamer`, `MediaPipeCameraStreamer`)
 - `data/record_custom_gloved.py` (`data/custom_gloved_dataset.npz`)
+- **Hardware Owned:** Apple Silicon MacBook Air + iPhone (Continuity Camera / ARKit UDP)
 
-**Git Branch Convention:** `feat/bhavya-*`
+**Git Branch Convention:** `feat/bhavya-data`
 
 ---
 
-## Current Module State
-- Canonical 21-joint MANO ordering, `PARENT_INDICES`, and `CANONICAL_BONE_LENGTHS_MM` are locked and shared with `models/kinematics.py`.
-- Deterministic `data/splits/split_indices.json` enforces a strict **80/20 split** (`960` train / `240` test sequences).
-- `data/processed/*.npz` is excluded from Git (`.gitignore`); running `python data/dataset_ingestion.py` (or any dataloader call) regenerates it automatically.
-- `data/custom_gloved_dataset.npz` (`120` sequences, `(120, 8, 21, 4)`) is currently a synthetic benchmark ready for real gloved recordings.
+## Concrete Physical Tasks for Bhavya (Before Nov 17)
 
-## Upstream / Downstream Contracts
-- **Provides to Everyone:**
-  - `scale_mm = 100.0` wrist-centered normalization (`joint 0 == (0, 0, 0)`).
-  - 4D node features `(B, T=8, 21, 4)` = `[x_norm, y_norm, z_norm, m]` where `m == 0` zeros out coordinates.
-  - `ARKitUDPStreamer` (UDP port `5005`) and `MediaPipeCameraStreamer` returning the exact same `(1, 8, 21, 4)` normalized window format for `deployment/live_demo.py`.
-- **Warning:** Do NOT change `JOINT_NAMES`, `PARENT_INDICES`, or `split_indices.json` without coordinating across all four teammates!
+### Task 1: Run Physical Edge Benchmark on Your MacBook Air (Apple Silicon M-Series)
+Because you have the MacBook Air, run the physical hardware profiler on macOS so we replace unmeasured placeholders with real Apple Silicon (`MPS` / `CoreMLExecutionProvider` / ARM64 CPU) timings:
+```bash
+git checkout feat/bhavya-data
+git pull origin main
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
-## Next Tasks for Bhavya's Agent
-1. Test `data/iphone_parser.py` with live hardware:
-   - `python data/record_custom_gloved.py --mode mediapipe --camera 0` (wearing real surgical/latex or work gloves and holding a tool/pen/scalpel).
-   - Optionally test `--mode udp --port 5005` with iPhone ARKit streaming.
-2. Save newly recorded real gloved trajectories to `data/custom_gloved_dataset.npz` (or a new file `data/custom_gloved_real.npz` and wire it cleanly without breaking existing replay compatibility), and note the exact sequence count & gesture types in `HANDOVER.md`.
-3. Optionally place FreiHAND `freihand_xyz.json` / HO-3D annotations in `data/raw/` and verify `ingest_or_generate_dataset()` ingests them cleanly.
+# Measure real MacBook Air M-Series latency & throughput and save to JSON:
+python3 deployment/benchmark_edge.py --output results/benchmark_macbook_air.json
+```
+
+### Task 2: Record Real Gloved-Hand & Tool-Occluded Sequences (`data/custom_gloved_dataset.npz`)
+Currently, `data/custom_gloved_dataset.npz` is a synthetic baseline (`is_real_recording=False`). Using your MacBook Air built-in FaceTime HD camera (`--camera-index 0`) or your iPhone via Continuity Camera (`--camera-index 1`), put on a physical glove (latex, nitrile, or work glove) and hold a tool/pen/scalpel:
+```bash
+# Record 30 real sequences (8 frames each) using MediaPipe 3D Hands on your MacBook/iPhone camera:
+python3 data/record_custom_gloved.py --mode mediapipe --camera-index 0 --num-sequences 30 --occlusion-rate 0.50 --output data/custom_gloved_dataset.npz
+
+# Test the real-time 30-60 FPS interactive OpenCV live demo on your MacBook Air:
+python3 deployment/live_demo.py --source mediapipe --camera 0 --occlusion-rate 0.50
+```
+*(In the live demo window, press `o` to cycle 0%/30%/50%/70% tool occlusion, `t` to toggle the virtual surgical tool zone, `s` to save a live snapshot, and `q` to quit.)*
+
+### Task 3: Commit & Hand Over to Abhishekh
+```bash
+python3 tests/test_kinematics.py
+git add results/benchmark_macbook_air.json data/custom_gloved_dataset.npz docs/handover/bhavya_data_pipeline.md HANDOVER.md
+git commit -m "feat(bhavya): add real MacBook Air M-series benchmark and real gloved camera dataset"
+git push origin feat/bhavya-data
+```
+Log the exact MacBook Air FPS/latency and number of recorded gloved sequences in `HANDOVER.md` and below.
+
+---
+
+## Shared Contracts to Preserve
+- `scale_mm = 100.0` wrist-centered normalization (`joint 0 == (0, 0, 0)`).
+- 4D node features `(B, T=8, 21, 4)` = `[x_norm, y_norm, z_norm, m]` where `m == 0` zeros out coordinates.
+- Do NOT alter `JOINT_NAMES`, `PARENT_INDICES`, or `data/splits/split_indices.json`.
 
 ---
 
 ## Session History
 
-### Session: 2026-11-10 18:05 (UTC+4) — Abhishekh / Orchestrator Agent
-- **Git Branch & Base Commit:** `main` (initial repo setup)
-- **Objective:** Initialize Bhavya's `data/` module and handover instructions.
-- **Commands & Tests Executed:** `data/` module verified end-to-end by Data Pipeline Engineer & Training Engineer (`960/240` split, `custom_gloved_dataset.npz` generated).
-- **Handover to Next Agent:** On your machine, create `feat/bhavya-real-gloved-capture`, install `requirements.txt` (including `mediapipe`), capture real gloved gestures, and log the updated dataset stats in `HANDOVER.md`.
+### Session: 2026-11-10 18:25 (UTC+4) — Abhishekh / Orchestrator Agent
+- **Git Branch:** `main` -> `feat/bhavya-data`
+- **Summary:** Fixed `data/iphone_parser.py` (MediaPipe Tasks `HandLandmarker` + `mp.solutions` support, real camera `frame_bgr` return, virtual tool occlusion box, disabled silent fake fallback in hardware mode) and fixed `data/record_custom_gloved.py` so real camera recordings are saved directly to `data/custom_gloved_dataset.npz` without being overwritten by synthetic data. Assigned MacBook Air physical benchmark and real gloved capture to Bhavya.

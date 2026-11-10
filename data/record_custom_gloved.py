@@ -46,6 +46,7 @@ from data.dataset_ingestion import (
 )
 from data.iphone_parser import ARKitUDPStreamer, MediaPipeCameraStreamer
 from data.transforms import SyntheticGloveTransform, SyntheticOcclusionTransform
+from models.kinematics import positions_to_rot6d, rot6d_to_matrix
 
 
 def generate_custom_gloved_benchmark(
@@ -140,6 +141,7 @@ def generate_custom_gloved_benchmark(
         "euler_angles_rad": all_euler,
         "gesture_labels": gesture_labels,
         "scale_mm": np.array(scale_mm, dtype=np.float32),
+        "is_real_recording": np.array(False),
         **tiers,
     }
 
@@ -156,12 +158,13 @@ def record_live_sequences(
     udp_port: int = 5005,
     use_jetson_csi: bool = False,
     scale_mm: float = DEFAULT_PALM_SCALE_MM,
-) -> Dict[str, np.ndarray]:
+    simulate_if_unavailable: bool = True,
+) -> Dict[str, Any]:
     """
     Records `num_sequences` temporal sequences of length `seq_len` using either
     `MediaPipeCameraStreamer` (`mode="mediapipe"`) or `ARKitUDPStreamer`
-    (`mode="udp"` or `mode="demo"`), applies wrist normalization, and saves to
-    `data/custom_gloved_dataset.npz`.
+    (`mode="udp"` or `mode="demo"`), applies wrist normalization, and saves directly
+    to `data/custom_gloved_dataset.npz` with `is_real_recording=True`.
     """
     out_file = Path(output_path)
     out_file.parent.mkdir(parents=True, exist_ok=True)
@@ -186,7 +189,7 @@ def record_live_sequences(
                 use_jetson_csi=use_jetson_csi,
                 scale_mm=scale_mm,
                 seq_len=seq_len,
-                simulate_if_unavailable=True,
+                simulate_if_unavailable=simulate_if_unavailable,
             )
         )
     else:
@@ -194,7 +197,7 @@ def record_live_sequences(
             port=udp_port,
             scale_mm=scale_mm,
             seq_len=seq_len,
-            fallback_to_mock=True,
+            fallback_to_mock=simulate_if_unavailable,
         )
 
     with streamer_ctx as streamer:
@@ -214,19 +217,61 @@ def record_live_sequences(
             else:
                 all_gt_mm[i] = seq_pkt["positions_mm"]
 
-    # Also populate the benchmark keys so any evaluation script loading this file
-    # finds all expected arrays (rotations, multi-tier occlusion, etc.)
-    bench_payload = generate_custom_gloved_benchmark(
-        output_path=out_file,
-        num_sequences=num_sequences,
-        seq_len=seq_len,
-        scale_mm=scale_mm,
+    # Compute rotations via inverse kinematics for kinematics compatibility
+    with torch.no_grad():
+        all_gt_torch = torch.from_numpy(all_gt_mm)
+        rot6d_torch = positions_to_rot6d(all_gt_torch)
+        rot_mat_torch = rot6d_to_matrix(rot6d_torch)
+        rotations_6d = rot6d_torch.numpy()
+        rotations_mat = rot_mat_torch.numpy()
+
+    # Precompute multi-tier occlusion benchmark sets
+    tiers: Dict[str, np.ndarray] = {}
+    for rate_pct, rate_val in [(30, 0.30), (50, 0.50), (70, 0.70)]:
+        tf_tier = SyntheticOcclusionTransform(
+            occlusion_prob=rate_val, seed=777 + rate_pct
+        )
+        t_occ_mm, t_mask = tf_tier(all_gt_mm, rng=np.random.default_rng(777 + rate_pct))
+        t_norm, _, _ = normalize_hand_sequence(
+            t_occ_mm, scale_mm=scale_mm, visibility_mask=t_mask
+        )
+        t_feat = build_node_features_4d(t_norm, t_mask)
+        tiers[f"node_features_occ{rate_pct}"] = t_feat
+        tiers[f"visibility_mask_occ{rate_pct}"] = t_mask
+        tiers[f"observed_xyz_mm_occ{rate_pct}"] = t_occ_mm
+
+    gt_norm, _, _ = normalize_hand_sequence(
+        all_gt_mm, scale_mm=scale_mm, visibility_mask=None
     )
-    bench_payload["recorded_node_features"] = all_features
-    bench_payload["recorded_observed_xyz_mm"] = all_obs_mm
-    bench_payload["recorded_visibility_mask"] = all_masks
-    np.savez_compressed(out_file, **bench_payload)
-    return bench_payload
+    gesture_labels = np.arange(num_sequences, dtype=np.int64) % len(GESTURE_NAMES)
+    euler_angles_rad = np.zeros((num_sequences, seq_len, NUM_JOINTS, 3), dtype=np.float32)
+
+    payload: Dict[str, Any] = {
+        "node_features": all_features,
+        "x": all_features,
+        "features_4d": all_features,
+        "gt_xyz_mm": all_gt_mm,
+        "positions_mm": all_gt_mm,
+        "target_xyz_mm": all_gt_mm,
+        "gt_xyz_norm": gt_norm,
+        "target_xyz_norm": gt_norm,
+        "gloved_unoccluded_mm": all_gt_mm,
+        "observed_xyz_mm": all_obs_mm,
+        "visibility_mask": all_masks,
+        "mask": all_masks,
+        "rotations_mat": rotations_mat,
+        "gt_rot_mat": rotations_mat,
+        "rotations_6d": rotations_6d,
+        "gt_rot6d": rotations_6d,
+        "euler_angles_rad": euler_angles_rad,
+        "gesture_labels": gesture_labels,
+        "scale_mm": np.array(scale_mm, dtype=np.float32),
+        "is_real_recording": np.array(True),
+        "recording_mode": np.array(mode),
+        **tiers,
+    }
+    np.savez_compressed(out_file, **payload)
+    return payload
 
 
 def get_custom_gloved_dataloader(
@@ -331,6 +376,11 @@ def main() -> None:
         action="store_true",
         help="Use NVIDIA Jetson Nano CSI GStreamer pipeline.",
     )
+    parser.add_argument(
+        "--strict-hardware",
+        action="store_true",
+        help="Fail if physical camera/UDP hardware stream is unavailable (do not simulate).",
+    )
     args = parser.parse_args()
 
     if args.mode == "generate_benchmark":
@@ -349,6 +399,7 @@ def main() -> None:
             camera_index=args.camera_index,
             udp_port=args.udp_port,
             use_jetson_csi=args.jetson_csi,
+            simulate_if_unavailable=not args.strict_hardware,
         )
 
     feat = payload["node_features"]
