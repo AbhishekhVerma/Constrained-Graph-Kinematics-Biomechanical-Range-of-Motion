@@ -96,11 +96,11 @@ def export_single_student_to_onnx(
 
     output_names = ["positions_mm", "rot6d"] if has_rot6d_output else ["positions_mm"]
     dynamic_axes = {
-        "input": {0: "batch_size"},
-        "positions_mm": {0: "batch_size"},
+        "input": {0: "batch_size", 1: "seq_len"},
+        "positions_mm": {0: "batch_size", 1: "seq_len"},
     }
     if has_rot6d_output:
-        dynamic_axes["rot6d"] = {0: "batch_size"}
+        dynamic_axes["rot6d"] = {0: "batch_size", 1: "seq_len"}
 
     torch.onnx.export(
         model,
@@ -118,7 +118,7 @@ def export_single_student_to_onnx(
     onnx_model = onnx.load(str(onnx_path))
     onnx.checker.check_model(onnx_model)
 
-    # 2. Verify ONNXRuntime numerical parity across multiple batch sizes
+    # 2. Verify ONNXRuntime numerical parity across multiple batch sizes and seq lengths
     sess_options = ort.SessionOptions()
     sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
     sess = ort.InferenceSession(
@@ -137,13 +137,21 @@ def export_single_student_to_onnx(
         ort_rot6d = ort_outs[1]
         max_rot_err = float(np.max(np.abs(torch_rot6d.numpy() - ort_rot6d)))
 
-    # Also test batched inference (B=16) via dynamic_axes
+    # Test batched inference (B=16, T=seq_len) via dynamic_axes
     batch_input = torch.randn(16, seq_len, NUM_JOINTS, 4, dtype=torch.float32)
     with torch.no_grad():
         t_batch_out = model(batch_input, return_dict=False)
         t_batch_pos = t_batch_out[0] if has_rot6d_output else t_batch_out
     ort_batch_pos = sess.run(None, {"input": batch_input.numpy()})[0]
     batch_max_err_mm = float(np.max(np.abs(t_batch_pos.numpy() - ort_batch_pos)))
+
+    # Test streaming single-frame inference (B=1, T=1) via dynamic_axes
+    t1_input = torch.randn(1, 1, NUM_JOINTS, 4, dtype=torch.float32)
+    with torch.no_grad():
+        t1_out = model(t1_input, return_dict=False)
+        t1_pos = t1_out[0] if has_rot6d_output else t1_out
+    ort_t1_pos = sess.run(None, {"input": t1_input.numpy()})[0]
+    t1_max_err_mm = float(np.max(np.abs(t1_pos.numpy() - ort_t1_pos)))
 
     # 3. Measure ONNXRuntime edge inference latency (B=1, T=8)
     in_np = dummy_input.numpy()
@@ -181,7 +189,7 @@ def export_single_student_to_onnx(
         "file_size_bytes": size_bytes,
         "file_size_kb": round(size_kb, 2),
         "file_size_mb": round(size_mb, 4),
-        "max_parity_error_mm": float(max(max_pos_err_mm, batch_max_err_mm)),
+        "max_parity_error_mm": float(max(max_pos_err_mm, batch_max_err_mm, t1_max_err_mm)),
         "mean_parity_error_mm": float(mean_pos_err_mm),
         "max_rot6d_parity_error": float(max_rot_err),
         "onnx_bone_length_error_mm": round(bone_err_mm, 6),

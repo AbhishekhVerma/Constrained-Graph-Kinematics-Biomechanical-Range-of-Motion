@@ -26,6 +26,7 @@ PyTorch `StudentKinematicMLP` + `EdgeFK`, and renders a 3-panel live telemetry d
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import shutil
 import sys
@@ -75,9 +76,8 @@ from models.kinematics import (
 from models.student_models import StudentKinematicMLP, UnconstrainedStudentMLP
 
 
-ARTIFACT_COPY_DIR = Path(
-    r"C:\Users\abhis\.gemini\antigravity\brain\eadea8b3-1a42-47b9-b2b0-400855dbf6f9"
-)
+_env_artifact_dir = os.environ.get("ANTIGRAVITY_ARTIFACT_DIR")
+ARTIFACT_COPY_DIR = Path(_env_artifact_dir) if _env_artifact_dir else None
 
 
 # ---------------------------------------------------------------------------
@@ -825,7 +825,7 @@ def render_dashboard_figure(
         save_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(save_path, dpi=180, facecolor=fig.get_facecolor())
         # Also copy to the parent agent's artifact directory if available
-        if ARTIFACT_COPY_DIR.exists():
+        if ARTIFACT_COPY_DIR is not None and ARTIFACT_COPY_DIR.exists():
             try:
                 shutil.copy2(save_path, ARTIFACT_COPY_DIR / save_path.name)
             except Exception:

@@ -1,21 +1,21 @@
 {
   "project": "Constrained Graph Kinematics: Biomechanical Range-of-Motion for Occluded Hand Gesture Telemetry",
   "module_owners": "Kapish & Vrushank (Edge Student Architecture, Kinematics & Multi-Hardware Deployment)",
-  "timestamp": "2026-11-09T16:31:14Z",
+  "timestamp": "2026-11-14T09:02:34Z",
   "host_hardware": {
     "os": "Windows 11",
     "platform": "Windows-11-10.0.26200-SP0",
     "architecture": "AMD64",
-    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
-    "cpu_count_logical": 24,
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "cpu_count_logical": 12,
     "board_model": null,
     "is_jetson_nano": false,
     "is_apple_silicon": false,
     "is_raspberry_pi": false,
-    "python_version": "3.12.14",
+    "python_version": "3.13.5",
     "numpy_version": "2.5.4",
     "pytorch_version": "2.15.0+cpu",
-    "onnxruntime_version": "1.31.1",
+    "onnxruntime_version": "1.32.0",
     "pytorch_backends": {
       "CUDA": false,
       "MPS": false,
@@ -114,24 +114,24 @@
       "size_kb": 0.84,
       "flops_per_frame": 3810,
       "single_frame_T1": {
-        "mean_ms": 0.1615,
-        "median_ms": 0.16,
-        "p95_ms": 0.1708,
-        "p99_ms": 0.1752,
-        "min_ms": 0.1565,
-        "std_ms": 0.0042,
-        "fps": 6191.7,
-        "khz": 6.192
+        "mean_ms": 0.4209,
+        "median_ms": 0.3672,
+        "p95_ms": 0.6314,
+        "p99_ms": 0.832,
+        "min_ms": 0.3252,
+        "std_ms": 0.1159,
+        "fps": 2375.9,
+        "khz": 2.376
       },
       "window_T8": {
-        "mean_ms": 0.2331,
-        "median_ms": 0.2267,
-        "p95_ms": 0.2544,
-        "p99_ms": 0.3304,
-        "min_ms": 0.222,
-        "std_ms": 0.022,
-        "fps": 4290.9,
-        "khz": 4.291
+        "mean_ms": 0.5903,
+        "median_ms": 0.5512,
+        "p95_ms": 0.8332,
+        "p99_ms": 0.9725,
+        "min_ms": 0.4541,
+        "std_ms": 0.1323,
+        "fps": 1694.0,
+        "khz": 1.694
       },
       "bone_length_error_mm": 8e-06,
       "pytorch_parity_max_diff_mm": 8e-06
@@ -153,24 +153,24 @@
       "mflops_per_window_T8": 179.42,
       "flops_reduction_ratio_vs_student": 137.3,
       "single_frame_T1": {
-        "mean_ms": 4.2791,
-        "median_ms": 3.7193,
-        "p95_ms": 7.191,
-        "p99_ms": 7.4261,
-        "min_ms": 2.7975,
-        "std_ms": 1.2855,
-        "fps": 233.7,
-        "khz": 0.234
+        "mean_ms": 9.7817,
+        "median_ms": 9.2628,
+        "p95_ms": 12.2728,
+        "p99_ms": 15.3281,
+        "min_ms": 7.0366,
+        "std_ms": 2.5578,
+        "fps": 102.2,
+        "khz": 0.102
       },
       "window_T8": {
-        "mean_ms": 5.6222,
-        "median_ms": 5.2393,
-        "p95_ms": 9.4437,
-        "p99_ms": 9.6711,
-        "min_ms": 4.2186,
-        "std_ms": 1.2805,
-        "fps": 177.9,
-        "khz": 0.178
+        "mean_ms": 13.7662,
+        "median_ms": 13.455,
+        "p95_ms": 16.1357,
+        "p99_ms": 18.3846,
+        "min_ms": 11.5587,
+        "std_ms": 1.309,
+        "fps": 72.6,
+        "khz": 0.073
       },
       "bone_length_error_mm": 0.0
     },
@@ -190,24 +190,24 @@
       "mflops_per_frame": 0.158,
       "mflops_per_window_T8": 1.263,
       "single_frame_T1": {
-        "mean_ms": 0.3717,
-        "median_ms": 0.3249,
-        "p95_ms": 0.6514,
-        "p99_ms": 0.6877,
-        "min_ms": 0.2645,
-        "std_ms": 0.1161,
-        "fps": 2690.5,
-        "khz": 2.69
+        "mean_ms": 0.8999,
+        "median_ms": 0.804,
+        "p95_ms": 1.4016,
+        "p99_ms": 1.9255,
+        "min_ms": 0.6573,
+        "std_ms": 0.2536,
+        "fps": 1111.2,
+        "khz": 1.111
       },
       "window_T8": {
-        "mean_ms": 0.5226,
-        "median_ms": 0.4458,
-        "p95_ms": 0.883,
-        "p99_ms": 0.9833,
-        "min_ms": 0.3372,
-        "std_ms": 0.1702,
-        "fps": 1913.5,
-        "khz": 1.913
+        "mean_ms": 1.2545,
+        "median_ms": 1.0894,
+        "p95_ms": 1.9445,
+        "p99_ms": 3.4132,
+        "min_ms": 0.8418,
+        "std_ms": 0.4837,
+        "fps": 797.1,
+        "khz": 0.797
       }
     },
     "pytorch_student_kinematic": {
@@ -226,26 +226,26 @@
       "mflops_per_frame": 0.163,
       "mflops_per_window_T8": 1.307,
       "single_frame_T1": {
-        "mean_ms": 1.716,
-        "median_ms": 1.6489,
-        "p95_ms": 2.3566,
-        "p99_ms": 3.5438,
-        "min_ms": 1.264,
-        "std_ms": 0.4097,
-        "fps": 582.7,
-        "khz": 0.583
+        "mean_ms": 4.0622,
+        "median_ms": 3.9274,
+        "p95_ms": 4.9872,
+        "p99_ms": 6.4178,
+        "min_ms": 3.1804,
+        "std_ms": 0.6207,
+        "fps": 246.2,
+        "khz": 0.246
       },
       "window_T8": {
-        "mean_ms": 2.0764,
-        "median_ms": 1.8817,
-        "p95_ms": 3.7731,
-        "p99_ms": 4.0005,
-        "min_ms": 1.44,
-        "std_ms": 0.6523,
-        "fps": 481.6,
-        "khz": 0.482
+        "mean_ms": 4.8664,
+        "median_ms": 4.6888,
+        "p95_ms": 6.2069,
+        "p99_ms": 7.5621,
+        "min_ms": 3.4831,
+        "std_ms": 0.8978,
+        "fps": 205.5,
+        "khz": 0.205
       },
-      "speedup_vs_teacher_T8_x": 2.71,
+      "speedup_vs_teacher_T8_x": 2.83,
       "bone_length_error_mm": 1.1e-05,
       "biomechanical_valid_pct": 100.0
     },
@@ -267,8 +267,8 @@
       "onnx_metadata": {
         "onnx_path": "checkpoints\\student_kinematic_fk.onnx",
         "loaded_from_existing_checkpoint": true,
-        "onnx_size_kb": 433.21,
-        "onnx_size_mb": 0.4231,
+        "onnx_size_kb": 433.19,
+        "onnx_size_mb": 0.423,
         "active_provider": "CPUExecutionProvider",
         "session_providers": [
           "CPUExecutionProvider"
@@ -278,31 +278,31 @@
           "positions_mm",
           "rot6d"
         ],
-        "supports_dynamic_seq": false
+        "supports_dynamic_seq": true
       },
       "single_frame_T1": {
-        "mean_ms": 0.9644,
-        "median_ms": 0.8912,
-        "p95_ms": 1.2297,
-        "p99_ms": 1.3471,
-        "min_ms": 0.6689,
-        "std_ms": 0.1824,
-        "fps": 1036.9,
-        "khz": 1.037
+        "mean_ms": 1.1811,
+        "median_ms": 1.179,
+        "p95_ms": 1.2822,
+        "p99_ms": 1.4994,
+        "min_ms": 0.9001,
+        "std_ms": 0.0919,
+        "fps": 846.6,
+        "khz": 0.847
       },
       "window_T8": {
-        "mean_ms": 0.7092,
-        "median_ms": 0.6897,
-        "p95_ms": 0.8167,
-        "p99_ms": 0.8873,
-        "min_ms": 0.6648,
-        "std_ms": 0.0659,
-        "fps": 1410.1,
-        "khz": 1.41
+        "mean_ms": 1.6131,
+        "median_ms": 1.5137,
+        "p95_ms": 2.0433,
+        "p99_ms": 2.7535,
+        "min_ms": 1.318,
+        "std_ms": 0.2977,
+        "fps": 619.9,
+        "khz": 0.62
       },
-      "speedup_vs_teacher_T8_x": 7.93,
-      "speedup_streaming_T1_vs_teacher_T8_x": 5.83,
-      "onnx_vs_pytorch_max_diff_mm": 0.000145,
+      "speedup_vs_teacher_T8_x": 8.53,
+      "speedup_streaming_T1_vs_teacher_T8_x": 11.66,
+      "onnx_vs_pytorch_max_diff_mm": 0.000381,
       "bone_length_error_mm": 1.1e-05,
       "biomechanical_valid_pct": 100.0
     }
@@ -310,18 +310,18 @@
   "hardware_platform_profiles": {
     "pc_x86_host": {
       "platform_name": "PC Workstation (x86_64 CPU \u2014 Measured Host)",
-      "hardware_spec": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel (24 logical cores)",
+      "hardware_spec": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel (12 logical cores)",
       "primary_backend": "CPUExecutionProvider",
       "measured_on_host": true,
-      "edge_fk_numpy_ms": 0.1615,
-      "edge_fk_numpy_khz": 6.19,
-      "teacher_st_gae_pytorch_t8_ms": 5.622,
-      "teacher_st_gae_pytorch_fps": 177.9,
-      "student_kinematic_pytorch_t1_ms": 1.716,
-      "student_kinematic_onnx_t1_ms": 0.964,
-      "student_kinematic_onnx_t8_ms": 0.709,
-      "student_kinematic_onnx_fps": 1036.9,
-      "realtime_60fps_headroom_x": 17.3
+      "edge_fk_numpy_ms": 0.4209,
+      "edge_fk_numpy_khz": 2.38,
+      "teacher_st_gae_pytorch_t8_ms": 13.766,
+      "teacher_st_gae_pytorch_fps": 72.6,
+      "student_kinematic_pytorch_t1_ms": 4.062,
+      "student_kinematic_onnx_t1_ms": 1.181,
+      "student_kinematic_onnx_t8_ms": 1.613,
+      "student_kinematic_onnx_fps": 846.7,
+      "realtime_60fps_headroom_x": 14.1
     },
     "macbook_air_m_series": {
       "platform_name": "Apple MacBook Air (M-Series M1/M2/M3/M4)",
@@ -377,16 +377,16 @@
       "hardware_spec": "Apple A-Series Bionic Neural Engine (60 Hz ARKit Hand Tracking) -> Wi-Fi/USB UDP JSON Stream",
       "primary_backend": "ARKitUDPStreamer (Port 5005) + Host ONNX Runtime StudentKinematicMLP",
       "udp_packet_parse_and_retarget_ms": 0.08,
-      "onnx_student_repair_ms": 0.964,
-      "total_end_to_end_repair_latency_ms": 1.044,
-      "max_supported_telemetry_rate_hz": 957.9,
+      "onnx_student_repair_ms": 1.181,
+      "total_end_to_end_repair_latency_ms": 1.261,
+      "max_supported_telemetry_rate_hz": 793.0,
       "sustains_60hz_arkit_stream": true
     }
   },
   "verification": {
     "edge_fk_bone_length_error_mm": 8e-06,
     "onnx_bone_length_error_mm": 1.1e-05,
-    "onnx_pytorch_max_deviation_mm": 0.000145,
+    "onnx_pytorch_max_deviation_mm": 0.000381,
     "biomechanical_valid_poses_pct": 100.0,
     "meets_sub_5ms_edge_target": true,
     "meets_zero_bone_error_target": true
