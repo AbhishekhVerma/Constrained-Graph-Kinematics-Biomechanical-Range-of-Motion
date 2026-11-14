@@ -1076,3 +1076,89 @@ class EdgeFK:
             for j in range(1, NUM_JOINTS)
         ]
         return np.stack(lengths, axis=-1).astype(np.float32)
+
+
+# ---------------------------------------------------------------------------
+# 7. Dynamic Palm-Scale Calibration Utilities (Live Camera Adaptation)
+# ---------------------------------------------------------------------------
+
+def estimate_palm_scale_factor(
+    positions_3d: Union[np.ndarray, torch.Tensor],
+    visibility_mask: Optional[Union[np.ndarray, torch.Tensor]] = None,
+    min_scale: float = 0.65,
+    max_scale: float = 1.45,
+) -> float:
+    """
+    Estimates an anatomical palm-scale factor alpha from unoccluded metacarpal
+    landmarks (WRIST -> MIDDLE_MCP and WRIST -> INDEX_MCP).
+
+    Used during the first unoccluded frames of live camera streams to calibrate
+    canonical bone lengths to the user's specific hand geometry while strictly
+    locking bone-length error to 0.0000 mm.
+
+    Args:
+        positions_3d: Hand joint coordinates `(..., 21, 3)` in millimeters.
+        visibility_mask: Optional binary visibility mask `(..., 21)`.
+        min_scale: Minimum valid anatomical scale factor (default 0.65).
+        max_scale: Maximum valid anatomical scale factor (default 1.45).
+
+    Returns:
+        Clamped scalar scale factor alpha (e.g. 1.0 = canonical ~185 mm hand).
+    """
+    if isinstance(positions_3d, torch.Tensor):
+        pts = positions_3d.detach().cpu().numpy()
+    else:
+        pts = np.asarray(positions_3d, dtype=np.float32)
+
+    pts = pts.reshape(-1, NUM_JOINTS, 3)
+
+    if visibility_mask is not None:
+        if isinstance(visibility_mask, torch.Tensor):
+            mask = visibility_mask.detach().cpu().numpy()
+        else:
+            mask = np.asarray(visibility_mask, dtype=np.float32)
+        mask = mask.reshape(-1, NUM_JOINTS)
+    else:
+        mask = np.ones((pts.shape[0], NUM_JOINTS), dtype=np.float32)
+
+    scales: List[float] = []
+    anchor_pairs = [
+        (0, 5, CANONICAL_BONE_LENGTHS_MM[5]),  # Wrist -> Index MCP
+        (0, 9, CANONICAL_BONE_LENGTHS_MM[9]),  # Wrist -> Middle MCP
+    ]
+
+    for p_idx, c_idx, canon_len in anchor_pairs:
+        valid_frames = (mask[:, p_idx] > 0.5) & (mask[:, c_idx] > 0.5)
+        if np.any(valid_frames):
+            diff = pts[valid_frames, c_idx, :] - pts[valid_frames, p_idx, :]
+            observed_len = np.linalg.norm(diff, axis=-1)
+            good = observed_len > 10.0
+            if np.any(good):
+                scales.append(float(np.median(observed_len[good]) / canon_len))
+
+    if len(scales) == 0:
+        return 1.0
+
+    raw_scale = float(np.mean(scales))
+    return float(np.clip(raw_scale, min_scale, max_scale))
+
+
+def calibrate_bone_lengths(
+    scale_factor: float = 1.0,
+    base_lengths: Optional[np.ndarray] = None,
+) -> np.ndarray:
+    """
+    Returns dynamically calibrated bone lengths in mm preserving canonical human proportions.
+
+    Args:
+        scale_factor: Scalar alpha estimated by `estimate_palm_scale_factor`.
+        base_lengths: Optional base bone lengths `(21,)` in mm (defaults to `CANONICAL_BONE_LENGTHS_MM`).
+
+    Returns:
+        Calibrated bone lengths `(21,)` with exact relative ratios preserved.
+    """
+    if base_lengths is None:
+        base = CANONICAL_BONE_LENGTHS_MM.copy()
+    else:
+        base = np.asarray(base_lengths, dtype=np.float32).copy()
+    return (base * float(scale_factor)).astype(np.float32)

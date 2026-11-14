@@ -39,7 +39,9 @@ from models.kinematics import (
     BiomechanicalRoMClamper,
     DifferentiableFK,
     EdgeFK,
+    calibrate_bone_lengths,
     check_biomechanical_validity,
+    estimate_palm_scale_factor,
     euler_xyz_to_matrix_torch,
     matrix_to_rot6d,
     positions_to_rot6d,
@@ -264,6 +266,37 @@ def test_student_onnx_export() -> None:
             print(f"[PASS] StudentKinematicMLP TorchScript trace parity err={jit_diff:.2e} mm")
 
 
+def test_dynamic_palm_scale_calibration() -> None:
+    """Verifies live palm-scale estimation and calibrated bone-length preservation."""
+    # Synthetic canonical rest skeleton
+    pos_canon = REST_JOINT_POSITIONS_MM[None, None, :, :]  # (1, 1, 21, 3)
+    scale_1 = estimate_palm_scale_factor(pos_canon)
+    assert abs(scale_1 - 1.0) < 1e-3, f"Expected canonical scale 1.0, got {scale_1}"
+
+    # Scaled skeleton (e.g. 15% larger hand: scale = 1.15)
+    pos_scaled = pos_canon * 1.15
+    scale_est = estimate_palm_scale_factor(pos_scaled)
+    assert abs(scale_est - 1.15) < 1e-2, f"Expected scale ~1.15, got {scale_est}"
+
+    # Clamping test: extreme inputs clamp to [0.65, 1.45]
+    scale_low = estimate_palm_scale_factor(pos_canon * 0.2)
+    assert abs(scale_low - 0.65) < 1e-3, f"Expected clamped scale 0.65, got {scale_low}"
+    scale_high = estimate_palm_scale_factor(pos_canon * 3.0)
+    assert abs(scale_high - 1.45) < 1e-3, f"Expected clamped scale 1.45, got {scale_high}"
+
+    # Calibrated bone lengths preserve exact ratios and zero variance
+    calib_bones = calibrate_bone_lengths(scale_factor=1.10)
+    fk = EdgeFK(bone_lengths_mm=calib_bones)
+    rot_zero = np.zeros((1, 1, NUM_JOINTS, 6), dtype=np.float32)
+    rot_zero[..., :, 0] = 1.0
+    rot_zero[..., :, 4] = 1.0
+    fk_pos = fk(rot_zero)
+    measured_bones = fk.compute_bone_lengths(fk_pos)[0, 0]
+    max_bone_err = float(np.max(np.abs(measured_bones - calib_bones[1:])))
+    assert max_bone_err < 1e-5, f"Calibrated bone length error: {max_bone_err} mm"
+    print(f"[PASS] Dynamic Palm-Scale Calibration scale={scale_est:.2f} | Calibrated FK bone err={max_bone_err:.2e} mm")
+
+
 def run_all_tests() -> None:
     print("=" * 78)
     print("Running Kinematics, Biomechanical RoM, Teacher ST-GAE & Student Verification")
@@ -273,6 +306,7 @@ def run_all_tests() -> None:
     test_biomechanical_rom_clamper_and_validity()
     test_teacher_and_student_models_forward_backward()
     test_student_onnx_export()
+    test_dynamic_palm_scale_calibration()
     print("=" * 78)
     print("ALL KINEMATICS & MODEL ARCHITECTURE TESTS PASSED SUCCESSFULLY!")
     print("=" * 78)

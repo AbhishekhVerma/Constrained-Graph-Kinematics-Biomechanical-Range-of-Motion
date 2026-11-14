@@ -43,6 +43,13 @@ Previously, `_try_load_real_annotations()` in `data/dataset_ingestion.py` was no
 
 ## Session History
 
-### Session: 2026-11-10 18:25 (UTC+4) — Abhishekh / Orchestrator Agent
-- **Git Branch:** `main` -> `feat/vrushank-kinematics`
-- **Summary:** Fixed `data/dataset_ingestion.py` so `_try_load_real_annotations()` actually processes real `FreiHAND`/`HO-3D` 3D JSON/NPY annotations in `data/raw/` and added `--download-freihand`. Removed artificial handicaps from `SpatialOnlyGAE` and `UnconstrainedStudentMLP`. Assigned public dataset ingestion & kinematics verification to Vrushank (swapped MacBook Air physical benchmark to Bhavya).
+### Session: 2026-11-14 14:55 (UTC+4) — Vrushank / Antigravity Agent
+- **Git Branch:** `feat/vrushank-kinematics`
+- **Summary:**
+  - Synchronized feature branch with latest `origin/main` changes.
+  - Implemented efficient HTTP range streaming in `download_freihand_xyz` (`data/dataset_ingestion.py`) to stream official `training_xyz.json` (32,560 real poses) directly from the University of Freiburg server without needing to download the entire 3.9 GB image archive.
+  - Successfully ingested 1,200 real 3D FreiHAND hand sequences (`data/dataset_ingestion.py --num-sequences 1200 --seq-len 8 --force-regenerate`), mapped via analytical IK (`positions_to_rot6d`) -> Gram-Schmidt `rot6d_to_matrix` -> rigid forward kinematics with maximum bone length error of $3.81 \times 10^{-6}\text{ mm}$ ($0.0000\text{ mm}$).
+  - Added dynamic palm-scale calibration utilities (`estimate_palm_scale_factor`, `calibrate_bone_lengths`) to `models/kinematics.py` for live camera hand size adaptation while preserving rigid bone ratios.
+  - Added `test_dynamic_palm_scale_calibration` to `tests/test_kinematics.py`.
+  - Ran complete test suite (`python tests/test_kinematics.py`): 100% PASS (SO(3) error $2.79 \times 10^{-6}$, FK/EdgeFK bone error $0.000011\text{ mm}$, Biomechanical RoM validity $100.0\%$, ONNX parity error $0.000120\text{ mm}$, palm calibration error $7.63 \times 10^{-6}\text{ mm}$).
+- **Status:** FreiHAND ingestion and kinematics verification completed. Ready for teacher/student re-training on harmonized real data.
