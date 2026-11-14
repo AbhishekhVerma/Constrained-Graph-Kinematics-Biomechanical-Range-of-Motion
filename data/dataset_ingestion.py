@@ -10,8 +10,14 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+
+# Ensure repository root is on sys.path
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
 import numpy as np
 
@@ -657,17 +663,74 @@ def _synthesize_single_sequence_angles(
 def download_freihand_xyz(raw_dir: Union[str, Path] = "data/raw") -> Optional[Path]:
     """
     Downloads lightweight FreiHAND 3D joint coordinate annotations into `data/raw/`.
-    Tries public research mirrors for FreiHAND XYZ annotations.
+    Extracts `training_xyz.json` directly from the official University of Freiburg
+    FreiHAND archive using HTTP range streaming (extracting only the 18 MB JSON without
+    downloading the full 3.9 GB image archive).
     """
-    import urllib.request
     out_dir = Path(raw_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     dest_path = out_dir / "freihand_xyz.json"
+    dest_train = out_dir / "freihand_training_xyz.json"
     if dest_path.exists() and dest_path.stat().st_size > 1000:
         print(f"[dataset_ingestion] FreiHAND annotations already present at: {dest_path}")
         return dest_path
 
-    # Public mirror URLs for FreiHAND evaluation/training 3D keypoints
+    try:
+        import io, zipfile, requests, shutil
+
+        class RemoteZipFile(io.RawIOBase):
+            def __init__(self, url: str):
+                self.url = url
+                self.session = requests.Session()
+                r = self.session.head(url, timeout=30)
+                self.length = int(r.headers.get("content-length", 0))
+                self.pos = 0
+
+            def readable(self) -> bool:
+                return True
+
+            def seekable(self) -> bool:
+                return True
+
+            def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
+                if whence == io.SEEK_SET:
+                    self.pos = offset
+                elif whence == io.SEEK_CUR:
+                    self.pos += offset
+                elif whence == io.SEEK_END:
+                    self.pos = self.length + offset
+                return self.pos
+
+            def tell(self) -> int:
+                return self.pos
+
+            def readinto(self, b: bytearray) -> int:
+                l = len(b)
+                if self.pos >= self.length:
+                    return 0
+                end = min(self.pos + l - 1, self.length - 1)
+                headers = {"Range": f"bytes={self.pos}-{end}"}
+                r = self.session.get(self.url, headers=headers, timeout=30)
+                data = r.content
+                b[:len(data)] = data
+                self.pos += len(data)
+                return len(data)
+
+        url = "https://lmb.informatik.uni-freiburg.de/data/freihand/FreiHAND_pub_v2.zip"
+        print(f"[dataset_ingestion] Streaming FreiHAND training_xyz.json from official Freiburg server...")
+        rz = RemoteZipFile(url)
+        zf = zipfile.ZipFile(rz)
+        with zf.open("training_xyz.json") as src, open(dest_path, "wb") as dst:
+            shutil.copyfileobj(src, dst)
+
+        shutil.copyfile(dest_path, dest_train)
+        print(f"[dataset_ingestion] Successfully extracted FreiHAND annotations: {dest_path} ({dest_path.stat().st_size / 1024 / 1024:.2f} MB)")
+        return dest_path
+    except Exception as err:
+        print(f"[dataset_ingestion] Remote stream failed ({err}). Falling back to local/mirrors...")
+
+    # Fallback mirrors
+    import urllib.request
     mirrors = [
         "https://raw.githubusercontent.com/lmb-freiburg/freihand/master/evaluation_xyz.json",
         "https://huggingface.co/datasets/datasets/resolve/main/freihand_evaluation_xyz.json",
