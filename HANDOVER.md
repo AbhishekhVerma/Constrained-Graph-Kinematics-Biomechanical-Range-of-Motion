@@ -12,15 +12,15 @@
 
 | Component | Status | Verified Output / Artifact | Owner |
 | :--- | :--- | :--- | :--- |
-| **Canonical 21-Joint Topology & Generator** | Ready | `data/dataset_ingestion.py`, `data/splits/split_indices.json` (960 train / 240 test) | Bhavya |
-| **3D Occlusion & Glove Transforms** | Ready | `data/transforms.py` (30%/50%/70% clipping + 12% stiffness + AR(1) jitter) | Bhavya |
-| **Dual-Mode Live Capture & Custom Recorder** | Code Ready (Needs Live Hardware Test) | `data/iphone_parser.py`, `data/record_custom_gloved.py`, `data/custom_gloved_dataset.npz` | Bhavya |
-| **6D Rotation Math, RoM Clamping & Edge FK** | Verified | `models/kinematics.py`, `tests/test_kinematics.py` (`0.000011 mm` max bone error, `100%` bio-valid) | Vrushank |
+| **Canonical 21-Joint Topology & FreiHAND Streamer** | Verified | `data/dataset_ingestion.py` (HTTP range-streamed 32,560 FreiHAND poses), `data/splits/split_indices.json` (960 train / 240 test) | Bhavya / Vrushank |
+| **3D Occlusion & Glove Transforms** | Verified | `data/transforms.py` (30%/50%/70% clipping + 12% stiffness + AR(1) jitter) | Bhavya |
+| **Dual-Mode Live Capture & Custom Recorder** | Verified | `data/iphone_parser.py`, `data/record_custom_gloved.py`, `data/custom_gloved_dataset.npz` | Bhavya |
+| **6D Rotation Math, RoM Clamping, Calibration & Edge FK** | Verified | `models/kinematics.py`, `tests/test_kinematics.py` (`0.000011 mm` max bone error, `100%` bio-valid, dynamic palm calibration) | Vrushank |
 | **Teacher ST-GAE & Spatial-Only Ablation** | Trained & Verified | `checkpoints/teacher_st_gae.pt` (520,189 params), `checkpoints/teacher_spatial_only.pt` | Abhishekh |
 | **Distilled Student MLP & Direct-XYZ Baseline** | Trained & Exported | `checkpoints/student_kinematic_mlp.pt` (78,398 params), `checkpoints/student_kinematic_fk.onnx` (433 KB) | Kapish |
 | **Ablation Metrics & 300-DPI Figures** | Generated | `results/metrics_summary.json`, `results/figures/fig1`–`fig6` | Abhishekh / Kapish |
-| **Cross-Hardware Benchmark & Live Demo** | Tested on Windows Replay (Needs MacBook/Jetson Run) | `deployment/benchmark_edge.py`, `deployment/live_demo.py`, `results/edge_benchmark.json` | Kapish / Vrushank |
-| **Literature Review, Slides (11) & IEEE Report** | Drafted | `docs/literature_review.md`, `docs/final_presentation_slides.md`, `Final_Project_Report.pdf` | Team |
+| **Cross-Hardware Benchmark & Live Demo** | Measured on Windows PC & MacBook Air M-Series (Jetson Nano Pending) | `deployment/benchmark_edge.py`, `deployment/live_demo.py`, `results/edge_benchmark.json`, `results/benchmark_macbook_air.json`, `results/benchmark_windows_pc.json` | Kapish / Bhavya |
+| **Literature Review, Slides (11) & IEEE Report** | Finalized | `docs/literature_review.md`, `docs/final_presentation_slides.md`, `Final_Project_Report.pdf` | Team |
 
 ---
 
@@ -36,9 +36,16 @@
 ### Custom Gloved Benchmark (`data/custom_gloved_dataset.npz`, 50% Occlusion)
 - **Teacher ST-GAE:** MPJPE `6.64 mm` | **Distilled Student MLP (Ours):** MPJPE `6.51 mm`, Bone Error `0.0000 mm`, Bio-Validity `100.0%`
 
-### ONNX Host Runtime (`results/edge_benchmark.json` / `results/benchmark_windows_pc.json`)
-- **Student ONNX (`CPUExecutionProvider` on x86_64 CPU):** `1.792 ms` single-frame `T=1` (`558 FPS`), `2.546 ms` window `T=8`, `0.000141 mm` max PyTorch-vs-ONNX parity error.
-- **Physical Hardware Status:** Windows PC CPU is physically measured; MacBook Air M-Series (Bhavya) and Jetson Nano (Kapish) are flagged `PENDING_PHYSICAL_MEASUREMENT`.
+### ONNX Host & Edge Hardware Runtimes (`results/edge_benchmark.json`)
+- **Apple MacBook Air (M-Series ARM64 + `CoreMLExecutionProvider` / `MPS`, Measured by Bhavya):**
+  - Bare-Metal NumPy `EdgeFK`: **`0.0725 ms` (`13.79 kHz` / `13,789 FPS`)** single-frame `T=1`; `0.0991 ms` (`10.09 kHz`) window `T=8`.
+  - Teacher `SpatioTemporalGAE` (`PyTorch MPS`): **`5.045 ms` (`198.2 FPS`)** single-frame `T=1`; **`6.032 ms` (`165.8 FPS`)** window `T=8`.
+  - Distilled `StudentKinematicMLP` (`ONNX CoreMLExecutionProvider`): **`1.242 ms` (`804.9 FPS`)** single-frame `T=1`, **`1.935 ms` (`516.7 FPS`, `0.242 ms/frame`)** window `T=8`, **`13.4x` 60 FPS real-time headroom**, `0.000246 mm` ONNX parity, `0.0000 mm` bone error.
+- **Windows 11 PC Workstation (`CPUExecutionProvider` on x86_64 24-Core CPU, Measured by Abhishekh):**
+  - Bare-Metal NumPy `EdgeFK`: **`0.199 ms` (`5.01 kHz`)** single-frame `T=1`; `0.288 ms` window `T=8`.
+  - Teacher `SpatioTemporalGAE` (`PyTorch CPU`): **`22.094 ms` (`45.3 FPS`)** single-frame `T=1`; **`29.340 ms` (`34.1 FPS`)** window `T=8`.
+  - Distilled `StudentKinematicMLP` (`ONNX CPUExecutionProvider`): **`1.792 ms` (`557.9 FPS`)** single-frame `T=1`, **`2.546 ms` (`392.8 FPS`, `0.318 ms/frame`)** window `T=8`, **`9.3x` 60 FPS real-time headroom**, `0.000141 mm` ONNX parity, `0.0000 mm` bone error.
+- **Physical Hardware Status:** Windows PC x86_64 CPU and Apple MacBook Air M-Series (`MPS` / `CoreMLExecutionProvider`) are physically measured and merged; NVIDIA Jetson Nano and Raspberry Pi 5/4B remain flagged `PENDING_PHYSICAL_MEASUREMENT` for Kapish.
 
 ---
 
@@ -78,3 +85,6 @@ Raw / Camera / UDP Input (mm)
 | 2026-11-10 | Abhishekh (Orchestrator Agent) | `main` | Removed baseline rigging; integrated official Google MediaPipe Tasks HandLandmarker; updated live recording, edge benchmark `--merge`, and 60 FPS OpenCV HUD demo; retrained Teacher & Student models honestly; generated 300-DPI publication figures. | `test_kinematics.py`, `train_teacher.py`, `distill_student.py`, `export_models.py`, `evaluate_and_plot.py`, `benchmark_edge.py`, `live_demo.py` | Bhavya runs MacBook Air benchmarks; Kapish runs Jetson Nano benchmarks; Vrushank checks FreiHAND; Abhishekh merges results. |
 | 2026-11-10 | Abhishekh (Teacher & Eval Lead) | `feat/abhishekh-teacher` | Updated `docs/final_presentation_slides.md` and `docs/Final_Project_Report.md` with honest empirical metrics; recompiled `Final_Project_Report.pdf`; verified all kinematics tests; updated handover docs. | `tests/test_kinematics.py` (All PASS), `docs/build_report_pdf.py` (PDF OK) | Bhavya benchmarks MacBook Air M-Series; Kapish benchmarks Jetson Nano; Vrushank verifies FreiHAND; Abhishekh merges benchmarks. |
 | 2026-11-14 | Vrushank (Kinematics & Public Data) | `feat/vrushank-kinematics` | Synced branch with main; extracted real FreiHAND `training_xyz.json` (32,560 poses) via Freiburg HTTP range stream; ingested 1,200 real sequences with analytical IK -> 6D -> FK harmonization (max bone err $3.81 \times 10^{-6}\text{ mm}$); added dynamic palm-scale calibration to `models/kinematics.py` and test to `tests/test_kinematics.py`. | `tests/test_kinematics.py` (100% PASS), `data/dataset_ingestion.py` | Real FreiHAND data ready in `data/raw/` & `data/processed/`. Abhishekh can retrain models on harmonized dataset if desired. |
+| 2026-11-14 | Kapish (Student & Edge Deploy) | `feat/kapish-deployment` | Hardened `ANTIGRAVITY_ARTIFACT_DIR` path resolution in `deployment/live_demo.py`; added single-frame ($B=1, T=1$) ONNX Runtime parity test (`t1_max_err_mm`) in `distillation/export_models.py`. | `tests/test_kinematics.py`, `distillation/export_models.py`, `deployment/live_demo.py` | Physical Jetson Nano benchmark (`results/benchmark_jetson_nano.json`) ready to run when hardware is connected. |
+| 2026-11-14 | Bhavya (Data & MacBook Air) | `feat/bhavya-data` | Executed physical Apple Silicon MacBook Air M-Series benchmark (`results/benchmark_macbook_air.json`): ONNX `CoreMLExecutionProvider` `1.242 ms` (`804.9 FPS`) single-frame `T=1`, `1.935 ms` (`516.7 FPS`) window `T=8`, `0.0725 ms` (`13.79 kHz`) NumPy `EdgeFK`, and `6.032 ms` Teacher `MPS`. | `tests/test_kinematics.py` (macOS ARM64 PASS), `deployment/benchmark_edge.py` | Merged into `results/edge_benchmark.json` by Abhishekh. |
+| 2026-11-15 | Abhishekh (Orchestrator Agent) | `main` | Reviewed & merged PR #1 (`feat/kapish-deployment`), PR #2 (`feat/bhavya-data`), and PR #3 (`feat/vrushank-kinematics`); fixed time-varying GT sequence buffering in `data/iphone_parser.py` & `data/record_custom_gloved.py`; merged Windows PC + MacBook Air benchmarks into `results/edge_benchmark.json`; regenerated figures, slides, and `Final_Project_Report.pdf`. | `tests/test_kinematics.py` (7/7 PASS), `export_models.py`, `evaluate_and_plot.py`, `build_report_pdf.py` | All 4 branches unified and pushed to `origin`. |

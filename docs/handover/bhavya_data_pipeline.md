@@ -60,3 +60,19 @@ Log the exact MacBook Air FPS/latency and number of recorded gloved sequences in
 ### Session: 2026-11-10 18:25 (UTC+4) — Abhishekh / Orchestrator Agent
 - **Git Branch:** `main` -> `feat/bhavya-data`
 - **Summary:** Fixed `data/iphone_parser.py` (MediaPipe Tasks `HandLandmarker` + `mp.solutions` support, real camera `frame_bgr` return, virtual tool occlusion box, disabled silent fake fallback in hardware mode) and fixed `data/record_custom_gloved.py` so real camera recordings are saved directly to `data/custom_gloved_dataset.npz` without being overwritten by synthetic data. Assigned MacBook Air physical benchmark and real gloved capture to Bhavya.
+
+### Session: 2026-11-14 23:05 (UTC+4) — Bhavya (Apple Silicon MacBook Air M-Series)
+- **Git Branch:** `feat/bhavya-data` (`00342055`)
+- **Summary:**
+  1. Executed physical hardware benchmark on Apple Silicon MacBook Air (`macOS 26.3.1`, `arm64`, 8 cores, PyTorch `2.11.0` `MPS` + ONNX Runtime `1.24.4` `CoreMLExecutionProvider`) via `python3 deployment/benchmark_edge.py --output results/benchmark_macbook_air.json` and merged into `results/edge_benchmark.json`:
+     - Bare-Metal `EdgeFK` (NumPy ARM64 Vectorized): **`0.0725 ms` (`13,789 FPS` / `13.79 kHz`)** single-frame `T=1`; `0.0991 ms` (`10.09 kHz`) window `T=8`.
+     - Teacher `SpatioTemporalGAE` (`PyTorch MPS`): **`5.045 ms` (`198.2 FPS`)** single-frame `T=1`; **`6.032 ms` (`165.8 FPS`)** window `T=8`.
+     - `StudentKinematicMLP` (`PyTorch MPS` 6D-FK): **`2.818 ms` (`354.8 FPS`)** single-frame `T=1`; `3.214 ms` window `T=8`.
+     - `StudentKinematicMLP` (`ONNX Runtime CoreMLExecutionProvider`): **`1.242 ms` (`804.9 FPS`)** single-frame `T=1`; **`1.935 ms` (`516.7 FPS`, `0.242 ms/frame`)** window `T=8`; P95 `1.396 ms`, consuming only `7.45%` of the 60 FPS frame budget (`13.4x` headroom), `0.000246 mm` ONNX parity, and `0.0000 mm` bone-length error (`100.0%` bio-validity).
+  2. Verified `tests/test_kinematics.py` on macOS ARM64 (all unit tests pass).
+
+### Session: 2026-11-15 20:45 (UTC+4) — Abhishekh / Orchestrator Agent (PR #2 Review & Merge)
+- **Git Branch:** `feat/bhavya-data` -> `main`
+- **Summary:**
+  - Integrated Bhavya's real physical Apple Silicon MacBook Air benchmark (`results/benchmark_macbook_air.json`) and merged with `results/benchmark_windows_pc.json` into `results/edge_benchmark.json`.
+  - Fixed time-varying ground-truth sequence buffering in `data/iphone_parser.py` (`self._gt_mm_buffer` in `ARKitUDPStreamer` and `MediaPipeCameraStreamer`) and `data/record_custom_gloved.py` (`SyntheticGloveTransform` + `seq_len - 1` stride) so `read_sequence()` returns full `(T, 21, 3)` time-varying ground-truth trajectories rather than broadcasting the final frame.

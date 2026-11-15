@@ -202,6 +202,9 @@ def record_live_sequences(
 
     with streamer_ctx as streamer:
         for i in range(num_sequences):
+            if i > 0:
+                for _ in range(seq_len - 1):
+                    streamer.read_frame()
             seq_pkt = streamer.read_sequence(seq_len=seq_len)
             all_features[i] = seq_pkt["features_4d"]
             all_obs_mm[i] = seq_pkt["positions_mm"]
@@ -225,13 +228,24 @@ def record_live_sequences(
         rotations_6d = rot6d_torch.numpy()
         rotations_mat = rot_mat_torch.numpy()
 
+    # Apply glove transform for unoccluded gloved baseline and multi-tier occlusion sets
+    glove_tf = SyntheticGloveTransform(
+        stiffness_factor=0.12,
+        jitter_std_mm=4.5,
+        spike_prob=0.20,
+        spike_scale_mm=12.0,
+        temporal_corr=0.65,
+        seed=777,
+    )
+    gloved_unoccluded_mm = glove_tf(all_gt_mm, rng=np.random.default_rng(777))
+
     # Precompute multi-tier occlusion benchmark sets
     tiers: Dict[str, np.ndarray] = {}
     for rate_pct, rate_val in [(30, 0.30), (50, 0.50), (70, 0.70)]:
         tf_tier = SyntheticOcclusionTransform(
             occlusion_prob=rate_val, seed=777 + rate_pct
         )
-        t_occ_mm, t_mask = tf_tier(all_gt_mm, rng=np.random.default_rng(777 + rate_pct))
+        t_occ_mm, t_mask = tf_tier(gloved_unoccluded_mm, rng=np.random.default_rng(777 + rate_pct))
         t_norm, _, _ = normalize_hand_sequence(
             t_occ_mm, scale_mm=scale_mm, visibility_mask=t_mask
         )
@@ -255,7 +269,7 @@ def record_live_sequences(
         "target_xyz_mm": all_gt_mm,
         "gt_xyz_norm": gt_norm,
         "target_xyz_norm": gt_norm,
-        "gloved_unoccluded_mm": all_gt_mm,
+        "gloved_unoccluded_mm": gloved_unoccluded_mm,
         "observed_xyz_mm": all_obs_mm,
         "visibility_mask": all_masks,
         "mask": all_masks,

@@ -228,6 +228,7 @@ class ARKitUDPStreamer:
         self._step_counter = 0
         self._frame_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
         self._pos_mm_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
+        self._gt_mm_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
         self._mask_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
 
         self._sock: Optional[socket.socket] = None
@@ -379,6 +380,7 @@ class ARKitUDPStreamer:
         self._step_counter += 1
         self._frame_buffer.append(parsed["features_4d"])
         self._pos_mm_buffer.append(parsed["positions_mm"])
+        self._gt_mm_buffer.append(parsed.get("gt_positions_mm", parsed["positions_mm"]))
         self._mask_buffer.append(parsed["visibility_mask"])
         return parsed
 
@@ -393,16 +395,16 @@ class ARKitUDPStreamer:
 
         frames_4d = np.stack(list(self._frame_buffer)[-target_len:], axis=0)
         pos_mm = np.stack(list(self._pos_mm_buffer)[-target_len:], axis=0)
+        gt_mm = np.stack(list(self._gt_mm_buffer)[-target_len:], axis=0)
         mask = np.stack(list(self._mask_buffer)[-target_len:], axis=0)
         out = {
             "node_features": frames_4d,
             "features_4d": frames_4d,
             "positions_mm": pos_mm,
+            "gt_positions_mm": gt_mm,
             "visibility_mask": mask,
             "scale_mm": self.scale_mm,
         }
-        if "gt_positions_mm" in last_frame:
-            out["gt_positions_mm"] = last_frame["gt_positions_mm"]
         return out
 
     def close(self) -> None:
@@ -492,6 +494,7 @@ class MediaPipeCameraStreamer:
 
         self._frame_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
         self._pos_mm_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
+        self._gt_mm_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
         self._mask_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
 
         self._init_hardware_or_fallback()
@@ -706,6 +709,11 @@ class MediaPipeCameraStreamer:
                                 landmarks_2d[j_idx, 1] = float(slm.y) * h_img
 
                 if detected:
+                    unmasked_norm_xyz, _, _ = normalize_hand_sequence(
+                        raw_mm.copy(), scale_mm=self.scale_mm, visibility_mask=None
+                    )
+                    unmasked_centered_mm = unmasked_norm_xyz * self.scale_mm
+
                     # Apply tool occlusion region if specified
                     if self.tool_box is not None:
                         bx1, by1, bx2, by2 = self.tool_box
@@ -734,10 +742,12 @@ class MediaPipeCameraStreamer:
                     self._step_counter += 1
                     self._frame_buffer.append(features_4d)
                     self._pos_mm_buffer.append(centered_mm)
+                    self._gt_mm_buffer.append(unmasked_centered_mm)
                     self._mask_buffer.append(vis_mask)
                     return {
                         "features_4d": features_4d,
                         "positions_mm": centered_mm,
+                        "gt_positions_mm": unmasked_centered_mm,
                         "visibility_mask": vis_mask,
                         "landmarks_2d": landmarks_2d,
                         "frame_bgr": bgr_frame,
@@ -775,6 +785,7 @@ class MediaPipeCameraStreamer:
         self._step_counter += 1
         self._frame_buffer.append(parsed["features_4d"])
         self._pos_mm_buffer.append(parsed["positions_mm"])
+        self._gt_mm_buffer.append(parsed.get("gt_positions_mm", parsed["positions_mm"]))
         self._mask_buffer.append(parsed["visibility_mask"])
         return parsed
 
@@ -787,19 +798,19 @@ class MediaPipeCameraStreamer:
 
         frames_4d = np.stack(list(self._frame_buffer)[-target_len:], axis=0)
         pos_mm = np.stack(list(self._pos_mm_buffer)[-target_len:], axis=0)
+        gt_mm = np.stack(list(self._gt_mm_buffer)[-target_len:], axis=0)
         mask = np.stack(list(self._mask_buffer)[-target_len:], axis=0)
         out = {
             "node_features": frames_4d,
             "features_4d": frames_4d,
             "positions_mm": pos_mm,
+            "gt_positions_mm": gt_mm,
             "visibility_mask": mask,
             "frame_bgr": last_frame.get("frame_bgr"),
             "landmarks_2d": last_frame.get("landmarks_2d"),
             "scale_mm": self.scale_mm,
             "simulated": bool(last_frame.get("simulated", True)),
         }
-        if "gt_positions_mm" in last_frame:
-            out["gt_positions_mm"] = last_frame["gt_positions_mm"]
         return out
 
     def close(self) -> None:

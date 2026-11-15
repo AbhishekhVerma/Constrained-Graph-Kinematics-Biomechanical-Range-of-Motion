@@ -50,3 +50,13 @@ Update `docs/Final_Project_Report.md` and `docs/final_presentation_slides.md` wi
     - Spatial-Only GAE (ablation without GRU): MPJPE `11.00 mm`, Jitter `16.76 mm/f^2`.
   - Executed host edge physical benchmark on Windows PC (`1.792 ms` ONNX single-frame, `558 FPS`). Marked pending runs for Bhavya (MacBook Air) and Kapish (Jetson Nano).
   - Aligned all presentation slides (`docs/final_presentation_slides.md`), report tables (`docs/Final_Project_Report.md`), and compiled `Final_Project_Report.pdf` (4.85 MB) with verified honest numbers. All 13 kinematics unit tests pass. Artifacts synced.
+
+### Session: 2026-11-15 20:45 (UTC+4) — Abhishekh / Orchestrator Agent (PR #1, #2, #3 Integration)
+- **Git Branch:** `main` / `feat/abhishekh-teacher`
+- **Summary:**
+  - Reviewed and integrated all 3 teammate PRs (`PR #1 feat/kapish-deployment`, `PR #2 feat/bhavya-data`, `PR #3 feat/vrushank-kinematics`).
+  - Integrated Vrushank's HTTP range-streamed FreiHAND ingestion (`32,560` real poses via `RemoteZipFile`) and dynamic palm-scale calibration (`estimate_palm_scale_factor`, `calibrate_bone_lengths`) with unit tests (7 test suites / 14 checks all passing).
+  - Integrated Kapish's single-frame ($B=1, T=1$) ONNX Runtime parity test in `distillation/export_models.py` and `ANTIGRAVITY_ARTIFACT_DIR` sanitization in `deployment/live_demo.py`.
+  - Integrated Bhavya's physical Apple Silicon MacBook Air M-Series benchmark (`results/benchmark_macbook_air.json`: `1.242 ms` ONNX `CoreMLExecutionProvider` at `804.9 FPS`, `0.0725 ms` `EdgeFK` at `13.79 kHz`, `6.032 ms` Teacher `MPS`) and merged with `results/benchmark_windows_pc.json` into `results/edge_benchmark.json`.
+  - Fixed time-varying ground-truth sequence buffering in `data/iphone_parser.py` and `data/record_custom_gloved.py`.
+  - Regenerated `fig5_edge_latency_pareto.png`, updated `docs/final_presentation_slides.md` and `docs/Final_Project_Report.md` with real MacBook Air M-Series hardware timings and Vrushank's additions, and recompiled `Final_Project_Report.pdf`.

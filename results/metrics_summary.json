@@ -297,9 +297,9 @@
     "unconstrained_student_xyz": {
       "num_parameters": 78527,
       "model_size_mb": 0.3,
-      "sequence_latency_ms": 1.751,
-      "per_frame_latency_ms": 0.2189,
-      "fps": 4568.8,
+      "sequence_latency_ms": 0.5283,
+      "per_frame_latency_ms": 0.066,
+      "fps": 15142.9,
       "ort_sequence_latency_ms": 0.2717,
       "ort_per_frame_latency_ms": 0.034,
       "ort_fps": 29444.2
@@ -307,29 +307,29 @@
     "spatial_only_gae": {
       "num_parameters": 461693,
       "model_size_mb": 1.7695,
-      "sequence_latency_ms": 14.6707,
-      "per_frame_latency_ms": 1.8338,
-      "fps": 545.3,
-      "ort_sequence_latency_ms": 14.6707,
-      "ort_per_frame_latency_ms": 1.8338,
-      "ort_fps": 545.3
+      "sequence_latency_ms": 5.5749,
+      "per_frame_latency_ms": 0.6969,
+      "fps": 1435.0,
+      "ort_sequence_latency_ms": 5.5749,
+      "ort_per_frame_latency_ms": 0.6969,
+      "ort_fps": 1435.0
     },
     "teacher_st_gae": {
       "num_parameters": 520189,
       "model_size_mb": 1.9926,
-      "sequence_latency_ms": 14.4552,
-      "per_frame_latency_ms": 1.8069,
-      "fps": 553.4,
-      "ort_sequence_latency_ms": 14.4552,
-      "ort_per_frame_latency_ms": 1.8069,
-      "ort_fps": 553.4
+      "sequence_latency_ms": 6.4417,
+      "per_frame_latency_ms": 0.8052,
+      "fps": 1241.9,
+      "ort_sequence_latency_ms": 6.4417,
+      "ort_per_frame_latency_ms": 0.8052,
+      "ort_fps": 1241.9
     },
     "distilled_student_kinematic": {
       "num_parameters": 78398,
       "model_size_mb": 0.3023,
-      "sequence_latency_ms": 4.6232,
-      "per_frame_latency_ms": 0.5779,
-      "fps": 1730.4,
+      "sequence_latency_ms": 2.3365,
+      "per_frame_latency_ms": 0.2921,
+      "fps": 3423.9,
       "ort_sequence_latency_ms": 1.8224,
       "ort_per_frame_latency_ms": 0.2278,
       "ort_fps": 4389.9,
