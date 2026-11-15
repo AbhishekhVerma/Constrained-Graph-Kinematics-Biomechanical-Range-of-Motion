@@ -18,23 +18,23 @@
 | **6D Rotation Math, RoM Clamping, Calibration & Edge FK** | Verified | `models/kinematics.py`, `tests/test_kinematics.py` (`0.000011 mm` max bone error, `100%` bio-valid, dynamic palm calibration) | Vrushank |
 | **Teacher ST-GAE & Spatial-Only Ablation** | Trained & Verified | `checkpoints/teacher_st_gae.pt` (520,189 params), `checkpoints/teacher_spatial_only.pt` | Abhishekh |
 | **Distilled Student MLP & Direct-XYZ Baseline** | Trained & Exported | `checkpoints/student_kinematic_mlp.pt` (78,398 params), `checkpoints/student_kinematic_fk.onnx` (433 KB) | Kapish |
-| **Ablation Metrics & 300-DPI Figures** | Generated | `results/metrics_summary.json`, `results/figures/fig1`–`fig6` | Abhishekh / Kapish |
-| **Cross-Hardware Benchmark & Live Demo** | Measured on Windows PC & MacBook Air M-Series (Jetson Nano Pending) | `deployment/benchmark_edge.py`, `deployment/live_demo.py`, `results/edge_benchmark.json`, `results/benchmark_macbook_air.json`, `results/benchmark_windows_pc.json` | Kapish / Bhavya |
-| **Literature Review, Slides (11) & IEEE Report** | Finalized | `docs/literature_review.md`, `docs/final_presentation_slides.md`, `Final_Project_Report.pdf` | Team |
+| **Ablation Metrics & 300-DPI Figures** | Generated | `results/metrics_summary.json`, `results/figures/fig0`–`fig7`, `results/figures/live_demo_telemetry.gif` | Abhishekh / Kapish |
+| **Cross-Hardware Benchmark & Live Demo** | Measured on Windows PC & MacBook Air M-Series (Jetson Nano Pending) | `deployment/benchmark_edge.py`, `deployment/live_demo.py`, `run_presentation_demo.py`, `results/edge_benchmark.json`, `results/benchmark_macbook_air.json`, `results/benchmark_windows_pc.json` | Kapish / Bhavya |
+| **Literature Review, Slides (11) & IEEE Report** | Finalized | `docs/literature_review.md`, `docs/final_presentation_slides.md`, `Final_Presentation_Slides.pdf`, `Final_Project_Report.pdf` | Team |
 
 ---
 
 ## 2. Verified Baseline Metrics (Do Not Regress Below These)
 
-### Held-Out 20% Test Split (50% Surgical Tool Occlusion + Glove Stiffness/Jitter)
-- **Corrupted Input:** MPJPE `48.18 mm` | Occluded MPJPE `92.13 mm` | Bone Error `19.47 mm` | Bio-Validity `0.0%` | Jitter `29.81 mm/frame^2`
-- **Unconstrained Student MLP (Direct XYZ, Un-Rigged Baseline):** MPJPE `10.18 mm` | Occluded `14.20 mm` | Bone Error `2.94 mm` | Bio-Validity `88.4%` | Jitter `14.85 mm/frame^2`
-- **Spatial-Only GAT + 6D DFK (No GRU Ablation):** MPJPE `11.00 mm` | Occluded `15.41 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `16.76 mm/frame^2`
-- **Teacher ST-GAE (Full GAT + GRU + 6D DFK):** MPJPE `6.64 mm` | Occluded `8.79 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `12.03 mm/frame^2`
-- **Distilled Student MLP + Edge 6D FK (Ours):** MPJPE `6.51 mm` | Occluded `8.97 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `12.36 mm/frame^2`
+### Held-Out 20% Test Split on Hybrid Real FreiHAND + Clinical MANO (50% Surgical Tool Occlusion + Glove Stiffness/Jitter)
+- **Corrupted Input:** MPJPE `52.08 mm` | Occluded MPJPE `100.29 mm` | PA-MPJPE `38.59 mm` | Bone Error `19.96 mm` | Bio-Validity `0.0%` | Jitter `25.67 mm/frame^2`
+- **Unconstrained Student MLP (Direct XYZ, Un-Rigged Baseline):** MPJPE `9.95 mm` | Occluded `14.27 mm` | PA-MPJPE `8.18 mm` | Bone Error `2.31 mm` | Bio-Validity `29.95%` | Jitter `11.51 mm/frame^2`
+- **Spatial-Only GAT + 6D DFK (No GRU Ablation):** MPJPE `8.41 mm` | Occluded `12.45 mm` | PA-MPJPE `6.84 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `13.26 mm/frame^2`
+- **Teacher ST-GAE (Full GAT + GRU + 6D DFK):** MPJPE `6.51 mm` | Occluded `9.09 mm` | PA-MPJPE `5.00 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `7.81 mm/frame^2`
+- **Distilled Student MLP + Edge 6D FK (Ours):** MPJPE `7.04 mm` | Occluded `10.02 mm` | PA-MPJPE `5.50 mm` | Bone Error `0.0000 mm` | Bio-Validity `100.0%` | Jitter `8.27 mm/frame^2`
 
 ### Custom Gloved Benchmark (`data/custom_gloved_dataset.npz`, 50% Occlusion)
-- **Teacher ST-GAE:** MPJPE `6.64 mm` | **Distilled Student MLP (Ours):** MPJPE `6.51 mm`, Bone Error `0.0000 mm`, Bio-Validity `100.0%`
+- **Teacher ST-GAE:** MPJPE `6.37 mm` | **Distilled Student MLP (Ours):** MPJPE `7.01 mm`, Bone Error `0.0000 mm`, Bio-Validity `100.0%` (vs. `UnconstrainedStudentMLP`: `9.71 mm`, Bone Error `2.25 mm`, Bio-Validity `30.73%`)
 
 ### ONNX Host & Edge Hardware Runtimes (`results/edge_benchmark.json`)
 - **Apple MacBook Air (M-Series ARM64 + `CoreMLExecutionProvider` / `MPS`, Measured by Bhavya):**
@@ -88,3 +88,4 @@ Raw / Camera / UDP Input (mm)
 | 2026-11-14 | Kapish (Student & Edge Deploy) | `feat/kapish-deployment` | Hardened `ANTIGRAVITY_ARTIFACT_DIR` path resolution in `deployment/live_demo.py`; added single-frame ($B=1, T=1$) ONNX Runtime parity test (`t1_max_err_mm`) in `distillation/export_models.py`. | `tests/test_kinematics.py`, `distillation/export_models.py`, `deployment/live_demo.py` | Physical Jetson Nano benchmark (`results/benchmark_jetson_nano.json`) ready to run when hardware is connected. |
 | 2026-11-14 | Bhavya (Data & MacBook Air) | `feat/bhavya-data` | Executed physical Apple Silicon MacBook Air M-Series benchmark (`results/benchmark_macbook_air.json`): ONNX `CoreMLExecutionProvider` `1.242 ms` (`804.9 FPS`) single-frame `T=1`, `1.935 ms` (`516.7 FPS`) window `T=8`, `0.0725 ms` (`13.79 kHz`) NumPy `EdgeFK`, and `6.032 ms` Teacher `MPS`. | `tests/test_kinematics.py` (macOS ARM64 PASS), `deployment/benchmark_edge.py` | Merged into `results/edge_benchmark.json` by Abhishekh. |
 | 2026-11-15 | Abhishekh (Orchestrator Agent) | `main` | Reviewed & merged PR #1 (`feat/kapish-deployment`), PR #2 (`feat/bhavya-data`), and PR #3 (`feat/vrushank-kinematics`); fixed time-varying GT sequence buffering in `data/iphone_parser.py` & `data/record_custom_gloved.py`; merged Windows PC + MacBook Air benchmarks into `results/edge_benchmark.json`; regenerated figures, slides, and `Final_Project_Report.pdf`. | `tests/test_kinematics.py` (7/7 PASS), `export_models.py`, `evaluate_and_plot.py`, `build_report_pdf.py` | All 4 branches unified and pushed to `origin`. |
+| 2026-11-15 | Abhishekh (Orchestrator Agent) | `main` | Streamed 32,560 real FreiHAND 3D poses (`data/raw/freihand_xyz.json`), built 50/50 Hybrid Real FreiHAND + Clinical MANO dataset across all 5 seeds + `custom_gloved_dataset.npz`, retrained Teacher & Student models, tightened biomechanical validity threshold (`5.0 mm` / `15 deg`), added `fig0_block_diagram.png` + `fig7_fds_granular_and_gesture_utility.png` + `run_presentation_demo.py` + `live_demo_telemetry.gif`, and compiled `Final_Project_Report.pdf` & `Final_Presentation_Slides.pdf`. | `tests/test_kinematics.py` (7/7 PASS), `train_teacher.py`, `distill_student.py`, `export_models.py`, `evaluate_and_plot.py`, `build_report_pdf.py`, `build_presentation_deck.py` | Ready for Nov 17 Presentation (`python run_presentation_demo.py`). |

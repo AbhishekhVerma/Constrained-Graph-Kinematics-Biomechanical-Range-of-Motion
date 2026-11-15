@@ -42,6 +42,7 @@ from data.dataset_ingestion import (
     _synthesize_single_sequence_angles,
     euler_xyz_to_matrix,
     forward_kinematics_numpy,
+    ingest_or_generate_dataset,
     matrix_to_rot6d,
 )
 from data.iphone_parser import ARKitUDPStreamer, MediaPipeCameraStreamer
@@ -69,21 +70,19 @@ def generate_custom_gloved_benchmark(
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     rng = np.random.default_rng(seed)
-    all_euler = np.zeros((num_sequences, seq_len, NUM_JOINTS, 3), dtype=np.float32)
-    gesture_labels = np.zeros((num_sequences,), dtype=np.int64)
-
-    for i in range(num_sequences):
-        g_id = i % len(GESTURE_NAMES)
-        gesture_labels[i] = g_id
-        all_euler[i] = _synthesize_single_sequence_angles(g_id, seq_len, rng)
-
-    rotations_mat = euler_xyz_to_matrix(all_euler)
-    rotations_6d = matrix_to_rot6d(rotations_mat)
-    gt_positions_mm = forward_kinematics_numpy(
-        rotations_mat,
-        bone_lengths_mm=CANONICAL_BONE_LENGTHS_MM,
-        rest_directions=REST_BONE_DIRECTIONS,
+    ds_hybrid = ingest_or_generate_dataset(
+        data_dir=out_file.parent,
+        num_sequences=max(num_sequences, 240),
+        seq_len=seq_len,
+        seed=seed,
+        force_regenerate=False,
     )
+    pick_idx = rng.choice(ds_hybrid["positions_mm"].shape[0], size=num_sequences, replace=False)
+    all_euler = ds_hybrid["euler_angles_rad"][pick_idx].astype(np.float32)
+    gesture_labels = ds_hybrid["gesture_labels"][pick_idx].astype(np.int64)
+    rotations_mat = ds_hybrid["rotations_mat"][pick_idx].astype(np.float32)
+    rotations_6d = ds_hybrid["rotations_6d"][pick_idx].astype(np.float32)
+    gt_positions_mm = ds_hybrid["positions_mm"][pick_idx].astype(np.float32)
 
     glove_tf = SyntheticGloveTransform(
         stiffness=stiffness,
@@ -230,11 +229,11 @@ def record_live_sequences(
 
     # Apply glove transform for unoccluded gloved baseline and multi-tier occlusion sets
     glove_tf = SyntheticGloveTransform(
-        stiffness_factor=0.12,
-        jitter_std_mm=4.5,
-        spike_prob=0.20,
-        spike_scale_mm=12.0,
+        stiffness=0.12,
+        sigma_mm=4.5,
+        distal_spike_mm=12.0,
         temporal_corr=0.65,
+        spike_prob=0.20,
         seed=777,
     )
     gloved_unoccluded_mm = glove_tf(all_gt_mm, rng=np.random.default_rng(777))

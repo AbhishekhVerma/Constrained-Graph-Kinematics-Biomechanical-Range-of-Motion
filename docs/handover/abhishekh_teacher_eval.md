@@ -60,3 +60,12 @@ Update `docs/Final_Project_Report.md` and `docs/final_presentation_slides.md` wi
   - Integrated Bhavya's physical Apple Silicon MacBook Air M-Series benchmark (`results/benchmark_macbook_air.json`: `1.242 ms` ONNX `CoreMLExecutionProvider` at `804.9 FPS`, `0.0725 ms` `EdgeFK` at `13.79 kHz`, `6.032 ms` Teacher `MPS`) and merged with `results/benchmark_windows_pc.json` into `results/edge_benchmark.json`.
   - Fixed time-varying ground-truth sequence buffering in `data/iphone_parser.py` and `data/record_custom_gloved.py`.
   - Regenerated `fig5_edge_latency_pareto.png`, updated `docs/final_presentation_slides.md` and `docs/Final_Project_Report.md` with real MacBook Air M-Series hardware timings and Vrushank's additions, and recompiled `Final_Project_Report.pdf`.
+
+### Session: 2026-11-15 22:55 (UTC+4) — Abhishekh / Orchestrator Agent (Rubric Alignment, Real FreiHAND Retraining & Granular FDS Analysis)
+- **Git Branch:** `main` / `feat/abhishekh-teacher`
+- **Summary:**
+  - Streamed `data/raw/freihand_xyz.json` (`32,560` real 3D hand poses) and constructed a 50/50 Hybrid Real FreiHAND + Clinical MANO trajectory corpus across all seeds (`42, 72, 92, 112, 777`) and `data/custom_gloved_dataset.npz`.
+  - Retrained `Teacher ST-GAE` (`5.56 mm` @ 30%, `6.51 mm` @ 50%, `10.32 mm` @ 70%), `SpatialOnlyGAE` (`6.77 mm`, `8.41 mm`, `12.58 mm`), `StudentKinematicMLP` (`5.93 mm`, `7.04 mm`, `11.15 mm`), and `UnconstrainedStudentMLP` (`8.23 mm`, `9.95 mm`, `13.69 mm`; strict bio-validity `44.43%`, `29.95%`, `24.95%` vs. `100.00%` for our 6D-FK models).
+  - Added 300-DPI System Architecture Block Diagram (`results/figures/fig0_block_diagram.png`) and 3-panel Granular FDS Analysis (`results/figures/fig7_fds_granular_and_gesture_utility.png`: phalanx hierarchy error, per-gesture error, and downstream trajectory retrieval utility).
+  - Built one-click presentation demo launcher (`run_presentation_demo.py`) and 24-frame animated demo backup (`results/figures/live_demo_telemetry.gif`).
+  - Added dedicated **Objectives** subsection and formal IEEE **Algorithm 1 & Algorithm 2** pseudocode boxes to `docs/Final_Project_Report.md`, compiled `Final_Project_Report.pdf` and widescreen `Final_Presentation_Slides.pdf` (`docs/build_presentation_deck.py`).

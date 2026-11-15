@@ -81,13 +81,14 @@ def build_multirate_tensors(
             train_gt_rot_list.append(b["gt_rot6d"])
             train_mask_list.append(b["mask"])
 
-        te_x, te_pos, te_rot, te_mask, te_obs = [], [], [], [], []
+        te_x, te_pos, te_rot, te_mask, te_obs, te_lbl = [], [], [], [], [], []
         for b in te_loader:
             te_x.append(b["x"])
             te_pos.append(b["gt_xyz_mm"])
             te_rot.append(b["gt_rot6d"])
             te_mask.append(b["mask"])
             te_obs.append(b["observed_xyz_mm"])
+            te_lbl.append(b["gesture_labels"])
 
         test_tiers[rate_pct] = {
             "x": torch.cat(te_x, dim=0),
@@ -95,6 +96,7 @@ def build_multirate_tensors(
             "gt_rot6d": torch.cat(te_rot, dim=0),
             "mask": torch.cat(te_mask, dim=0),
             "observed_xyz_mm": torch.cat(te_obs, dim=0),
+            "gesture_labels": torch.cat(te_lbl, dim=0),
         }
 
     train_tensors = {

@@ -262,8 +262,8 @@ def compute_temporal_jitter_mm_s2(
 def compute_biomechanical_validity_pct(
     pred_mm: Union[torch.Tensor, np.ndarray],
     max_bending_deg: float = 125.0,
-    max_hyperextension_deg: float = 20.0,
-    bone_length_tol_mm: float = 12.0,
+    max_hyperextension_deg: float = 15.0,
+    bone_length_tol_mm: float = 5.0,
 ) -> float:
     """
     Evaluates the percentage `[0.0, 100.0]` of 3D hand poses that satisfy all

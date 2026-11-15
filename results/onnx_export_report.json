@@ -9,15 +9,15 @@
     "file_size_bytes": 443588,
     "file_size_kb": 433.19,
     "file_size_mb": 0.423,
-    "max_parity_error_mm": 0.000194549560546875,
-    "mean_parity_error_mm": 1.3298813428264111e-05,
-    "max_rot6d_parity_error": 1.296401023864746e-06,
+    "max_parity_error_mm": 0.0002307891845703125,
+    "mean_parity_error_mm": 1.3097293049213476e-05,
+    "max_rot6d_parity_error": 1.4677643775939941e-06,
     "onnx_bone_length_error_mm": 3e-06,
     "onnx_biomechanical_validity_pct": 100.0,
-    "ort_sequence_latency_ms": 1.1269,
-    "ort_sequence_mean_ms": 1.1459,
-    "ort_per_frame_latency_ms": 0.1409,
-    "ort_fps": 7099.1,
+    "ort_sequence_latency_ms": 0.9083,
+    "ort_sequence_mean_ms": 0.9323,
+    "ort_per_frame_latency_ms": 0.1135,
+    "ort_fps": 8807.7,
     "checkpoint_info": {
       "loaded_from_disk": true,
       "checkpoint_path": "checkpoints\\student_kinematic_mlp.pt",
@@ -26,34 +26,34 @@
         "num_parameters": 78398,
         "eval_tiers": {
           "occ_30": {
-            "mpjpe_all_mm": 5.575,
-            "mpjpe_visible_mm": 4.4,
-            "mpjpe_occluded_mm": 8.515,
-            "pa_mpjpe_mm": 4.334,
+            "mpjpe_all_mm": 5.932,
+            "mpjpe_visible_mm": 4.495,
+            "mpjpe_occluded_mm": 9.526,
+            "pa_mpjpe_mm": 4.814,
             "bone_length_error_mm": 0.0,
             "biomechanical_validity_pct": 100.0,
-            "temporal_jitter_mm_s2": 12.663
+            "temporal_jitter_mm_s2": 7.771
           },
           "occ_50": {
-            "mpjpe_all_mm": 6.508,
-            "mpjpe_visible_mm": 4.269,
-            "mpjpe_occluded_mm": 8.971,
-            "pa_mpjpe_mm": 4.775,
+            "mpjpe_all_mm": 7.036,
+            "mpjpe_visible_mm": 4.32,
+            "mpjpe_occluded_mm": 10.023,
+            "pa_mpjpe_mm": 5.499,
             "bone_length_error_mm": 0.0,
             "biomechanical_validity_pct": 100.0,
-            "temporal_jitter_mm_s2": 12.356
+            "temporal_jitter_mm_s2": 8.267
           },
           "occ_70": {
-            "mpjpe_all_mm": 9.922,
-            "mpjpe_visible_mm": 4.076,
-            "mpjpe_occluded_mm": 12.261,
-            "pa_mpjpe_mm": 6.71,
+            "mpjpe_all_mm": 11.146,
+            "mpjpe_visible_mm": 4.053,
+            "mpjpe_occluded_mm": 13.983,
+            "pa_mpjpe_mm": 8.331,
             "bone_length_error_mm": 0.0,
             "biomechanical_validity_pct": 100.0,
-            "temporal_jitter_mm_s2": 12.288
+            "temporal_jitter_mm_s2": 9.005
           }
         },
-        "epochs": 20
+        "epochs": 35
       }
     }
   },
@@ -66,15 +66,15 @@
     "file_size_bytes": 324045,
     "file_size_kb": 316.45,
     "file_size_mb": 0.309,
-    "max_parity_error_mm": 6.103515625e-05,
-    "mean_parity_error_mm": 5.976548436592566e-06,
+    "max_parity_error_mm": 4.57763671875e-05,
+    "mean_parity_error_mm": 7.108090358087793e-06,
     "max_rot6d_parity_error": 0.0,
-    "onnx_bone_length_error_mm": 10.997465,
-    "onnx_biomechanical_validity_pct": 0.0,
-    "ort_sequence_latency_ms": 0.1998,
-    "ort_sequence_mean_ms": 0.2026,
-    "ort_per_frame_latency_ms": 0.025,
-    "ort_fps": 40040.0,
+    "onnx_bone_length_error_mm": 8.726073,
+    "onnx_biomechanical_validity_pct": 3.12,
+    "ort_sequence_latency_ms": 0.1721,
+    "ort_sequence_mean_ms": 0.174,
+    "ort_per_frame_latency_ms": 0.0215,
+    "ort_fps": 46498.1,
     "checkpoint_info": {
       "loaded_from_disk": true,
       "checkpoint_path": "checkpoints\\student_unconstrained_xyz.pt",
@@ -83,34 +83,34 @@
         "num_parameters": 78527,
         "eval_tiers": {
           "occ_30": {
-            "mpjpe_all_mm": 8.763,
-            "mpjpe_visible_mm": 6.887,
-            "mpjpe_occluded_mm": 13.452,
-            "pa_mpjpe_mm": 7.312,
-            "bone_length_error_mm": 2.59696,
-            "biomechanical_validity_pct": 93.91,
-            "temporal_jitter_mm_s2": 14.426
+            "mpjpe_all_mm": 8.23,
+            "mpjpe_visible_mm": 6.307,
+            "mpjpe_occluded_mm": 13.037,
+            "pa_mpjpe_mm": 7.012,
+            "bone_length_error_mm": 1.95975,
+            "biomechanical_validity_pct": 97.76,
+            "temporal_jitter_mm_s2": 10.265
           },
           "occ_50": {
-            "mpjpe_all_mm": 10.176,
-            "mpjpe_visible_mm": 6.516,
-            "mpjpe_occluded_mm": 14.202,
-            "pa_mpjpe_mm": 8.291,
-            "bone_length_error_mm": 2.93759,
-            "biomechanical_validity_pct": 88.39,
-            "temporal_jitter_mm_s2": 14.846
+            "mpjpe_all_mm": 9.946,
+            "mpjpe_visible_mm": 6.015,
+            "mpjpe_occluded_mm": 14.27,
+            "pa_mpjpe_mm": 8.184,
+            "bone_length_error_mm": 2.30516,
+            "biomechanical_validity_pct": 94.74,
+            "temporal_jitter_mm_s2": 11.513
           },
           "occ_70": {
-            "mpjpe_all_mm": 13.4,
-            "mpjpe_visible_mm": 5.943,
-            "mpjpe_occluded_mm": 16.383,
-            "pa_mpjpe_mm": 10.099,
-            "bone_length_error_mm": 3.53739,
-            "biomechanical_validity_pct": 76.41,
-            "temporal_jitter_mm_s2": 14.916
+            "mpjpe_all_mm": 13.686,
+            "mpjpe_visible_mm": 5.497,
+            "mpjpe_occluded_mm": 16.961,
+            "pa_mpjpe_mm": 10.381,
+            "bone_length_error_mm": 2.82402,
+            "biomechanical_validity_pct": 89.27,
+            "temporal_jitter_mm_s2": 12.08
           }
         },
-        "epochs": 15
+        "epochs": 25
       }
     }
   },
@@ -119,9 +119,9 @@
     "primary_size_kb": 433.19,
     "primary_size_mb": 0.423,
     "primary_parameters": 78398,
-    "max_onnx_parity_error_mm": 0.000194549560546875,
-    "ort_sequence_latency_ms": 1.1269,
-    "ort_per_frame_latency_ms": 0.1409,
-    "ort_fps": 7099.1
+    "max_onnx_parity_error_mm": 0.0002307891845703125,
+    "ort_sequence_latency_ms": 0.9083,
+    "ort_per_frame_latency_ms": 0.1135,
+    "ort_fps": 8807.7
   }
 }

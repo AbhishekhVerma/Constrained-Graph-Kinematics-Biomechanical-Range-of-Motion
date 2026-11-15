@@ -254,6 +254,26 @@ def convert_markdown_to_html(md_text: str) -> str:
         line = lines[i]
         stripped = line.strip()
 
+        # Fenced code block ``` ... ```
+        if stripped.startswith("```"):
+            _flush_list()
+            _flush_table()
+            code_lines = []
+            i += 1
+            while i < n and not lines[i].strip().startswith("```"):
+                code_lines.append(lines[i])
+                i += 1
+            if i < n:
+                i += 1
+            escaped_code = (
+                "\n".join(code_lines)
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+            )
+            html_out.append(f'<pre class="algo-box"><code>{escaped_code}</code></pre>')
+            continue
+
         # Display math $$ ... $$
         if stripped.startswith("$$"):
             _flush_list()
@@ -421,6 +441,25 @@ def main() -> None:
     background: #f1f5f9;
     padding: 1px 3px;
     border-radius: 3px;
+  }}
+  pre.algo-box {{
+    background: #f8fafc;
+    border: 1.2px solid #94a3b8;
+    border-left: 3.5px solid #0f172a;
+    border-radius: 4px;
+    padding: 6px 9px;
+    margin: 8px 0;
+    overflow-x: auto;
+    page-break-inside: avoid;
+    text-align: left;
+  }}
+  pre.algo-box code {{
+    background: transparent;
+    padding: 0;
+    font-size: 7.7pt;
+    line-height: 1.28;
+    color: #0f172a;
+    white-space: pre;
   }}
   hr {{
     border: none;
