@@ -976,14 +976,14 @@ def render_live_opencv_frame(
     )
 
     # Footer
-    footer_text = "[Q/ESC]: Quit  |  [S]: Save Snapshot  |  [O]: Toggle Tool Box Occlusion"
+    footer_text = "[Q/ESC]: Quit  |  [T]: Toggle Virtual Tool Bar  |  [O]: Cycle Occlusion (0%/30%/50%/70%)  |  [S]: Save Snapshot"
     cv2.putText(
         canvas,
         footer_text,
-        (width // 2 - 220, height - 10),
+        (width // 2 - 360, height - 10),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.42,
-        (150, 150, 150),
+        (180, 190, 205),
         1,
         cv2.LINE_AA,
     )
@@ -999,14 +999,14 @@ def run_live_demo(
     onnx_path: Path = Path("checkpoints/student_kinematic_fk.onnx"),
     occlusion_rate: float = 0.50,
     save_snapshot: Optional[Path] = None,
-    max_frames: int = 60,
+    max_frames: int = 0,
     headless: bool = False,
 ) -> Dict[str, Any]:
     """
     Runs the real-time 3D hand telemetry repair pipeline across `--source mediapipe`,
     `--source udp`, or `--source replay`. In interactive mode, renders a silky 30-60 FPS
-    OpenCV HUD window. When `--save-snapshot` is provided, saves a high-resolution
-    3-panel publication figure.
+    OpenCV HUD window continuously until the user presses Q or ESC. When `--save-snapshot`
+    is provided, saves a high-resolution 3-panel publication figure.
     """
     hw_info = detect_hardware_and_backends()
     student_kin, student_xyz, ort_session, onnx_meta = load_or_calibrate_demo_models(
@@ -1054,7 +1054,16 @@ def run_live_demo(
         "occlusion_pct": [],
     }
 
-    num_frames_to_run = 60 if save_snapshot is not None else max_frames
+    is_interactive_gui = (not headless) and (save_snapshot is None)
+    if save_snapshot is not None:
+        num_frames_to_run = 60
+    elif max_frames > 0:
+        num_frames_to_run = max_frames
+    elif is_interactive_gui:
+        num_frames_to_run = 100000  # Run continuously until user presses Q/ESC
+    else:
+        num_frames_to_run = 60
+
     last_packet: Dict[str, Any] = {}
     last_corrupted_pos: np.ndarray = REST_JOINT_POSITIONS_MM.copy()
     last_unconstrained_pos: np.ndarray = REST_JOINT_POSITIONS_MM.copy()
@@ -1068,14 +1077,16 @@ def run_live_demo(
     for _ in range(10):
         _ = ort_session.run(None, {ort_input_name: dummy_in})
 
-    tool_box_active = True
+    tool_box_active = False
+    occ_cycle = [0.0, 0.30, 0.50, 0.70]
     actual_frames_run = 0
 
     with streamer:
         for step in range(num_frames_to_run):
             actual_frames_run += 1
             if source == "mediapipe" and hasattr(streamer, "tool_box"):
-                streamer.tool_box = (200, 100, 440, 360) if tool_box_active else None
+                # Compact surgical instrument bar across the middle/distal phalanges when enabled
+                streamer.tool_box = (180, 110, 460, 235) if tool_box_active else None
 
             pkt = streamer.read_sequence()
             feat_seq = pkt["node_features"][None, ...].astype(np.float32)  # (1, T, 21, 4)
@@ -1140,7 +1151,7 @@ def run_live_demo(
                 last_vis_mask = vis_f
 
             # Interactive real-time OpenCV HUD display
-            if (not headless) and (save_snapshot is None):
+            if is_interactive_gui:
                 try:
                     import cv2
 
@@ -1167,7 +1178,8 @@ def run_live_demo(
                         hud_info=frame_hud_info,
                     )
                     cv2.imshow("Constrained Graph Kinematics - Real-Time Surgical Telemetry HUD", live_frame)
-                    key = cv2.waitKey(1) & 0xFF
+                    wait_ms = 35 if source == "replay" else 1
+                    key = cv2.waitKey(wait_ms) & 0xFF
                     if key in (27, ord("q"), ord("Q")):
                         break
                     elif key in (ord("s"), ord("S")):
@@ -1175,9 +1187,22 @@ def run_live_demo(
                         snap_out.parent.mkdir(parents=True, exist_ok=True)
                         cv2.imwrite(str(snap_out), live_frame)
                         print(f"\n[live_demo] Interactive frame snapshot saved to: {snap_out}")
-                    elif key in (ord("o"), ord("O")):
+                    elif key in (ord("t"), ord("T")):
                         tool_box_active = not tool_box_active
-                        print(f"\n[live_demo] Surgical tool box occlusion: {'ENABLED' if tool_box_active else 'DISABLED'}")
+                        print(f"\n[live_demo] Virtual surgical tool bar: {'ENABLED' if tool_box_active else 'DISABLED'}")
+                    elif key in (ord("o"), ord("O")):
+                        curr_r = getattr(streamer, "simulated_occlusion_rate", getattr(streamer, "occlusion_rate", occlusion_rate))
+                        next_idx = 0
+                        for idx_c, r_val in enumerate(occ_cycle):
+                            if abs(curr_r - r_val) < 0.08:
+                                next_idx = (idx_c + 1) % len(occ_cycle)
+                                break
+                        new_r = occ_cycle[next_idx]
+                        if hasattr(streamer, "simulated_occlusion_rate"):
+                            streamer.simulated_occlusion_rate = new_r
+                        if hasattr(streamer, "occlusion_rate"):
+                            streamer.occlusion_rate = new_r
+                        print(f"\n[live_demo] Active occlusion rate cycled to: {int(new_r * 100)}% ({'Pure Real Camera/Glove' if new_r == 0.0 else 'Subtree Tool Mask'})")
                 except Exception:
                     pass
 
@@ -1317,8 +1342,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--max-frames",
         type=int,
-        default=60,
-        help="Number of streaming frames to process (default: 60).",
+        default=0,
+        help="Number of streaming frames to process (0 = run continuously in interactive mode, 60 in headless/snapshot mode).",
     )
     parser.add_argument(
         "--headless",

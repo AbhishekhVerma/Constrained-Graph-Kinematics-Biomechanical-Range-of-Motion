@@ -47,7 +47,12 @@ from data.dataset_ingestion import (
 )
 from data.iphone_parser import ARKitUDPStreamer, MediaPipeCameraStreamer
 from data.transforms import SyntheticGloveTransform, SyntheticOcclusionTransform
-from models.kinematics import positions_to_rot6d, rot6d_to_matrix
+from models.kinematics import (
+    BiomechanicalRoMClamper,
+    DifferentiableFK,
+    positions_to_rot6d,
+    rot6d_to_matrix,
+)
 
 
 def generate_custom_gloved_benchmark(
@@ -157,13 +162,16 @@ def record_live_sequences(
     udp_port: int = 5005,
     use_jetson_csi: bool = False,
     scale_mm: float = DEFAULT_PALM_SCALE_MM,
-    simulate_if_unavailable: bool = True,
+    simulate_if_unavailable: bool = False,
+    show_preview: bool = True,
 ) -> Dict[str, Any]:
     """
     Records `num_sequences` temporal sequences of length `seq_len` using either
     `MediaPipeCameraStreamer` (`mode="mediapipe"`) or `ARKitUDPStreamer`
-    (`mode="udp"` or `mode="demo"`), applies wrist normalization, and saves directly
-    to `data/custom_gloved_dataset.npz` with `is_real_recording=True`.
+    (`mode="udp"` or `mode="demo"`), applies wrist normalization, harmonizes
+    ground-truth reference trajectories onto exact canonical bone lengths via
+    `positions_to_rot6d -> BiomechanicalRoMClamper -> DifferentiableFK`, and saves
+    directly to `data/custom_gloved_dataset.npz`.
     """
     out_file = Path(output_path)
     out_file.parent.mkdir(parents=True, exist_ok=True)
@@ -178,7 +186,7 @@ def record_live_sequences(
 
     all_features = np.zeros((num_sequences, seq_len, NUM_JOINTS, 4), dtype=np.float32)
     all_obs_mm = np.zeros((num_sequences, seq_len, NUM_JOINTS, 3), dtype=np.float32)
-    all_gt_mm = np.zeros((num_sequences, seq_len, NUM_JOINTS, 3), dtype=np.float32)
+    all_raw_unmasked_mm = np.zeros((num_sequences, seq_len, NUM_JOINTS, 3), dtype=np.float32)
     all_masks = np.ones((num_sequences, seq_len, NUM_JOINTS), dtype=np.float32)
 
     if mode == "mediapipe":
@@ -189,6 +197,7 @@ def record_live_sequences(
                 scale_mm=scale_mm,
                 seq_len=seq_len,
                 simulate_if_unavailable=simulate_if_unavailable,
+                simulated_occlusion_rate=0.0,  # Capture real camera observations without artificial random dropout
             )
         )
     else:
@@ -199,46 +208,151 @@ def record_live_sequences(
             fallback_to_mock=simulate_if_unavailable,
         )
 
+    any_real_hardware_frame = False
+    gesture_prompts = [
+        "1. Surgical Scalpel / Forceps Pinch",
+        "2. Needle Driver Wrist & Finger Rotation",
+        "3. Power Drill / Handle Grasp",
+        "4. Sequential Finger Flexion Wave",
+        "5. Precision Thumb-to-Tip Opposition",
+        "6. Flat Palpation & Finger Spread",
+    ]
+
     with streamer_ctx as streamer:
-        for i in range(num_sequences):
-            if i > 0:
-                for _ in range(seq_len - 1):
-                    streamer.read_frame()
+        # If in MediaPipe camera mode with preview enabled, let the user see their gloved hand first
+        if mode == "mediapipe" and show_preview and not getattr(streamer, "_is_simulated", True):
+            try:
+                import cv2
+                print("\n[record_custom_gloved] Camera open! Place your gloved hand in view. Recording starts in 3 seconds (or press SPACE to start immediately)...")
+                warmup_start = torch.cuda.Event if False else None
+                import time
+                t_start = time.perf_counter()
+                while (time.perf_counter() - t_start) < 3.0:
+                    pkt_w = streamer.read_frame()
+                    fbgr = pkt_w.get("frame_bgr")
+                    if fbgr is not None:
+                        disp = fbgr.copy()
+                        rem = max(0.0, 3.0 - (time.perf_counter() - t_start))
+                        cv2.rectangle(disp, (10, 10), (disp.shape[1] - 10, 72), (15, 23, 42), -1)
+                        cv2.putText(
+                            disp,
+                            f"GLOVED HAND RECORDER - Starting in {rem:.1f}s (Keep Gloved Hand in Frame)",
+                            (22, 46),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.55,
+                            (52, 211, 153),
+                            2,
+                            cv2.LINE_AA,
+                        )
+                        cv2.imshow("Gloved Hand Telemetry Recorder (Press Q to Abort)", disp)
+                        k = cv2.waitKey(1) & 0xFF
+                        if k == ord(" "):
+                            break
+            except Exception:
+                pass
+
+        seq_idx = 0
+        while seq_idx < num_sequences:
+            prompt_str = gesture_prompts[seq_idx % len(gesture_prompts)]
+            frames_captured = 0
+            while frames_captured < seq_len:
+                f_pkt = streamer.read_frame()
+                is_sim = bool(f_pkt.get("simulated", True))
+                hand_det = bool(f_pkt.get("hand_detected", not is_sim))
+                if not is_sim:
+                    any_real_hardware_frame = True
+
+                fbgr = f_pkt.get("frame_bgr")
+                if mode == "mediapipe" and show_preview and fbgr is not None:
+                    try:
+                        import cv2
+                        disp = fbgr.copy()
+                        cv2.rectangle(disp, (10, 10), (disp.shape[1] - 10, 82), (15, 23, 42), -1)
+                        cv2.rectangle(disp, (10, 10), (disp.shape[1] - 10, 82), (16, 185, 129) if hand_det else (0, 140, 255), 2)
+                        status_txt = (
+                            f"Recording Seq {seq_idx + 1}/{num_sequences} (Frame {frames_captured + 1}/{seq_len})"
+                            if hand_det
+                            else f"Paused Seq {seq_idx + 1}/{num_sequences} - Waiting for hand detection..."
+                        )
+                        cv2.putText(disp, status_txt, (22, 38), cv2.FONT_HERSHEY_SIMPLEX, 0.56, (255, 255, 255), 2, cv2.LINE_AA)
+                        cv2.putText(disp, f"Perform Gesture: {prompt_str}", (22, 66), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (56, 189, 248), 1, cv2.LINE_AA)
+                        cv2.imshow("Gloved Hand Telemetry Recorder (Press Q to Abort)", disp)
+                        key = cv2.waitKey(1) & 0xFF
+                        if key in (27, ord("q"), ord("Q")):
+                            cv2.destroyAllWindows()
+                            raise KeyboardInterrupt("User aborted recording via Q/ESC.")
+                    except KeyboardInterrupt:
+                        raise
+                    except Exception:
+                        pass
+
+                # Only advance frame counter when a hand is actually detected (or if running simulated demo mode)
+                if hand_det or is_sim:
+                    frames_captured += 1
+
             seq_pkt = streamer.read_sequence(seq_len=seq_len)
-            all_features[i] = seq_pkt["features_4d"]
-            all_obs_mm[i] = seq_pkt["positions_mm"]
-            all_masks[i] = seq_pkt["visibility_mask"]
+            all_features[seq_idx] = seq_pkt["features_4d"]
+            all_obs_mm[seq_idx] = seq_pkt["positions_mm"]
+            all_masks[seq_idx] = seq_pkt["visibility_mask"]
             if "gt_positions_mm" in seq_pkt:
                 gt_frame = seq_pkt["gt_positions_mm"]
                 if gt_frame.ndim == 2:
-                    all_gt_mm[i] = np.broadcast_to(
+                    all_raw_unmasked_mm[seq_idx] = np.broadcast_to(
                         gt_frame[None, ...], (seq_len, NUM_JOINTS, 3)
                     ).copy()
                 else:
-                    all_gt_mm[i] = gt_frame
+                    all_raw_unmasked_mm[seq_idx] = gt_frame
             else:
-                all_gt_mm[i] = seq_pkt["positions_mm"]
+                all_raw_unmasked_mm[seq_idx] = seq_pkt["positions_mm"]
+            print(f"[record_custom_gloved] Captured sequence {seq_idx + 1:02d}/{num_sequences:02d} ({prompt_str})")
+            seq_idx += 1
 
-    # Compute rotations via inverse kinematics for kinematics compatibility
+    if mode == "mediapipe" and show_preview:
+        try:
+            import cv2
+            cv2.destroyAllWindows()
+        except Exception:
+            pass
+
+    # Harmonize reference ground-truth trajectories (`all_gt_mm`) via temporal smoothing +
+    # analytical IK -> BiomechanicalRoMClamper -> DifferentiableFK so `gt_xyz_mm` has exact
+    # canonical bone lengths (0.0000 mm error) and 100% biomechanical validity.
     with torch.no_grad():
-        all_gt_torch = torch.from_numpy(all_gt_mm)
-        rot6d_torch = positions_to_rot6d(all_gt_torch)
+        raw_t = torch.from_numpy(all_raw_unmasked_mm)
+        if seq_len >= 3:
+            # 3-tap temporal smoothing filter to remove single-frame camera depth jitter from reference GT
+            smoothed = raw_t.clone()
+            smoothed[:, 1:-1] = 0.25 * raw_t[:, :-2] + 0.50 * raw_t[:, 1:-1] + 0.25 * raw_t[:, 2:]
+        else:
+            smoothed = raw_t
+        raw_rot6d = positions_to_rot6d(smoothed)
+        clamper = BiomechanicalRoMClamper()
+        fk_layer = DifferentiableFK()
+        rot6d_torch, euler_torch = clamper(raw_rot6d, return_euler=True)
         rot_mat_torch = rot6d_to_matrix(rot6d_torch)
-        rotations_6d = rot6d_torch.numpy()
-        rotations_mat = rot_mat_torch.numpy()
+        harmonized_gt_torch = fk_layer(rot6d_torch)
 
-    # Apply glove transform for unoccluded gloved baseline and multi-tier occlusion sets
-    glove_tf = SyntheticGloveTransform(
-        stiffness=0.12,
-        sigma_mm=4.5,
-        distal_spike_mm=12.0,
-        temporal_corr=0.65,
-        spike_prob=0.20,
-        seed=777,
-    )
-    gloved_unoccluded_mm = glove_tf(all_gt_mm, rng=np.random.default_rng(777))
+        all_gt_mm = harmonized_gt_torch.numpy().astype(np.float32)
+        rotations_6d = rot6d_torch.numpy().astype(np.float32)
+        rotations_mat = rot_mat_torch.numpy().astype(np.float32)
+        euler_angles_rad = euler_torch.numpy().astype(np.float32)
 
-    # Precompute multi-tier occlusion benchmark sets
+    if any_real_hardware_frame:
+        # Real physical camera / UDP capture: keep the actual recorded camera observations
+        # (`all_obs_mm`) as `gloved_unoccluded_mm` without adding fake synthetic noise!
+        gloved_unoccluded_mm = all_obs_mm.copy()
+    else:
+        glove_tf = SyntheticGloveTransform(
+            stiffness=0.12,
+            sigma_mm=4.5,
+            distal_spike_mm=12.0,
+            temporal_corr=0.65,
+            spike_prob=0.20,
+            seed=777,
+        )
+        gloved_unoccluded_mm = glove_tf(all_gt_mm, rng=np.random.default_rng(777))
+
+    # Precompute 30%, 50%, and 70% surgical tool occlusion evaluation tiers on top of the gloved trajectories
     tiers: Dict[str, np.ndarray] = {}
     for rate_pct, rate_val in [(30, 0.30), (50, 0.50), (70, 0.70)]:
         tf_tier = SyntheticOcclusionTransform(
@@ -257,12 +371,11 @@ def record_live_sequences(
         all_gt_mm, scale_mm=scale_mm, visibility_mask=None
     )
     gesture_labels = np.arange(num_sequences, dtype=np.int64) % len(GESTURE_NAMES)
-    euler_angles_rad = np.zeros((num_sequences, seq_len, NUM_JOINTS, 3), dtype=np.float32)
 
     payload: Dict[str, Any] = {
-        "node_features": all_features,
-        "x": all_features,
-        "features_4d": all_features,
+        "node_features": tiers["node_features_occ50"] if not any_real_hardware_frame else all_features,
+        "x": tiers["node_features_occ50"] if not any_real_hardware_frame else all_features,
+        "features_4d": tiers["node_features_occ50"] if not any_real_hardware_frame else all_features,
         "gt_xyz_mm": all_gt_mm,
         "positions_mm": all_gt_mm,
         "target_xyz_mm": all_gt_mm,
@@ -279,8 +392,8 @@ def record_live_sequences(
         "euler_angles_rad": euler_angles_rad,
         "gesture_labels": gesture_labels,
         "scale_mm": np.array(scale_mm, dtype=np.float32),
-        "is_real_recording": np.array(True),
-        "recording_mode": np.array(mode),
+        "is_real_recording": np.array(bool(any_real_hardware_frame)),
+        "recording_mode": np.array(mode if any_real_hardware_frame else f"{mode}_simulated"),
         **tiers,
     }
     np.savez_compressed(out_file, **payload)

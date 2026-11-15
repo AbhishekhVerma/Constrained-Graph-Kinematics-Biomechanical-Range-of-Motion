@@ -534,7 +534,19 @@ def compute_hardware_profiles(
     }
 
     # 5. iPhone ARKit Hand Skeleton UDP 60 Hz Telemetry + Host Edge Repair
-    udp_parse_ms = 0.08
+    # Measure actual ARKit JSON packet serialization + parsing + wrist retargeting latency on host
+    from data.iphone_parser import ARKitUDPStreamer, build_mock_arkit_packet_dict
+    import json as _json
+
+    _mock_pkt = build_mock_arkit_packet_dict(step_idx=0, occlusion_rate=0.50, apply_glove=True)
+    _raw_bytes = _json.dumps(_mock_pkt).encode("utf-8")
+    _udp_parser = ARKitUDPStreamer(port=0, fallback_to_mock=True)
+    _udp_parser.close()
+    _t_udp0 = time.perf_counter()
+    for _ in range(100):
+        _ = _udp_parser.parse_arkit_json_packet(_raw_bytes)
+    udp_parse_ms = round(((time.perf_counter() - _t_udp0) * 1000.0) / 100.0, 4)
+
     total_udp_pipeline_ms = round(udp_parse_ms + host_ort_1f_ms, 3)
     iphone_profile: Dict[str, Any] = {
         "platform_name": "iPhone (ARKit Hand Skeleton UDP Port 5005 / Continuity Camera)",
@@ -542,7 +554,7 @@ def compute_hardware_profiles(
         "primary_backend": "ARKitUDPStreamer (Port 5005) + Host ONNX Runtime StudentKinematicMLP",
         "assigned_owner": "Bhavya & Kapish",
         "measured_on_host": True,
-        "status": "PHYSICALLY_MEASURED",
+        "status": "HOST_UDP_PARSER_AND_ORT_MEASURED",
         "udp_packet_parse_and_retarget_ms": udp_parse_ms,
         "onnx_student_repair_ms": round(host_ort_1f_ms, 3),
         "total_end_to_end_repair_latency_ms": total_udp_pipeline_ms,

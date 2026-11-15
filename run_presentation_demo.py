@@ -232,13 +232,14 @@ def run_interactive_launcher() -> None:
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["menu", "replay", "webcam", "udp"],
+        choices=["menu", "replay", "webcam", "udp", "record-gloved"],
         default="menu",
-        help="Demo acquisition mode ('replay' for zero-Wi-Fi offline dataset, 'webcam' for live camera, 'udp' for iPhone ARKit)",
+        help="Demo acquisition mode ('replay' for zero-Wi-Fi offline dataset, 'webcam' for live camera, 'udp' for iPhone ARKit, 'record-gloved' to capture gloved dataset)",
     )
-    parser.add_argument("--occlusion", type=float, default=0.50, help="Simulated surgical tool occlusion rate (0.30, 0.50, 0.70)")
+    parser.add_argument("--occlusion", type=float, default=0.50, help="Simulated surgical tool occlusion rate (0.00, 0.30, 0.50, 0.70)")
     parser.add_argument("--camera", type=int, default=0, help="Camera index for webcam / iPhone Continuity Camera")
     parser.add_argument("--udp-port", type=int, default=5005, help="UDP port for live iPhone ARKit stream")
+    parser.add_argument("--num-sequences", type=int, default=30, help="Number of sequences to record in record-gloved mode")
     parser.add_argument("--headless", action="store_true", help="Run headless benchmark + save snapshot without GUI window")
     parser.add_argument("--export-gif", action="store_true", help="Export animated GIF of real-time 3D hand telemetry repair")
     args = parser.parse_args()
@@ -253,12 +254,13 @@ def run_interactive_launcher() -> None:
         print("  CONSTRAINED GRAPH KINEMATICS — FDS PRESENTATION LIVE DEMO LAUNCHER")
         print("=" * 78)
         print("  [1] Instant Offline Replay Mode (Guaranteed Zero-Wi-Fi Fallback, 50% Occlusion)")
-        print("  [2] Live Webcam / iPhone Continuity Camera Mode (MediaPipe + 50% Tool Mask)")
+        print("  [2] Live Webcam / iPhone Continuity Camera Mode (Press O to Cycle 0%/30%/50%/70%, T for Tool Bar)")
         print("  [3] Live iPhone ARKit UDP Stream Mode (UDP Port 5005 + 50% Tool Mask)")
         print("  [4] Extreme 70% Occlusion Stress Test (15/21 Joints Masked)")
         print("  [5] Export Animated Presentation GIF (results/figures/live_demo_telemetry.gif)")
+        print("  [6] Record Physical Gloved Hand Dataset via Webcam (data/custom_gloved_dataset.npz)")
         print("=" * 78)
-        choice = input("Select demo mode [1-5, default=1]: ").strip() or "1"
+        choice = input("Select demo mode [1-6, default=1]: ").strip() or "1"
         if choice == "2":
             mode = "webcam"
         elif choice == "3":
@@ -269,10 +271,28 @@ def run_interactive_launcher() -> None:
         elif choice == "5":
             export_animated_demo_gif()
             return
+        elif choice == "6":
+            mode = "record-gloved"
         else:
             mode = "replay"
     elif mode == "menu":
         mode = "replay"
+
+    if mode == "record-gloved":
+        cmd = [
+            sys.executable,
+            str(PROJECT_ROOT / "data" / "record_custom_gloved.py"),
+            "--mode",
+            "mediapipe",
+            "--camera-index",
+            str(args.camera),
+            "--num-sequences",
+            str(args.num_sequences),
+            "--strict-hardware",
+        ]
+        print(f"[Presentation Demo] Launching Gloved Hand Recorder: {' '.join(cmd)}")
+        subprocess.run(cmd, check=True)
+        return
 
     source_map = {
         "replay": "replay",

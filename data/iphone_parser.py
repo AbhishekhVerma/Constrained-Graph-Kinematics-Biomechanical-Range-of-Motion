@@ -639,6 +639,112 @@ class MediaPipeCameraStreamer:
         )
         return canvas
 
+    def _align_hand_to_canonical_frame(
+        self, raw_mm: np.ndarray
+    ) -> np.ndarray:
+        """
+        Aligns a camera-space 3D hand skeleton `(21, 3)` into the canonical MANO
+        rest orientation (wrist at origin, `+Y` pointing distally from wrist `0`
+        toward middle MCP `9`, and the palm plane `Index MCP 5 <-> Pinky MCP 17`
+        aligned with the `X-Y` plane) and scales by the palm reference length so
+        live camera coordinates match the neural network's training distribution.
+        """
+        pts = raw_mm.astype(np.float64) - raw_mm[0:1].astype(np.float64)
+
+        # Primary axis (+Y): Wrist (0) -> Middle MCP (9)
+        v_y = pts[9].copy()
+        norm_y = float(np.linalg.norm(v_y))
+        if norm_y < 1e-3:
+            return pts.astype(np.float32)
+        e_y = v_y / norm_y
+
+        # Lateral palm vector: Pinky MCP (17) -> Index MCP (5)
+        v_lat = pts[5] - pts[17]
+        if float(np.linalg.norm(v_lat)) < 1e-3:
+            v_lat = np.array([1.0, 0.0, 0.0], dtype=np.float64)
+
+        # Palmar normal (+Z): e_x x e_y
+        v_z = np.cross(v_lat, e_y)
+        norm_z = float(np.linalg.norm(v_z))
+        if norm_z < 1e-3:
+            e_z = np.array([0.0, 0.0, 1.0], dtype=np.float64)
+        else:
+            e_z = v_z / norm_z
+
+        # Orthogonal lateral axis (+X): e_y x e_z
+        e_x = np.cross(e_y, e_z)
+        e_x = e_x / max(float(np.linalg.norm(e_x)), 1e-6)
+
+        # Rotation matrix R_cam_to_can has rows [e_x, e_y, e_z]
+        rot_cam_to_can = np.stack([e_x, e_y, e_z], axis=0)  # (3, 3)
+        aligned = (pts @ rot_cam_to_can.T).astype(np.float32)
+
+        # Scale palm size so Wrist->Middle_MCP matches canonical (~80 mm)
+        canonical_mid_mcp_len = float(np.linalg.norm(REST_JOINT_POSITIONS_MM[9] - REST_JOINT_POSITIONS_MM[0]))
+        if norm_y > 10.0:
+            scale_ratio = np.clip(canonical_mid_mcp_len / norm_y, 0.65, 1.65)
+            aligned = aligned * float(scale_ratio)
+
+        return aligned
+
+    def _draw_2d_skeleton_on_frame(
+        self,
+        bgr_frame: np.ndarray,
+        landmarks_2d: np.ndarray,
+        visibility_mask: np.ndarray,
+        detected: bool,
+    ) -> None:
+        """Draws the 21-joint 2D skeleton and visibility status onto the live BGR camera frame."""
+        import cv2
+
+        h_img, w_img = bgr_frame.shape[:2]
+        if self.tool_box is not None:
+            bx1, by1, bx2, by2 = self.tool_box
+            overlay = bgr_frame.copy()
+            cv2.rectangle(overlay, (bx1, by1), (bx2, by2), (0, 110, 255), -1)
+            cv2.addWeighted(overlay, 0.22, bgr_frame, 0.78, 0, bgr_frame)
+            cv2.rectangle(bgr_frame, (bx1, by1), (bx2, by2), (0, 165, 255), 2)
+            cv2.putText(
+                bgr_frame,
+                "SURGICAL INSTRUMENT OCCLUSION ZONE [Press T to Toggle]",
+                (bx1 + 6, max(by1 - 8, 18)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.44,
+                (0, 200, 255),
+                1,
+                cv2.LINE_AA,
+            )
+
+        if not detected:
+            cv2.rectangle(bgr_frame, (12, h_img - 54), (w_img - 12, h_img - 12), (20, 25, 40), -1)
+            cv2.rectangle(bgr_frame, (12, h_img - 54), (w_img - 12, h_img - 12), (0, 180, 255), 1)
+            cv2.putText(
+                bgr_frame,
+                "LIVE CAMERA ACTIVE - Place gloved or bare hand in view...",
+                (24, h_img - 28),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.54,
+                (0, 215, 255),
+                1,
+                cv2.LINE_AA,
+            )
+            return
+
+        pts_2d = np.clip(landmarks_2d.astype(np.int32), 0, [w_img - 1, h_img - 1])
+        for j in range(1, NUM_JOINTS):
+            p = PARENT_INDICES[j]
+            vis_both = (visibility_mask[j] > 0.5) and (visibility_mask[p] > 0.5)
+            color = (90, 235, 130) if vis_both else (60, 70, 245)
+            thickness = 2 if vis_both else 1
+            cv2.line(bgr_frame, tuple(pts_2d[p]), tuple(pts_2d[j]), color, thickness, cv2.LINE_AA)
+
+        for j in range(NUM_JOINTS):
+            vis = visibility_mask[j] > 0.5
+            c_fill = (255, 255, 255) if j == 0 else ((100, 250, 140) if vis else (50, 60, 250))
+            rad = 6 if j == 0 else (4 if vis else 5)
+            cv2.circle(bgr_frame, tuple(pts_2d[j]), rad, c_fill, -1, cv2.LINE_AA)
+            cv2.circle(bgr_frame, tuple(pts_2d[j]), rad + 1, (15, 23, 42), 1, cv2.LINE_AA)
+
     def read_frame(
         self,
         tool_box: Optional[Tuple[int, int, int, int]] = None,
@@ -686,6 +792,9 @@ class MediaPipeCameraStreamer:
                                 slm = screen_lms[j_idx]
                                 landmarks_2d[j_idx, 0] = float(slm.x) * w_img
                                 landmarks_2d[j_idx, 1] = float(slm.y) * h_img
+                                # Detect natural edge-of-frame or self-occlusion drop
+                                if not (0.01 <= float(slm.x) <= 0.99 and 0.01 <= float(slm.y) <= 0.99):
+                                    vis_mask[j_idx] = 0.0
 
                 # 2. Try legacy solutions.hands fallback
                 elif self._mp_legacy_hands is not None:
@@ -707,37 +816,59 @@ class MediaPipeCameraStreamer:
                                 slm = hand_screen.landmark[j_idx]
                                 landmarks_2d[j_idx, 0] = float(slm.x) * w_img
                                 landmarks_2d[j_idx, 1] = float(slm.y) * h_img
+                                if not (0.01 <= float(slm.x) <= 0.99 and 0.01 <= float(slm.y) <= 0.99):
+                                    vis_mask[j_idx] = 0.0
 
                 if detected:
+                    # Align camera-space 3D hand to canonical training frame
+                    aligned_mm = self._align_hand_to_canonical_frame(raw_mm)
                     unmasked_norm_xyz, _, _ = normalize_hand_sequence(
-                        raw_mm.copy(), scale_mm=self.scale_mm, visibility_mask=None
+                        aligned_mm.copy(), scale_mm=self.scale_mm, visibility_mask=None
                     )
                     unmasked_centered_mm = unmasked_norm_xyz * self.scale_mm
+                    obs_mm = aligned_mm.copy()
 
-                    # Apply tool occlusion region if specified
+                    # Apply virtual surgical tool occlusion region if active
                     if self.tool_box is not None:
                         bx1, by1, bx2, by2 = self.tool_box
                         for j in range(1, NUM_JOINTS):
                             jx, jy = landmarks_2d[j]
                             if bx1 <= jx <= bx2 and by1 <= jy <= by2:
                                 vis_mask[j] = 0.0
-                                raw_mm[j] = 0.0
-                        cv2.rectangle(bgr_frame, (bx1, by1), (bx2, by2), (0, 140, 255), 2)
-                    elif self.simulated_occlusion_rate > 0.0:
-                        rng = np.random.default_rng(self._step_counter + 10)
-                        for j in range(1, NUM_JOINTS):
-                            # Distal joints occlude with higher probability
-                            prob = self.simulated_occlusion_rate * (1.3 if j in (4, 8, 12, 16, 20) else 0.8)
-                            if rng.uniform(0.0, 1.0) < prob:
-                                vis_mask[j] = 0.0
-                                raw_mm[j] = 0.0
+                                obs_mm[j] = 0.0
+                        # Enforce contiguous distal subtree masking when a knuckle is inside the tool box
+                        for chain in KINEMATIC_CHAINS.values():
+                            parent_masked = False
+                            for j_c in chain:
+                                if vis_mask[j_c] <= 0.5:
+                                    parent_masked = True
+                                if parent_masked:
+                                    vis_mask[j_c] = 0.0
+                                    obs_mm[j_c] = 0.0
+
+                    # Optionally apply controlled subtree occlusion rate if requested
+                    if self.simulated_occlusion_rate > 0.0:
+                        target_k = int(round(self.simulated_occlusion_rate * NUM_JOINTS))
+                        curr_k = int(np.sum(vis_mask <= 0.5))
+                        if curr_k < target_k:
+                            # Mask contiguous distal joints starting from index/middle/thumb tips
+                            priority_order = [8, 7, 12, 11, 4, 3, 16, 15, 20, 19, 6, 10, 2, 14, 18, 5, 9, 1, 13, 17]
+                            for j_p in priority_order:
+                                if curr_k >= target_k:
+                                    break
+                                if vis_mask[j_p] > 0.5:
+                                    vis_mask[j_p] = 0.0
+                                    obs_mm[j_p] = 0.0
+                                    curr_k += 1
 
                     vis_mask[0] = 1.0
                     norm_xyz, _, _ = normalize_hand_sequence(
-                        raw_mm, scale_mm=self.scale_mm, visibility_mask=vis_mask
+                        obs_mm, scale_mm=self.scale_mm, visibility_mask=vis_mask
                     )
                     centered_mm = norm_xyz * self.scale_mm
                     features_4d = build_node_features_4d(norm_xyz, vis_mask)
+
+                    self._draw_2d_skeleton_on_frame(bgr_frame, landmarks_2d, vis_mask, detected=True)
 
                     self._step_counter += 1
                     self._frame_buffer.append(features_4d)
@@ -753,6 +884,41 @@ class MediaPipeCameraStreamer:
                         "frame_bgr": bgr_frame,
                         "scale_mm": self.scale_mm,
                         "simulated": False,
+                        "hand_detected": True,
+                    }
+                else:
+                    # Physical camera is open, but no hand was detected in this frame.
+                    # Never overwrite the real webcam frame with a fake synthetic canvas!
+                    self._draw_2d_skeleton_on_frame(bgr_frame, landmarks_2d, vis_mask, detected=False)
+                    if len(self._frame_buffer) > 0:
+                        features_4d = self._frame_buffer[-1].copy()
+                        centered_mm = self._pos_mm_buffer[-1].copy()
+                        unmasked_centered_mm = self._gt_mm_buffer[-1].copy()
+                        vis_mask = self._mask_buffer[-1].copy()
+                    else:
+                        unmasked_norm_xyz, _, _ = normalize_hand_sequence(
+                            REST_JOINT_POSITIONS_MM.copy(), scale_mm=self.scale_mm, visibility_mask=None
+                        )
+                        unmasked_centered_mm = unmasked_norm_xyz * self.scale_mm
+                        centered_mm = unmasked_centered_mm.copy()
+                        vis_mask = np.ones((NUM_JOINTS,), dtype=np.float32)
+                        features_4d = build_node_features_4d(unmasked_norm_xyz, vis_mask)
+
+                    self._step_counter += 1
+                    self._frame_buffer.append(features_4d)
+                    self._pos_mm_buffer.append(centered_mm)
+                    self._gt_mm_buffer.append(unmasked_centered_mm)
+                    self._mask_buffer.append(vis_mask)
+                    return {
+                        "features_4d": features_4d,
+                        "positions_mm": centered_mm,
+                        "gt_positions_mm": unmasked_centered_mm,
+                        "visibility_mask": vis_mask,
+                        "landmarks_2d": landmarks_2d,
+                        "frame_bgr": bgr_frame,
+                        "scale_mm": self.scale_mm,
+                        "simulated": False,
+                        "hand_detected": False,
                     }
 
         # Fallback: generate simulated MediaPipe world landmarks frame
