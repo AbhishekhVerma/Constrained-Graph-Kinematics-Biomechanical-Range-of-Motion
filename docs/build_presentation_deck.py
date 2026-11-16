@@ -437,6 +437,37 @@ def main() -> None:
 </head>
 <body>
 {"".join(rendered_slides)}
+<script>
+  let currentSlide = 0;
+  const slides = document.querySelectorAll('.slide');
+  function showSlide(index) {{
+    if (index >= 0 && index < slides.length) {{
+      currentSlide = index;
+      slides[currentSlide].scrollIntoView({{ behavior: 'smooth' }});
+    }}
+  }}
+  document.addEventListener('keydown', (e) => {{
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {{
+      e.preventDefault();
+      showSlide(currentSlide + 1);
+    }} else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {{
+      e.preventDefault();
+      showSlide(currentSlide - 1);
+    }} else if (e.key === 'Home') {{
+      e.preventDefault();
+      showSlide(0);
+    }} else if (e.key === 'End') {{
+      e.preventDefault();
+      showSlide(slides.length - 1);
+    }} else if (e.key === 'f' || e.key === 'F') {{
+      if (!document.fullscreenElement) {{
+        document.documentElement.requestFullscreen().catch(()=>{{}});
+      }} else {{
+        document.exitFullscreen().catch(()=>{{}});
+      }}
+    }}
+  }});
+</script>
 </body>
 </html>
 """

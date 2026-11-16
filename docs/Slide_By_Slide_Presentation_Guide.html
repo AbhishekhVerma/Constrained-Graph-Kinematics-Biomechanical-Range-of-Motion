@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slide-by-Slide Presentation & Defense Master Guide — FDS Final Project</title>
+  <title>Slide-by-Slide Presentation & Defense Master Guide (16 Slides)</title>
   <script>
     window.MathJax = {
       tex: {
@@ -39,529 +39,294 @@
       max-width: 1120px;
       margin: 0 auto;
     }
-    header {
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      border: 1px solid var(--card-border);
-      border-left: 6px solid var(--accent);
-      border-radius: 12px;
-      padding: 28px 32px;
-      margin-bottom: 28px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    }
     h1 {
-      margin: 0 0 8px 0;
-      font-size: 1.85rem;
-      color: #ffffff;
-    }
-    .subtitle {
+      font-size: 2.2rem;
       color: var(--accent);
-      font-weight: 600;
-      font-size: 1.05rem;
+      border-bottom: 2px solid var(--card-border);
+      padding-bottom: 12px;
+      margin-bottom: 8px;
+    }
+    h2 {
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-top: 36px;
       margin-bottom: 12px;
-    }
-    .meta {
-      color: var(--muted);
-      font-size: 0.92rem;
-    }
-    .slide-card {
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 26px 30px;
-      margin-bottom: 26px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.22);
-    }
-    .slide-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 14px;
-      margin-bottom: 18px;
-    }
-    .slide-title {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #ffffff;
-      margin: 0;
-    }
-    .badge-group {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .badge {
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 999px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .badge-abhishekh { background: rgba(56, 189, 248, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
-    .badge-bhavya { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
-    .badge-vrushank { background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
-    .badge-kapish { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
-    .badge-rubric { background: rgba(244, 63, 94, 0.18); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
-
-    .section-box {
-      padding: 16px 20px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-    }
-    .layman-box {
-      background: rgba(16, 185, 129, 0.08);
-      border-left: 4px solid var(--emerald);
-    }
-    .concept-box {
-      background: rgba(56, 189, 248, 0.08);
+      padding-left: 10px;
       border-left: 4px solid var(--accent);
     }
-    .script-box {
-      background: rgba(245, 158, 11, 0.08);
-      border-left: 4px solid var(--amber);
-    }
-    .box-title {
-      font-weight: 700;
-      font-size: 0.95rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    h3 {
+      font-size: 1.15rem;
+      color: var(--muted);
+      margin-top: 18px;
       margin-bottom: 8px;
-      display: block;
     }
-    .layman-box .box-title { color: #34d399; }
-    .concept-box .box-title { color: #38bdf8; }
-    .script-box .box-title { color: #fbbf24; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
-      font-size: 0.92rem;
+    p, li {
+      font-size: 0.98rem;
+      color: #cbd5e1;
     }
-    th, td {
-      border: 1px solid var(--card-border);
-      padding: 10px 14px;
-      text-align: left;
-    }
-    th {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--accent);
-      font-weight: 600;
-    }
-    tr:nth-child(even) {
-      background: rgba(255, 255, 255, 0.02);
-    }
-    code, pre {
-      font-family: "JetBrains Mono", Consolas, Monaco, monospace;
-      background: #090d16;
-      color: #e2e8f0;
-      border-radius: 6px;
-    }
+    strong { color: #ffffff; }
+    em { color: var(--accent); }
     code {
+      background: #090d16;
+      color: #38bdf8;
       padding: 2px 6px;
+      border-radius: 4px;
+      font-family: "Cascadia Code", Consolas, Monaco, monospace;
       font-size: 0.88em;
     }
     pre {
+      background: #090d16;
       padding: 14px 18px;
+      border-radius: 8px;
       overflow-x: auto;
       border: 1px solid var(--card-border);
     }
-    ul, ol {
+    pre code {
+      background: none;
+      padding: 0;
+      color: #a5f3fc;
+    }
+    blockquote {
+      background: #172554;
+      border-left: 4px solid #38bdf8;
+      margin: 14px 0;
+      padding: 12px 18px;
+      border-radius: 0 8px 8px 0;
+      color: #e0f2fe;
+      font-style: italic;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+    th {
+      background: #1e293b;
+      color: var(--accent);
+      padding: 10px 14px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+    }
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid #1e293b;
+      color: #cbd5e1;
+    }
+    tr:nth-child(even) td {
+      background: #131c2e;
+    }
+    hr {
+      border: 0;
+      height: 1px;
+      background: var(--card-border);
+      margin: 32px 0;
+    }
+    ul {
+      padding-left: 24px;
       margin: 8px 0;
-      padding-left: 22px;
     }
     li {
       margin-bottom: 6px;
-    }
-    @media print {
-      body { background: #ffffff; color: #000000; padding: 0; }
-      .slide-card, header { background: #ffffff; border: 1px solid #cccccc; box-shadow: none; page-break-inside: avoid; }
-      .slide-title, h1 { color: #000000; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>Constrained Graph Kinematics: Biomechanical Range-of-Motion for Occluded Hand Gesture Telemetry</h1>
-      <div class="subtitle">Slide-by-Slide Presentation & Defense Master Guide (Layman + Technical + Scripts)</div>
-      <div class="meta">
-        <strong>Presentation Date:</strong> November 17, 2026 &nbsp;|&nbsp;
-        <strong>Course:</strong> Foundations of Data Science (FDS) &nbsp;|&nbsp;
-        <strong>Team:</strong> Abhishekh Verma, Bhavya, Vrushank, Kapish
-      </div>
-    </header>
-
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Master Timing & Speaker Schedule (12 Mins + 2 Min Demo)</h2>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Speaker(s)</th>
-            <th>Slides</th>
-            <th>Focus Area</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>0:00 – 1:30</strong></td>
-            <td>All 4 Teammates</td>
-            <td><strong>Slide 1</strong></td>
-            <td>Clinical motivation, failure modes, and 20-sec module ownership intro per teammate</td>
-          </tr>
-          <tr>
-            <td><strong>1:30 – 3:00</strong></td>
-            <td>Abhishekh &amp; Vrushank</td>
-            <td><strong>Slide 2</strong></td>
-            <td>5 Project Objectives &amp; Literature Gap (why soft penalties fail vs. hard FK)</td>
-          </tr>
-          <tr>
-            <td><strong>3:00 – 4:30</strong></td>
-            <td>Abhishekh &amp; Kapish</td>
-            <td><strong>Slide 3</strong></td>
-            <td>4-Stage System Block Diagram (Figure 0 — worth 3 Marks on Rubric)</td>
-          </tr>
-          <tr>
-            <td><strong>4:30 – 6:00</strong></td>
-            <td>Bhavya</td>
-            <td><strong>Slide 4</strong></td>
-            <td>Hybrid Real FreiHAND ($32,560$ poses) + MANO pipeline, Glove Stiffness &amp; 3D Tool Occlusion</td>
-          </tr>
-          <tr>
-            <td><strong>6:00 – 7:30</strong></td>
-            <td>Vrushank</td>
-            <td><strong>Slide 5</strong></td>
-            <td>6D Continuous Rotations ($\text{SO}(3)$), $\tanh$ RoM Clamper &amp; Theorem 1 ($0.0000\text{ mm}$ proof)</td>
-          </tr>
-          <tr>
-            <td><strong>7:30 – 9:00</strong></td>
-            <td>Abhishekh</td>
-            <td><strong>Slide 6</strong></td>
-            <td>Teacher <code>SpatioTemporalGAE</code>: Mask-Aware GAT ($-\gamma_h(1-m)$) + Bi-GRU ($T=8$)</td>
-          </tr>
-          <tr>
-            <td><strong>9:00 – 10:15</strong></td>
-            <td>Kapish</td>
-            <td><strong>Slide 7</strong></td>
-            <td>Knowledge Distillation (<code>StudentKinematicMLP</code>): $6.64\times$ smaller, $137.3\times$ fewer FLOPs</td>
-          </tr>
-          <tr>
-            <td><strong>10:15 – 11:30</strong></td>
-            <td>Abhishekh, Vrushank, Bhavya</td>
-            <td><strong>Slides 8 &amp; 9</strong></td>
-            <td>Multi-rate occlusion results (30%/50%/70%), jitter reduction &amp; granular phalanx breakdown</td>
-          </tr>
-          <tr>
-            <td><strong>11:30 – 14:00</strong></td>
-            <td>Kapish &amp; Vrushank</td>
-            <td><strong>Slides 10 &amp; 11</strong></td>
-            <td>MacBook Air CoreML ($805\text{ FPS}$) &amp; PC ($558\text{ FPS}$) Benchmarks + <strong>LIVE DEMO</strong></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- SLIDE 1 -->
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Slide 1: Introduction — Motivation, Novelty &amp; Team Roles</h2>
-        <div class="badge-group">
-          <span class="badge badge-rubric">Rubric: Introduction (1 Mark)</span>
-          <span class="badge badge-abhishekh">Abhishekh</span>
-          <span class="badge badge-bhavya">Bhavya</span>
-          <span class="badge badge-vrushank">Vrushank</span>
-          <span class="badge badge-kapish">Kapish</span>
-        </div>
-      </div>
-      <div class="section-box layman-box">
-        <span class="box-title">1. Layman Explanation (Plain English Analogy)</span>
-        <p>Imagine a surgeon performing robotic surgery or an engineer wearing a VR glove. A camera tracks the 21 joints of their hand. Suddenly, two things go wrong:</p>
-        <ul>
-          <li><strong>Surgical tools block the view (Occlusion):</strong> A scalpel or clamp hides 30% to 70% of the fingers from the camera.</li>
-          <li><strong>Medical latex gloves shine under bright lights (Glare &amp; Stiffness):</strong> Smooth latex hides skin creases, pulls fingers stiffly, and reflects surgical lights—making camera tracking dots jump wildly.</li>
-        </ul>
-        <p>Standard AI trackers (like Google MediaPipe or Apple ARKit) panic when fingers are hidden: they guess 21 independent $X, Y, Z$ dots in mid-air. As a result, the virtual hand <strong>stretches like rubber</strong> (bones growing by $2\text{ cm}$) or <strong>bends fingers backward like a broken bone</strong>. <strong>Our Solution:</strong> Instead of guessing floating $X, Y, Z$ dots, we force the AI to operate an <strong>anatomical puppet</strong> with fixed metal bone lengths and mechanical knuckle stoppers that physically <em>cannot</em> stretch or bend backward.</p>
-      </div>
-      <div class="section-box concept-box">
-        <span class="box-title">2. Deep Conceptual &amp; Mathematical Explanation</span>
-        <ul>
-          <li>Unconstrained models regress coordinates in $\mathbb{R}^{21 \times 3}$ (63 independent numbers) with zero structural guarantee that parent-child bone distances remain invariant.</li>
-          <li>We replace direct coordinate regression with a <strong>520K-parameter Spatio-Temporal Graph Autoencoder Teacher</strong> distilled into a <strong>78.4K-parameter Edge Student MLP</strong> that predicts continuous <strong>6D rotations on $\text{SO}(3)$</strong>, clamped via $\tanh$ Range-of-Motion limits and decoded via <strong>Differentiable Forward Kinematics</strong>, guaranteeing <strong>$0.0000\text{ mm}$ bone error</strong> and <strong>$100.0\%$ validity</strong> at <strong>$804.9\text{ FPS}$</strong> on Apple Silicon MacBook Air.</li>
-        </ul>
-      </div>
-      <div class="section-box script-box">
-        <span class="box-title">3. Exact Speaker Script &amp; Pointers</span>
-        <p><strong>Abhishekh (0:00–0:30):</strong> "Good morning everyone. Today our team—Bhavya, Vrushank, Kapish, and I—will present <em>Constrained Graph Kinematics: Biomechanical Range-of-Motion for Occluded Hand Gesture Telemetry</em>. In surgical navigation and industrial teleoperation, vision-based hand trackers like MediaPipe and Apple ARKit fail when instruments occlude the fingers or when medical latex gloves introduce specular glare. Unconstrained neural networks regress 63 independent X, Y, Z coordinates, producing stretched bones and hyperextended joints whenever visual evidence drops out."</p>
-        <p><strong>Bhavya (0:30–0:50):</strong> "To evaluate and solve this on real human hand articulations, I built our hybrid Real FreiHAND (32,560 real 3D poses) + Clinical MANO trajectory pipeline and zero-shot domain adaptation transforms, simulating 3D cylindrical tool occlusion across 30%, 50%, and 70% of the hand alongside latex glove stiffness and autoregressive sensor jitter."</p>
-        <p><strong>Vrushank (0:50–1:10):</strong> "On the mathematical side, I designed our continuous 6D rotation parameterization on SO(3), our hyperbolic-tangent BiomechanicalRoMClamper, and our exact DifferentiableFK and bare-metal NumPy EdgeFK engines, which guarantee 0.0000 mm bone-length error by construction."</p>
-        <p><strong>Kapish (1:10–1:30):</strong> "And I compressed Abhishekh's 520K-parameter Spatio-Temporal Graph Autoencoder Teacher via multi-objective Knowledge Distillation into a 78.4K-parameter ONNX Student MLP—achieving a 6.64x parameter reduction and 137.3x FLOPs reduction for 1.24 ms (805 FPS) execution on Apple Silicon MacBook Air and 1.79 ms (558 FPS) on x86_64 PC."</p>
-      </div>
-    </div>
-
-    <!-- SLIDE 2 -->
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Slide 2: Project Objectives &amp; Literature Gap</h2>
-        <div class="badge-group">
-          <span class="badge badge-rubric">Rubric: Objectives (1 Mark)</span>
-          <span class="badge badge-abhishekh">Abhishekh</span>
-          <span class="badge badge-vrushank">Vrushank</span>
-        </div>
-      </div>
-      <div class="section-box layman-box">
-        <span class="box-title">1. Layman Explanation (Plain English Analogy)</span>
-        <p>Why did previous research papers fail to solve this?</p>
-        <ul>
-          <li><strong>Graph Models without Skeleton Locks (HandGCN, HOPE-Net):</strong> They connect knuckles in their middle layers, but their final output layer still guesses raw $X, Y, Z$ dots—so bones still stretch by $3.4\text{–}4.8\text{ mm}$.</li>
-          <li><strong>Massive Transformers (HandOccNet, CVPR 2022):</strong> Great accuracy, but the model is huge ($37.2\text{ million}$ parameters, $142\text{ MB}$) and runs at $30\text{ FPS}$ on a desktop GPU. Our Student is <strong>$470\times$ smaller</strong>!</li>
-          <li><strong>"Speed-Limit Sign" Soft Penalties (Spurr et al., ECCV 2020):</strong> During training, if the AI stretches a bone or bends a finger backward, they add a penalty score. <strong>The flaw:</strong> Soft penalties are just speed-limit signs—at test time, when half the hand is hidden, the AI still speeds past the sign ($8.6\%$ of hands are still broken, with $1.9\text{ mm}$ bone error). We install a <strong>physical governor on the engine</strong> (hard Forward Kinematics inside the forward pass) so breaking a bone is mathematically impossible.</li>
-        </ul>
-      </div>
-      <div class="section-box concept-box">
-        <span class="box-title">2. Deep Conceptual &amp; Mathematical Explanation</span>
-        <ul>
-          <li>Prior works apply soft hinge regularizers $\mathcal{L}_{\text{bone}} + \mathcal{L}_{\text{angle}}$ on unconstrained $\mathbb{R}^{21 \times 3}$ outputs. At test time under heavy occlusion, conflicting gradients cause anatomical violations.</li>
-          <li>Our architecture restricts the output space strictly to $\text{SO}(3)$ rotations passed through `BiomechanicalRoMClamper` and `DifferentiableFK`, achieving $0.0000\text{ mm}$ bone error and $100.0\%$ validity.</li>
-        </ul>
-      </div>
-      <div class="section-box script-box">
-        <span class="box-title">3. Exact Speaker Script &amp; Pointers</span>
-        <p><strong>Abhishekh (1:30–2:15):</strong> "Slide 2 states our five project objectives and contrasts our approach against existing literature. Graph models like HandGCN and HOPE-Net propagate features across joints, but their output layer still regresses unconstrained X, Y, Z coordinates, resulting in 3.4 to 4.8 mm of bone-length distortion. Transformer models like HandOccNet improve occlusion recovery, but require 37.2 million parameters (142 MB) and 33.5 ms on desktop GPUs."</p>
-        <p><strong>Vrushank (2:15–3:00):</strong> "Meanwhile, Spurr et al. (ECCV 2020) apply soft hinge loss penalties on joint angles and bone lengths during training. Because soft penalties do not constrain the output layer at test time, severe tool occlusion still produces stretched phalanges (1.9 mm error, 8.6% invalid poses). In our own UnconstrainedStudentMLP ablation at 50% occlusion, strict biomechanical validity drops to 29.95%. By embedding continuous 6D SO(3) rotations, tanh RoM clamping, and fixed-bone Forward Kinematics directly inside the forward pass, our Teacher (6.51 mm MPJPE) and Student (7.04 mm MPJPE) guarantee 0.0000 mm bone error and 100.0% validity."</p>
-      </div>
-    </div>
-
-    <!-- SLIDE 3 -->
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Slide 3: System Block Diagram &amp; Core Algorithms</h2>
-        <div class="badge-group">
-          <span class="badge badge-rubric">Rubric: Block Diagram (3 Marks)</span>
-          <span class="badge badge-abhishekh">Abhishekh</span>
-          <span class="badge badge-kapish">Kapish</span>
-        </div>
-      </div>
-      <div class="section-box layman-box">
-        <span class="box-title">1. Layman Explanation (Plain English Analogy)</span>
-        <p>Think of <strong>Figure 0</strong> as a <strong>4-stage assembly line</strong>:</p>
-        <ol>
-          <li><strong>Stage 1 (Top-Left — The Surgical Obstacle Course):</strong> Real 3D hands are centered at the wrist and passed through our latex glove simulator ($12\%$ stiffness + glare jitter) and 3D cylindrical tool blocker (hiding 30%, 50%, or 70% of joints). Each joint gets a visibility tag $m \in \{0, 1\}$.</li>
-          <li><strong>Stage 2 (Bottom-Left — The Wise Professor / Teacher):</strong> Our 520K-parameter Teacher fills in missing joints with a resting hand pose, passes messages between knuckles using 3 layers of Graph Attention (muting hidden joints), and smooths motion across 8 video frames with a Bidirectional GRU.</li>
-          <li><strong>Stage 3 (Bottom-Center — The Fast Apprentice / Student):</strong> We train a tiny 78.4K-parameter Student MLP with a fast 1D time-mixing convolution to mimic the Teacher's exact rotations and 3D positions.</li>
-          <li><strong>Stage 4 (Right — The Anatomical Puppet Master):</strong> Both Teacher and Student feed their 6D outputs into Gram-Schmidt ($\text{SO}(3)$), the $\tanh$ knuckle stopper, and Forward Kinematics to build the final rigid 3D hand.</li>
-        </ol>
-      </div>
-      <div class="section-box concept-box">
-        <span class="box-title">2. Deep Conceptual &amp; Mathematical Explanation</span>
-        <ul>
-          <li>Input tensor shape: $(B, T, 21, 4)$ containing $[x_{\text{norm}}, y_{\text{norm}}, z_{\text{norm}}, m]$.</li>
-          <li>Output tensor shape: $(B, T, 21, 3)$ in millimeters with wrist anchored at $(0,0,0)$ and exact bone lengths $L_j$.</li>
-        </ul>
-      </div>
-      <div class="section-box script-box">
-        <span class="box-title">3. Exact Speaker Script &amp; Pointers</span>
-        <p><strong>Abhishekh (3:00–3:45):</strong> "Slide 3 presents our end-to-end system block diagram. In Stage 1 (top-left), we stream real 3D hand poses from FreiHAND paired with clinical MANO trajectories and pass them through Bhavya's SyntheticGloveTransform and SyntheticOcclusionTransform to produce the 4-channel input tensor (B, T, 21, 4), where the fourth channel is the binary visibility mask m in {0, 1}. In Stage 2 (bottom-left), our 520K-parameter SpatioTemporalGAE Teacher imputes occluded nodes with canonical rest priors, runs 3 layers of 4-head Graph Attention over the 21-joint adjacency matrix with a learnable visibility key gate, and aggregates temporal context across T=8 frames via a Bidirectional GRU."</p>
-        <p><strong>Kapish (3:45–4:30):</strong> "In Stage 3 (bottom-center), we distill the frozen Teacher's 6D rotations and 3D FK trajectories into our 78.4K-parameter StudentKinematicMLP using our 5-term DistillationLoss. Finally, in Stage 4 (right), both Teacher and Student feed into Vrushank's shared kinematic manifold: Gram-Schmidt orthogonalization onto SO(3), hyperbolic-tangent Range-of-Motion clamping, and recursive Forward Kinematics, compiled to a 433 KB ONNX graph and a 13.8 kHz bare-metal NumPy EdgeFK engine."</p>
-      </div>
-    </div>
-
-    <!-- SLIDE 4 -->
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Slide 4: Hybrid FreiHAND + MANO Data Pipeline &amp; 3D Domain Adaptation</h2>
-        <div class="badge-group">
-          <span class="badge badge-bhavya">Bhavya</span>
-        </div>
-      </div>
-      <div class="section-box layman-box">
-        <span class="box-title">1. Layman Explanation (Plain English Analogy)</span>
-        <ul>
-          <li><strong>32,560 Real Human Hands + Surgical Gestures:</strong> We streamed 32,560 real 3D hand poses from the University of Freiburg's <strong>FreiHAND</strong> dataset, connected neighbouring poses into smooth 8-frame clips, and blended them 50/50 with 6 surgical gestures (Scalpel Pinch, Needle Driver, Power Drill, etc.) under a strict <strong>80/20 Train/Test split</strong> (960 train / 240 test).</li>
-          <li><strong>Simulating Latex Gloves (<code>SyntheticGloveTransform</code>):</strong> Latex elasticity pulls fingers $12\%$ back toward a neutral open hand. Bright surgical lights reflecting off shiny gloves cause camera tracking dots to drift smoothly over time ($\rho=0.65$ AR(1) drift, $4.5\text{ mm}$ noise) plus sudden <strong>$12\text{ mm}$ glare spikes</strong> on the fingertips.</li>
-          <li><strong>Simulating Surgical Tools (<code>SyntheticOcclusionTransform</code>):</strong> A virtual $28\text{ mm}$-radius 3D cylinder blocks across the fingers. If a knuckle is blocked, all joints further down that finger are also blocked (<strong>contiguous subtree masking</strong>) at 30%, 50%, and 70% occlusion.</li>
-        </ul>
-      </div>
-      <div class="section-box concept-box">
-        <span class="box-title">2. Deep Conceptual &amp; Mathematical Explanation</span>
-        <p>$$\tilde{\mathbf{d}}_{t,j} = \frac{(1 - \alpha_{\text{stiff}})\hat{\mathbf{d}}_{t,j} + \alpha_{\text{stiff}}\hat{\mathbf{u}}_j^{\text{rest}}}{\|(1 - \alpha_{\text{stiff}})\hat{\mathbf{d}}_{t,j} + \alpha_{\text{stiff}}\hat{\mathbf{u}}_j^{\text{rest}}\|_2}, \qquad \mathbf{P}_{t,j}^{\text{gloved}} = \tilde{\mathbf{P}}_{t,j} + \sigma_j \boldsymbol{\epsilon}_{t,j} + \mathbb{I}(j \in \mathcal{V}_{\text{tip}})\,b_{t,j}\,\boldsymbol{\xi}_{t,j}$$</p>
-        <p>where $\boldsymbol{\epsilon}_{t,j} = 0.65\boldsymbol{\epsilon}_{t-1,j} + \sqrt{1-0.65^2}\mathbf{z}_{t,j}$ models temporally correlated sensor drift.</p>
-      </div>
-      <div class="section-box script-box">
-        <span class="box-title">3. Exact Speaker Script &amp; Pointers</span>
-        <p><strong>Bhavya (4:30–5:15):</strong> "In Slide 4, I detail our hybrid data ingestion and 3D domain adaptation pipeline. We streamed all 32,560 real 3D hand annotations from the FreiHAND_pub_v2 dataset and combined them 50/50 with six clinical and industrial gesture archetypes, partitioned via a zero-leakage 80/20 train/test split. First, SyntheticGloveTransform models the physical elasticity of latex gloves by damping each bone's unit vector toward the neutral glove equilibrium by 12% while preserving exact bone lengths. It then adds first-order autoregressive AR(1) noise (rho = 0.65, sigma = 4.5 mm) and 12.0 mm Bernoulli specular glare spikes on the five fingertips."</p>
-        <p><strong>Bhavya (5:15–6:00):</strong> "Second, SyntheticOcclusionTransform spawns a moving 3D cylindrical instrument volume of radius 28 mm across the phalanges and ranks joints with contiguous distal-to-proximal subtree priority (TIP to DIP to PIP to MCP). Occluded joints have their visibility mask set to m = 0 and coordinates zeroed, while wrist joint 0 remains anchored."</p>
-      </div>
-    </div>
-
-    <!-- SLIDE 5 -->
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Slide 5: 6D Continuous Rotations &amp; Hard Edge Forward Kinematics</h2>
-        <div class="badge-group">
-          <span class="badge badge-vrushank">Vrushank</span>
-        </div>
-      </div>
-      <div class="section-box layman-box">
-        <span class="box-title">1. Layman Explanation (Plain English Analogy)</span>
-        <p>How do we mathematically guarantee <strong>zero bone stretching</strong> and <strong>zero backward-bent knuckles</strong>?</p>
-        <ol>
-          <li><strong>6D Rotation Dials (Gram-Schmidt):</strong> Standard Euler angles hit "dead spots" (Gimbal lock) and Quaternions have $+180^\circ/-180^\circ$ jumps. Instead, our network outputs two 3D vectors (6 numbers) per joint. Gram-Schmidt makes them $90^\circ$ perpendicular and cross-multiplies them to get a smooth, jump-free $3\times 3$ rotation matrix!</li>
-          <li><strong>Soft Rubber Knuckle Bumpers (<code>BiomechanicalRoMClamper</code>):</strong> Your middle finger PIP knuckle bends inward up to $+110^\circ$, but <strong>cannot bend backward</strong> ($0^\circ$ limit). Instead of a sharp brick wall that kills training gradients, we pass angles through a smooth <strong>$\tanh$ S-curve</strong> that gently stops every joint inside human limits.</li>
-          <li><strong>Theorem 1 — Why Bone Error is Identically $0.0000\text{ mm}$:</strong> Starting at the wrist $(0,0,0)$, we rotate fixed canonical bone rods ($\mathbf{v}_j^{\text{rest}}$) from parent to child. Because rotating a rigid metal rod <strong>never changes its length</strong> ($\|\mathbf{R}\mathbf{v}\| = \|\mathbf{v}\| = L_j$), bone-length error is identically <strong>$0.0000\text{ mm}$</strong>!</li>
-        </ol>
-      </div>
-      <div class="section-box concept-box">
-        <span class="box-title">2. Deep Conceptual &amp; Mathematical Explanation</span>
-        <p>$$\mathbf{b}_1 = \frac{\mathbf{a}_1}{\|\mathbf{a}_1\|_2}, \quad \mathbf{b}_2 = \frac{\mathbf{a}_2 - (\mathbf{b}_1 \cdot \mathbf{a}_2)\mathbf{b}_1}{\|\mathbf{a}_2 - (\mathbf{b}_1 \cdot \mathbf{a}_2)\mathbf{b}_1\|_2}, \quad \mathbf{b}_3 = \mathbf{b}_1 \times \mathbf{b}_2, \quad \boldsymbol{\theta}_j^{\text{clamp}} = \boldsymbol{\mu}_j + \boldsymbol{\Delta}_j \odot \tanh\!\left(\frac{\boldsymbol{\theta}_j - \boldsymbol{\mu}_j}{\boldsymbol{\Delta}_j \cdot \tau + \epsilon}\right)$$</p>
-        <p><strong>Theorem 1 Proof:</strong> $\|\mathbf{P}_j - \mathbf{P}_{p(j)}\|_2 = \|\mathbf{R}_j^{\text{global}} \mathbf{v}_j^{\text{rest}}\|_2 = \sqrt{(\mathbf{v}_j^{\text{rest}})^\top (\mathbf{R}_j^{\text{global}})^\top \mathbf{R}_j^{\text{global}} \mathbf{v}_j^{\text{rest}}} = \|\mathbf{v}_j^{\text{rest}}\|_2 = L_j \implies \varepsilon_{\text{bone}} \equiv 0.0000\text{ mm}$.</p>
-      </div>
-      <div class="section-box script-box">
-        <span class="box-title">3. Exact Speaker Script &amp; Pointers</span>
-        <p><strong>Vrushank (6:00–6:45):</strong> "Slide 5 presents our hard kinematic manifold in models/kinematics.py. First, the network predicts 6 unconstrained scalars per joint, which we orthogonalize into a valid 3x3 rotation matrix in SO(3) via Gram-Schmidt normalization. Second, BiomechanicalRoMClamper extracts local flexion, twist, and abduction angles using a C1-smooth small-angle polynomial transition near zero—avoiding the infinite derivative of arccos at theta=0—and bounds every angle inside its anatomical interval via tanh. PIP and DIP hinge joints are strictly clamped to [0, 110] and [0, 80] degrees of flexion with zero dorsal hyperextension."</p>
-        <p><strong>Vrushank (6:45–7:30):</strong> "Third, DifferentiableFK accumulates global rotation matrices along PARENT_INDICES from the wrist out to the fingertips and rotates the fixed canonical bone vectors. Because any matrix R in SO(3) is an isometry, the distance between parent and child joints is identically L_j. That gives us Theorem 1: 0.0000 mm bone-length error and 100.0% biomechanical validity across all test frames, verified in our bare-metal NumPy EdgeFK engine running at 13.79 kHz on Apple Silicon."</p>
-      </div>
-    </div>
-
-    <!-- SLIDE 6 -->
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Slide 6: Spatio-Temporal Graph Autoencoder Teacher</h2>
-        <div class="badge-group">
-          <span class="badge badge-abhishekh">Abhishekh</span>
-        </div>
-      </div>
-      <div class="section-box layman-box">
-        <span class="box-title">1. Layman Explanation (Plain English Analogy)</span>
-        <p>How does our 520K-parameter Teacher network reconstruct fingers that are completely hidden behind a surgical tool?</p>
-        <ol>
-          <li><strong>Smart Rest-Hand Fill-In (Imputation):</strong> Instead of feeding raw zeros $(0,0,0)$ when a joint is hidden ($m=0$), we plug in the joint's position from a neutral resting hand plus its visibility flag.</li>
-          <li><strong>"Mute the Hidden Knuckles" (Visibility Key Penalty $-\gamma_h(1-m_{t,j})$):</strong> In a Graph Network, joints pass messages to neighbors along the 20 bones and 4 palm connections. If a joint is hidden ($m=0$), we <strong>turn down its outgoing microphone</strong> (subtracting $\gamma_h$ when it acts as a <em>Key</em>) so it doesn't broadcast fake placeholder noise to visible knuckles, while keeping its <strong>incoming headphones open</strong> (as a <em>Query</em>) so it can listen to visible knuckles!</li>
-          <li><strong>Time Memory (Bi-GRU across 8 Frames):</strong> Looking at an 8-frame video clip lets the network see where the fingers were moving right before the tool blocked them—cutting 50%-occlusion error by <strong>$22.6\%$</strong> ($8.41 \to 6.51\text{ mm}$) and cutting jitter by <strong>$41.1\%$</strong> compared to a single-frame spatial network!</li>
-        </ol>
-      </div>
-      <div class="section-box concept-box">
-        <span class="box-title">2. Deep Conceptual &amp; Mathematical Explanation</span>
-        <p>$$e_{t,i,j}^{(h)} = \frac{\mathbf{q}_{t,i}^{(h)} \cdot \mathbf{k}_{t,j}^{(h)}}{\sqrt{d_h}} + 0.25\,\text{LeakyReLU}\!\left(\mathbf{a}_{\text{src}}^{(h)}\cdot\mathbf{q}_{t,i}^{(h)} + \mathbf{a}_{\text{dst}}^{(h)}\cdot\mathbf{k}_{t,j}^{(h)}\right) + B_{h,i,j} - \gamma_h(1 - m_{t,j}), \quad \alpha_{t,i,j}^{(h)} = \text{softmax}_{j \in \mathcal{N}(i)}\!\left(e_{t,i,j}^{(h)}\right)$$</p>
-      </div>
-      <div class="section-box script-box">
-        <span class="box-title">3. Exact Speaker Script &amp; Pointers</span>
-        <p><strong>Abhishekh (7:30–8:15):</strong> "Slide 6 details the Spatio-Temporal Graph Autoencoder Teacher in models/teacher_st_gae.py. When a surgical instrument masks a finger subtree, its input coordinates are zeroed (m=0). Before entering the graph layers, we impute masked coordinates with canonical rest positions and construct a 7-dimensional feature vector combining imputed position, binary visibility, and visible displacement from rest, summed with a learned joint-identity embedding and a global posture skip. We then pass the 21 nodes through three 4-head Graph Attention layers masked by the anatomical adjacency matrix—comprising the 20 bone segments plus 4 inter-MCP palmar arch connections."</p>
-        <p><strong>Abhishekh (8:15–9:00):</strong> "A key design choice in MultiHeadGraphAttentionLayer is visibility-aware key gating: we subtract a learnable penalty gamma_h * (1 - m) from the pre-softmax attention logits whenever key node j is occluded. This forces occluded distal phalanges to attend strongly to visible proximal knuckles and neighboring fingers across the palmar arch rather than propagating corrupted zeros. Next, our temporal core applies a depthwise 1D convolution and a Bidirectional GRU across the T=8 window, reducing 50%-occlusion MPJPE from 8.41 mm in our SpatialOnlyGAE ablation down to 6.51 mm in the full Teacher—a 22.6% overall error reduction while cutting temporal acceleration jitter by 41.1%."</p>
-      </div>
-    </div>
-
-    <!-- SLIDE 7 -->
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Slide 7: Physics-Informed Knowledge Distillation &amp; Edge Student Compression</h2>
-        <div class="badge-group">
-          <span class="badge badge-kapish">Kapish</span>
-        </div>
-      </div>
-      <div class="section-box layman-box">
-        <span class="box-title">1. Layman Explanation (Plain English Analogy)</span>
-        <ul>
-          <li><strong>Why Compress?</strong> The Teacher takes $22.4\text{ million}$ math operations (FLOPs) per frame. To run in ~1 millisecond on lightweight laptops and edge chips, we build <code>StudentKinematicMLP</code> (just 78,398 parameters—<strong>$6.64\times$ smaller</strong> and <strong>$137.3\times$ fewer FLOPs</strong>!).</li>
-          <li><strong>How the Student Works:</strong> Replaces heavy Graph Attention and sequential GRU loops with a flat linear layer + a single fast 1D Temporal Convolution (<code>TemporalMixingBlock1D</code>) feeding into the exact same 6D Forward Kinematics layer.</li>
-          <li><strong>5-Part Teacher Coaching (<code>DistillationLoss</code>):</strong> The Student is trained simultaneously to match (1) the Teacher's 6D rotations + 3D geodesic angles, (2) the Teacher's 3D joint positions, (3) true Ground-Truth 3D positions ($1.5\times$ boost on hidden joints), (4) true Ground-Truth rotations, and (5) smooth velocity/acceleration over time.</li>
-        </ul>
-      </div>
-      <div class="section-box concept-box">
-        <span class="box-title">2. Deep Conceptual &amp; Mathematical Explanation</span>
-        <p>$$\mathcal{L}_{\text{KD}} = 35.0\,\mathcal{L}_{6\text{D}}(\hat{\mathbf{R}}_{\text{S}}, \mathbf{R}_{\text{T}}) + 0.45\,\mathcal{L}_{\text{MPJPE}}^w(\hat{\mathbf{P}}_{\text{S}}, \mathbf{P}_{\text{T}}) + 0.55\,\mathcal{L}_{\text{MPJPE}}^w(\hat{\mathbf{P}}_{\text{S}}, \mathbf{P}_{\text{GT}}) + 25.0\,\mathcal{L}_{6\text{D}}(\hat{\mathbf{R}}_{\text{S}}, \mathbf{R}_{\text{GT}}) + 0.35\,\mathcal{L}_{\text{smooth}}$$</p>
-      </div>
-      <div class="section-box script-box">
-        <span class="box-title">3. Exact Speaker Script &amp; Pointers</span>
-        <p><strong>Kapish (9:00–9:40):</strong> "Slide 7 shows how we compress Abhishekh's 520K-parameter Teacher into our 78,398-parameter StudentKinematicMLP. Instead of running multi-head graph attention at inference time, the Student flattens the 21-joint input into an 84-dimensional vector, projects to 128 channels, mixes temporal context via a single depthwise-separable 1D convolution block, and passes through one SiLU residual MLP block before entering the exact same BiomechanicalRoMClamper and DifferentiableFK layer. This cuts trainable parameters by 6.64x and reduces compute by 137.3x—from 22.43 MFLOPs per frame down to just 163.4 KFLOPs."</p>
-        <p><strong>Kapish (9:40–10:15):</strong> "To train the Student, we precompute the frozen Teacher's repaired 6D rotations and 3D FK positions across all training sequences and optimize a five-term DistillationLoss combining 6D MSE, SO(3) geodesic angle distance, visibility-weighted FK MPJPE, and velocity/acceleration smoothness. Exporting the trained Student to ONNX Opset 17 (433.2 KB) yields a maximum PyTorch-to-ONNX parity discrepancy of just 0.000231 mm."</p>
-      </div>
-    </div>
-
-    <!-- SLIDE 8 -->
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Slide 8: Experimental Results I — Multi-Rate Occlusion Ablation</h2>
-        <div class="badge-group">
-          <span class="badge badge-rubric">Rubric: Results (5 Marks)</span>
-          <span class="badge badge-abhishekh">Abhishekh</span>
-          <span class="badge badge-vrushank">Vrushank</span>
-        </div>
-      </div>
-      <div class="section-box layman-box">
-        <span class="box-title">1. Layman Explanation (Plain English Analogy)</span>
-        <ul>
-          <li><strong>Standard Unconstrained AI Breaks Hands:</strong> Look at <code>UnconstrainedStudentMLP</code> (same backbone, no FK lock). At 50% occlusion, bones stretch by <strong>$2.31\text{ mm}$</strong> and <strong>only $29.95\%$ of poses are anatomically valid</strong> (over 70% of frames have stretched bones or hyperextended knuckles!).</li>
-          <li><strong>Our Kinematic Models Guarantee 100% Valid Anatomy:</strong> Across 30%, 50%, and 70% occlusion, our Teacher and Student have <strong>$0.0000\text{ mm}$ bone error</strong> and <strong>$100.00\%$ validity</strong>.</li>
-          <li><strong>Why Our Tiny 78K Student Beats the 462K Spatial GAT Teacher:</strong> At 50% occlusion, our Student gets <strong>$7.04\text{ mm}$ error</strong>, beating <code>SpatialOnlyGAE</code> (<strong>$8.41\text{ mm}$</strong>) because the Student distilled 8-frame temporal motion knowledge from the full Teacher ($6.51\text{ mm}$)!</li>
-        </ul>
-      </div>
-      <div class="section-box script-box">
-        <span class="box-title">2. Exact Speaker Script &amp; Pointers</span>
-        <p><strong>Abhishekh (10:15–10:35):</strong> "Slide 8 presents our primary quantitative ablation table and Figures 1 and 2 on the held-out test split across 30%, 50%, and 70% surgical tool occlusion. Look first at UnconstrainedStudentMLP, which directly regresses Cartesian X, Y, Z coordinates without kinematics. As occlusion increases from 30% to 70%, its mean bone-length error grows from 1.96 mm to 2.82 mm, and strict biomechanical validity collapses from 44.43% at 30% occlusion to 29.95% at 50% occlusion and 24.95% at 70% occlusion."</p>
-        <p><strong>Vrushank (10:35–10:55):</strong> "In contrast, our kinematic architecture guarantees 0.0000 mm bone-length distortion and 100.00% biomechanical validity across all occlusion tiers. Adding temporal recurrence in Teacher ST-GAE cuts 50%-occlusion MPJPE from 8.41 mm (SpatialOnlyGAE) down to 6.51 mm (9.09 mm on occluded joints). And our 5.9x smaller distilled StudentKinematicMLP (7.04 mm MPJPE, 5.50 mm PA-MPJPE) outperforms the 461.7K-parameter SpatialOnlyGAE across every single occlusion tier."</p>
-      </div>
-    </div>
-
-    <!-- SLIDE 9 -->
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Slide 9: Experimental Results II — Temporal Jitter, 3D Repair &amp; Granular FDS Analysis</h2>
-        <div class="badge-group">
-          <span class="badge badge-rubric">Rubric: Results (5 Marks)</span>
-          <span class="badge badge-bhavya">Bhavya</span>
-          <span class="badge badge-abhishekh">Abhishekh</span>
-        </div>
-      </div>
-      <div class="section-box layman-box">
-        <span class="box-title">1. Layman Explanation (Plain English Analogy)</span>
-        <ul>
-          <li><strong>Cutting Glare Jitter by ~68–70% (Figure 3):</strong> Shiny latex glare spikes cause raw input acceleration jitter of $25.67\text{ mm/frame}^2$. Our Teacher ($7.81\text{ mm/frame}^2$, $-69.6\%$) and Student ($8.27\text{ mm/frame}^2$, $-67.8\%$) act like a shock absorber, smoothing out the shake.</li>
-          <li><strong>Fingertip Lever Effect &amp; Gesture Utility (Figure 7):</strong> At the distal fingertips under 50% occlusion, unconstrained AI is off by $16.90\text{ mm}$; our models slash fingertip error to $10.98\text{–}12.02\text{ mm}$ ($-29\%$). Under extreme 70% occlusion, downstream surgical gesture recognition jumps from $26.7\%$ (unconstrained) to <strong>$39.2\%\text{–}46.7\%$</strong>!</li>
-        </ul>
-      </div>
-      <div class="section-box script-box">
-        <span class="box-title">2. Exact Speaker Script &amp; Pointers</span>
-        <p><strong>Bhavya (10:55–11:15):</strong> "Slide 9 presents our temporal jitter analysis (Figure 3), qualitative 3D reconstructions (Figure 4), our custom gloved benchmark table, and our FDS granular analysis (Figure 7). In Figure 3, 12 mm latex specular spikes induce 25.67 mm/frame^2 of acceleration jitter on the corrupted input at 50% occlusion. Our Teacher (7.81 mm/frame^2) and Student (8.27 mm/frame^2) suppress acceleration jitter by 67.8% relative to the corrupted input and by 37.6% relative to SpatialOnlyGAE."</p>
-        <p><strong>Abhishekh (11:15–11:30):</strong> "In Figure 7, we decompose error across the anatomical phalanx hierarchy from the palm out to the distal fingertips: at the distal tips under 50% occlusion, UnconstrainedStudentMLP suffers 16.90 mm error, whereas our Teacher and Student reduce distal tip error to 10.98 mm and 12.02 mm. Across all six clinical gesture classes (Panel b), our models achieve 4.25 to 5.44 mm on Needle Driver and Flat Palpation, and improve downstream telemetry trajectory retrieval accuracy (Panel c) from 26.7% to 39.2%–46.7% under extreme 70% occlusion."</p>
-      </div>
-    </div>
-
-    <!-- SLIDE 10 & 11 -->
-    <div class="slide-card">
-      <div class="slide-header">
-        <h2 class="slide-title">Slides 10 &amp; 11: Multi-Hardware Edge Profiling &amp; Live Demo Launcher</h2>
-        <div class="badge-group">
-          <span class="badge badge-rubric">Rubric: Live Demo (5 Marks)</span>
-          <span class="badge badge-kapish">Kapish</span>
-          <span class="badge badge-vrushank">Vrushank</span>
-        </div>
-      </div>
-      <div class="section-box layman-box">
-        <span class="box-title">1. Layman Explanation &amp; Live Demo Guide</span>
-        <ul>
-          <li><strong>MacBook Air M-Series (CoreML):</strong> Runs in <strong>$1.242\text{ ms}$ ($804.9\text{ FPS}$ single-frame, $4,134\text{ FPS}$ batched)</strong>—using just <strong>$7.5\%$</strong> of a 60 Hz frame budget!</li>
-          <li><strong>Windows x86_64 PC (ONNX CPU):</strong> Runs in <strong>$1.792\text{ ms}$ ($557.9\text{ FPS}$)</strong>—<strong>$16.4\times$ faster</strong> than the Teacher!</li>
-          <li><strong>Bare-Metal NumPy <code>EdgeFK</code>:</strong> Runs in <strong>$0.0725\text{ ms}$ ($13,790\text{ Hz}$)</strong>.</li>
-          <li><strong>Live Demo Controls:</strong> Press <code>[O]</code> to cycle occlusion ($0\% \to 30\% \to 50\% \to 70\%$), <code>[T]</code> to toggle the orange Surgical Tool Box, <code>[S]</code> to save a snapshot, and <code>[Q]</code> to exit.</li>
-        </ul>
-      </div>
-      <div class="section-box script-box">
-        <span class="box-title">2. Exact Speaker Script &amp; Live Demo Commands</span>
-        <p><strong>Kapish (11:30–12:00):</strong> "Slide 10 presents our cross-hardware edge benchmarking measurements. On Bhavya's physical Apple Silicon MacBook Air M-Series using ONNX Runtime CoreMLExecutionProvider, StudentKinematicMLP executes a single streaming frame in 1.242 ms (804.9 FPS) and a batched T=8 window at 4,134 FPS, consuming only 7.5% of a 60 FPS frame budget. The bare-metal ARM64 NumPy EdgeFK forward kinematics engine executes in 0.0725 ms (13.79 kHz). On Abhishekh's 24-thread x86_64 Windows workstation, the Student runs in 1.792 ms (557.9 FPS) compared to 29.34 ms for the Teacher—a 16.4x speedup."</p>
-        <p><strong>Vrushank (12:00–12:20):</strong> "We also support live iPhone telemetry via macOS Continuity Camera and direct 60 Hz ARKit 3D hand skeleton streaming over UDP port 5005 (1.322 ms end-to-end latency). We will now launch our real-time 3-panel telemetry dashboard for our live demonstration."</p>
-        <pre># 1. Primary Demo (Deterministic Replay — zero Wi-Fi/lighting risk):
-python run_presentation_demo.py --mode replay --occlusion 0.50
-
-# 2. Live Webcam Demo (Press 'T' for surgical tool box, 'O' to cycle occlusion):
-python run_presentation_demo.py --mode webcam --camera 0 --occlusion 0.50</pre>
-      </div>
-    </div>
+    <h1>Slide-by-Slide Presentation & Defense Master Guide (16 Slides)</h1>
+<strong>Project:</strong> Constrained Graph Kinematics: Biomechanical Range-of-Motion for Occluded Hand Gesture Telemetry  
+<strong>Presentation Date:</strong> November 17, 2026  
+<strong>Course:</strong> Foundations of Data Science (FDS) — Final Evaluation (15 Marks Presentation + 5 Marks Report)  
+<strong>Total Presentation Time:</strong> 16–18 Minutes (~4 Minutes per Speaker, 16 Slides Total)  
+<strong>Presenters & Team Ownership:</strong>
+<ul><li><strong>Abhishekh Verma:</strong> Slides 1, 6, 7, 16 (~4:50 min) — Introduction, 6D Rotations & Forward Kinematics, Live Demo & Conclusion</li><li><strong>Bhavya:</strong> Slides 2, 3, 4, 5 (~4:15 min) — Objectives, Literature Gap, System Pipeline Block Diagram, Hybrid Data Engineering</li><li><strong>Vrushank:</strong> Slides 8, 9, 10, 11 (~4:00 min) — Teacher ST-GAE, Mask-Aware GAT, Distillation Loss, Student Compression</li><li><strong>Kapish:</strong> Slides 12, 13, 14, 15 (~4:00 min) — Multi-Rate Occlusion Benchmarks, Bone Invariance, Jitter/Hand Repair, Multi-Hardware Edge</li></ul>
+<hr/>
+<h2>Master Presentation Timing & Handover Schedule (17:05 Total)</h2>
+<div class="table-wrap"><table><thead><tr><th>Slide #</th><th>Slide Title</th><th>Speaker</th><th>Allocated Time</th><th>Cumulative Time</th><th>Handover Cue / Transition</th></tr></thead><tbody><tr><td><strong>S1</strong></td><td>Intro: Problem Context, Motivation & Team Roles</td><td><strong>Abhishekh</strong></td><td>1:05</td><td>0:00 – 1:05</td><td><em>"I will now hand over to Bhavya to walk us through our core research objectives and literature gap."</em></td></tr><tr><td><strong>S2</strong></td><td>Five Core Research Objectives (Rubric 1M)</td><td><strong>Bhavya</strong></td><td>1:00</td><td>1:05 – 2:05</td><td>Continues directly to Slide 3.</td></tr><tr><td><strong>S3</strong></td><td>SOTA Literature Gap & Comparative Matrix</td><td><strong>Bhavya</strong></td><td>1:00</td><td>2:05 – 3:05</td><td>Continues directly to Slide 4.</td></tr><tr><td><strong>S4</strong></td><td>System Architecture Block Diagram (Rubric 3M)</td><td><strong>Bhavya</strong></td><td>1:00</td><td>3:05 – 4:05</td><td>Continues directly to Slide 5.</td></tr><tr><td><strong>S5</strong></td><td>Data Engineering: Hybrid Pipeline & Transforms</td><td><strong>Bhavya</strong></td><td>1:15</td><td>4:05 – 5:20</td><td><em>"I will now hand back to Abhishekh to explain the mathematical foundation of our 6D kinematic manifold."</em></td></tr><tr><td><strong>S6</strong></td><td>6D Continuous Rotations & Anatomical RoM Clamping</td><td><strong>Abhishekh</strong></td><td>1:05</td><td>5:20 – 6:25</td><td>Continues directly to Slide 7.</td></tr><tr><td><strong>S7</strong></td><td>Differentiable Forward Kinematics & Theorem 1 Proof</td><td><strong>Abhishekh</strong></td><td>1:10</td><td>6:25 – 7:35</td><td><em>"I will now hand over to Vrushank to explain our Spatio-Temporal Graph Autoencoder Teacher."</em></td></tr><tr><td><strong>S8</strong></td><td>Teacher Architecture: Spatio-Temporal GAE</td><td><strong>Vrushank</strong></td><td>1:00</td><td>7:35 – 8:35</td><td>Continues directly to Slide 9.</td></tr><tr><td><strong>S9</strong></td><td>Spatial Graph Attention & Temporal Dilated Convolutions</td><td><strong>Vrushank</strong></td><td>1:00</td><td>8:35 – 9:35</td><td>Continues directly to Slide 10.</td></tr><tr><td><strong>S10</strong></td><td>Physics-Informed Knowledge Distillation Strategy</td><td><strong>Vrushank</strong></td><td>1:00</td><td>9:35 – 10:35</td><td>Continues directly to Slide 11.</td></tr><tr><td><strong>S11</strong></td><td>Edge Student Architecture & Compression Analysis</td><td><strong>Vrushank</strong></td><td>1:00</td><td>10:35 – 11:35</td><td><em>"I will now hand over to Kapish to walk through our experimental results and multi-hardware benchmarks."</em></td></tr><tr><td><strong>S12</strong></td><td>Quantitative Occlusion Robustness (30%, 50%, 70%)</td><td><strong>Kapish</strong></td><td>1:00</td><td>11:35 – 12:35</td><td>Continues directly to Slide 13.</td></tr><tr><td><strong>S13</strong></td><td>Anatomical Invariance & Zero Bone Length Violation</td><td><strong>Kapish</strong></td><td>1:00</td><td>12:35 – 13:35</td><td>Continues directly to Slide 14.</td></tr><tr><td><strong>S14</strong></td><td>Temporal Jitter Suppression & Qualitative 3D Hand Repair</td><td><strong>Kapish</strong></td><td>1:00</td><td>13:35 – 14:35</td><td>Continues directly to Slide 15.</td></tr><tr><td><strong>S15</strong></td><td>Downstream Gesture Utility & Multi-Hardware Edge Telemetry</td><td><strong>Kapish</strong></td><td>1:00</td><td>14:35 – 15:35</td><td><em>"I will now hand back to Abhishekh for our interactive live demonstration and conclusion."</em></td></tr><tr><td><strong>S16</strong></td><td>Interactive Live Telemetry Demo HUD & Conclusion (Rubric 5M)</td><td><strong>Abhishekh</strong></td><td>1:30</td><td>15:35 – 17:05</td><td>Concludes presentation and opens floor to Professor Q&A while demo runs live.</td></tr></tbody></table></div>
+<hr/>
+<h2>Detailed Slide-by-Slide Script, Layman Intuition & Committee Defense</h2>
+<hr/>
+<h3>Slide 1: Introduction — Problem Context, Motivation & Team Ownership</h3>
+<ul><li><strong>Speaker:</strong> Abhishekh Verma</li><li><strong>Target Time:</strong> 1:05 (0:00 – 1:05)</li><li><strong>Rubric Weight:</strong> Introduction (1 Mark)</li></ul>
+#### 1. Plain English Layman Analogy
+Imagine a surgeon performing laparoscopic surgery with robotic arms, or a worker controlling industrial machinery via VR glasses. A vision camera tracks 21 points on their hand. Two severe problems destroy conventional AI tracking:
+1. <strong>Tool Occlusion:</strong> A scalpel, drill, or forceps blocks 30% to 70% of the fingers from the camera's sight.
+2. <strong>Medical Latex Gloves:</strong> Smooth rubber gloves erase skin texture and knuckle wrinkles, reflect harsh surgical lights, and make fingers slightly stiffer.
+When fingers vanish behind tools, standard neural networks (like Google MediaPipe) guess floating 3D points in empty space. The result? Virtual fingers <strong>stretch like elastic rubber bands</strong> by 2 to 3 centimeters, or bend backward like broken bones. Our system replaces floating dots with an <strong>anatomical digital puppet</strong>: bones are physically rigid metal rods, and knuckles have mechanical stoppers that stop fingers from ever bending backward.
+<p>#### 2. Authoritative Spoken Script
+<blockquote>"Good morning professors and colleagues. Today our team—Bhavya, Vrushank, Kapish, and I—present <em>Constrained Graph Kinematics: Biomechanical Range-of-Motion for Occluded Hand Gesture Telemetry</em>.<br/><br/>In safety-critical teleoperation and surgical robotics, camera-based hand trackers fail whenever medical instruments block line-of-sight to the fingers or when protective latex gloves introduce specular reflection. Traditional deep networks formulate hand pose estimation as unconstrained Cartesian regression, predicting 63 independent coordinates in $\mathbb{R}^{21 \times 3}$. Under severe occlusion, lacking visual gradients, these networks hallucinate points in free space—stretching bones by up to 27 millimeters and producing anatomically impossible hyperextensions.<br/><br/>To resolve this, we present a physics-informed graph kinematic framework that guarantees exact human bone lengths and valid biological joint limits by construction. Our pipeline runs at over 800 frames per second on mobile edge hardware. As shown in our team distribution table, each of us spearheaded a dedicated module of this pipeline. I will now hand over to Bhavya to walk us through our core research objectives and literature gap."</blockquote>
+#### 3. Expected Professor Q&A on Slide 1
+<ul><li><strong>Professor:</strong> <em>"Why can't you just smooth the MediaPipe coordinates with a low-pass Kalman filter?"</em></li><li><strong>Abhishekh:</strong> <em>"A temporal Kalman filter only smooths motion over time; it cannot restore missing spatial anatomy. When a scalpel occludes a finger for 2 seconds, the Kalman filter smoothly preserves the wrong, disarticulated pose. Our model leverages spatial graph attention across visible knuckles to actively infer the missing finger's anatomical joint angles."</em></li></ul>
+<hr/></p>
+<h3>Slide 2: Five Core Research Objectives</h3>
+<ul><li><strong>Speaker:</strong> Bhavya</li><li><strong>Target Time:</strong> 1:00 (1:05 – 2:05)</li><li><strong>Rubric Weight:</strong> Objectives (1 Mark)</li></ul>
+#### 1. Plain English Layman Analogy
+When building a safety-critical system, you need a strict flight checklist. We set five non-negotiable milestones:
+1. Test on real human hands, not just clean 3D video game models.
+2. Guarantee mathematically that bones cannot stretch by even a fraction of a millimeter.
+3. Build a smart "Teacher" brain that can look at visible knuckles and deduce what hidden fingers are doing.
+4. Compress that heavy Teacher into a tiny "Student" chip that fits inside a smartwatch or phone.
+5. Prove it works live on real laptops and phones at over 60 frames per second.
+<p>#### 2. Authoritative Spoken Script
+<blockquote>"Thank you Abhishekh. In Slide 2, we formalize the five core research objectives of our project, directly aligned with our course grading rubric.<br/><br/>First, in Objective 1, we establish a zero-leakage benchmark combining 32,560 real markerless 3D poses from FreiHAND with clinical MANO trajectories, evaluated under realistic 30%, 50%, and 70% surgical tool occlusion and latex glove physics.<br/><br/>Second, in Objective 2, we formulate a differentiable forward kinematics layer that mathematically guarantees exactly 0.0000 mm bone-length error and 100% biomechanical validity.<br/><br/>Third, in Objective 3, we build a mask-aware Spatio-Temporal Graph Autoencoder Teacher that combines visibility-gated graph attention with bidirectional temporal recurrence.<br/><br/>Fourth, in Objective 4, we distill this teacher into a lightweight student model with fewer than 80,000 parameters—reducing compute by 137 times.<br/><br/>And fifth, in Objective 5, we deploy this architecture across Apple Silicon, PC, and iPhone hardware, sustaining sub-2 millisecond latency for live interactive telemetry."</blockquote>
+#### 3. Expected Professor Q&A on Slide 2
+<ul><li><strong>Professor:</strong> <em>"How do these objectives align with Foundations of Data Science (FDS)?"</em></li><li><strong>Bhavya:</strong> <em>"Our project addresses the core data science lifecycle: data engineering with real-world distribution shifts, non-Euclidean graph modeling, knowledge distillation, hypothesis-driven ablation testing on held-out test splits, and hardware edge deployment."</em></li></ul>
+<hr/></p>
+<h3>Slide 3: State-of-the-Art Literature Gap & Comparative Matrix</h3>
+<ul><li><strong>Speaker:</strong> Bhavya</li><li><strong>Target Time:</strong> 1:00 (2:05 – 3:05)</li></ul>
+#### 1. Plain English Layman Analogy
+Why haven't existing computer vision papers solved this?
+<ul><li><strong>Graph Models (HandGCN, HOPE-Net):</strong> They connect joints in the middle, but their final output guesses free-floating $X, Y, Z$ numbers. When fingers are hidden, bones stretch by 3 to 5 millimeters.</li><li><strong>"Soft Loss Penalties" (Spurr et al., ECCV 2020):</strong> During training, they penalize the AI if it stretches a bone. But at test time, soft penalties are like speed limit signs—when heavy occlusion hits, the model speeds right through the sign, resulting in 8.6% broken poses.</li><li><strong>Massive Transformers (HandOccNet, CVPR 2022):</strong> They predict realistic hands, but the model has 37 million parameters and takes 33 milliseconds per frame on an expensive GPU. You cannot put that in an edge telemetry box.</li><li><strong>Our Edge Model:</strong> We embed hard mechanical stops inside the network itself: 0.0000 mm bone error, 100% validity, and runs in 1.24 milliseconds (805 FPS)—over 470 times smaller than HandOccNet!</li></ul>
+#### 2. Authoritative Spoken Script
+<blockquote>"Slide 3 compares our approach against state-of-the-art vision literature. Prior works fall into two broad failure modes.<br/><br/>The first failure mode is unconstrained coordinate regression. While spectral graph networks like HandGCN and HOPE-Net use graph convolutions in hidden layers, their final layer regresses unconstrained Cartesian coordinates. Under occlusion, their bone-length error degrades to between 3.4 and 4.8 millimeters.<br/><br/>The second failure mode is reliance on soft loss penalties. Spurr et al. at ECCV 2020 penalize bone length violations during training. However, because soft penalties do not constrain the forward graph at inference time, out-of-distribution occlusion causes 8.6% of predicted poses to be anatomically invalid. In our own <code>UnconstrainedStudent</code> ablation at 50% occlusion, biomechanical validity drops to just 29.95%.<br/><br/>Meanwhile, transformer mesh regressors like HandOccNet achieve high accuracy but require 37 million parameters and 33 milliseconds per frame. Our distilled Student achieves 7.04 mm error while guaranteeing 0.0000 mm bone error and 100% biological validity, executing in just 1.24 milliseconds."</blockquote>
+#### 3. Expected Professor Q&A on Slide 3
+<ul><li><strong>Professor:</strong> <em>"Why is bone length error so critical? Isn't MPJPE enough?"</em></li><li><strong>Bhavya:</strong> <em>"MPJPE measures average Euclidean distance across 21 joints, which can conceal catastrophic local disarticulations. If an index fingertip stretches by 25 millimeters while the remaining 20 joints are accurate, average MPJPE might appear acceptable, but robotic teleoperation would drive a surgical scalpel directly through patient tissue. Bone invariance ensures the physical integrity of the tool-hand interface."</em></li></ul>
+<hr/>
+<h3>Slide 4: System Architecture & End-to-End Block Diagram</h3>
+<ul><li><strong>Speaker:</strong> Bhavya</li><li><strong>Target Time:</strong> 1:00 (3:05 – 4:05)</li><li><strong>Rubric Weight:</strong> Block Diagram (3 Marks)</li></ul>
+#### 1. Plain English Layman Analogy
+Look at <strong>Figure 0</strong> as a 4-station assembly line:
+1. <strong>Station 1 (Top Left — The Reality Simulator):</strong> Takes real hand trajectories, normalizes hand size to 100 mm, adds latex glove stiffness, and drops a 3D cylindrical surgical tool that hides up to 70% of joints with a binary visibility flag ($m=1$ visible, $m=0$ hidden).
+2. <strong>Station 2 (Bottom Left — The Teacher):</strong> Replaces missing joints with a relaxed hand pose, connects knuckles via a 21-joint graph, uses Graph Attention to let visible knuckles talk to hidden knuckles, and uses a Bidirectional GRU across 8 frames to smooth motion.
+3. <strong>Station 3 (Bottom Center — The Student):</strong> Replaces heavy graph operations with a fast 1D depthwise convolution to run in real time.
+4. <strong>Station 4 (Right — The Kinematic Puppet Engine):</strong> Turns raw outputs into Gram-Schmidt 6D rotations, clamps angles with $\tanh$, and walks out the bones using Forward Kinematics.
+<p>#### 2. Authoritative Spoken Script
+<blockquote>"Slide 4 presents our end-to-end system architecture block diagram, corresponding to Section 3 of our report and Algorithms 1 and 2.<br/><br/>In Stage 1 on the top left, the pipeline takes streaming hand poses, normalizes them relative to the wrist with a canonical palm scale of 100 mm, and applies our glove and occlusion transforms. This produces an input tensor $\mathbf{X}$ containing 3D coordinates and a binary visibility mask $m_{t,j}$.<br/><br/>In Stage 2 on the bottom left, our 520K-parameter Teacher imputes occluded nodes with canonical rest priors, runs 3 layers of 4-head Graph Attention with a visibility gating penalty, and aggregates temporal context across 8 frames via a Bidirectional GRU.<br/><br/>In Stage 3 on the bottom center, we distill the Teacher's knowledge into our 78.4K-parameter Student MLP using a 5-term loss supervising both joint angles and 3D positions.<br/><br/>In Stage 4 on the right, both models feed into our shared kinematic manifold: Gram-Schmidt orthogonalization onto $\text{SO}(3)$, hyperbolic-tangent range-of-motion clamping, and forward kinematics, compiled into an ultra-compact ONNX graph and a bare-metal NumPy engine."</blockquote>
+#### 3. Expected Professor Q&A on Slide 4
+<ul><li><strong>Professor:</strong> <em>"Where does the 100 mm palm scale come from, and does it distort real hand measurements?"</em></li><li><strong>Bhavya:</strong> <em>"100 mm is an internal normalization factor used inside the neural network so that coordinate gradients remain numerically stable around unit variance. After Forward Kinematics computes the unit-scale pose, outputs are multiplied back into physical millimeters matching canonical anthropometric bone lengths."</em></li></ul>
+<hr/></p>
+<h3>Slide 5: Data Engineering: Hybrid FreiHAND+MANO Pipeline & Transforms</h3>
+<ul><li><strong>Speaker:</strong> Bhavya</li><li><strong>Target Time:</strong> 1:15 (4:05 – 5:20)</li></ul>
+#### 1. Plain English Layman Analogy
+To train an AI model for surgery, you cannot just use clean synthetic hands from a computer game. We built a hybrid dataset:
+<ul><li>We ingested <strong>32,560 real human hand poses</strong> from the FreiHAND dataset captured with real cameras, and mixed them 50/50 with clinical MANO gestures like holding a scalpel, needle driver, or surgical drill.</li><li>We created two domain adaptation engines:</li><li><strong>Glove Physics:</strong> Rubber gloves pull fingers 12% toward a relaxed pose and reflect bright lights, creating 12 mm tracking spikes at the fingertips.</li><li><strong>Surgical Tool Occlusion:</strong> A virtual 3D cylinder sweeps across the hand, hiding fingertips first, then middle joints, then knuckles—exactly how a real tool obscures fingers in an operating room.</li></ul>
+#### 2. Authoritative Spoken Script
+<blockquote>"Slide 5 covers our data engineering and domain adaptation pipeline in <code>data/dataset_ingestion.py</code>.<br/><br/>To ensure our model generalizes beyond idealized synthetic animations, we ingested all 32,560 real 3D hand poses from the University of Freiburg FreiHAND dataset. We extracted local 6D rotations via Rodrigues inverse kinematics, harmonized them onto canonical bone lengths, and paired pose neighbors into smooth trajectories across 8 frames. We combined these 50/50 with clinical and industrial MANO gestures—including scalpel pinch, needle driver, and drill grasps—split strictly 80/20 with zero sequence leakage.<br/><br/>To simulate surgical environments, I engineered two physics-grounded transforms. First, <code>SyntheticGloveTransform</code> models latex elasticity by pulling bone unit vectors 12% toward the relaxed rest state while maintaining exact bone lengths $L_j$. It injects autoregressive AR(1) sensor noise with correlation $\rho = 0.65$ and 12-millimeter Bernoulli specular glare spikes at the fingertips.<br/><br/>Second, <code>SyntheticOcclusionTransform</code> projects a 3D cylinder of radius 28 millimeters across the phalanges, enforcing contiguous distal-to-proximal subtree priority so fingertips disappear before knuckles, mirroring real surgical instruments across 30%, 50%, and 70% occlusion. I will now hand back to Abhishekh to explain the mathematical foundation of our kinematic manifold."</blockquote>
+#### 3. Expected Professor Q&A on Slide 5
+<ul><li><strong>Professor:</strong> <em>"Why use contiguous subtree priority instead of randomly masking joints uniformly at random?"</em></li><li><strong>Bhavya:</strong> <em>"In the physical world, an instrument does not occlude random disconnected joints—a scalpel shaft physically covers an entire finger segment from tip to knuckle. Uniform random masking would make the reconstruction problem artificially easy because an occluded middle joint would always have visible neighbors on both sides. Contiguous subtree masking correctly models complete distal blindness."</em></li></ul>
+<hr/>
+<h3>Slide 6: 6D Continuous Rotations & Anatomical RoM Clamping</h3>
+<ul><li><strong>Speaker:</strong> Abhishekh Verma</li><li><strong>Target Time:</strong> 1:05 (5:20 – 6:25)</li></ul>
+#### 1. Plain English Layman Analogy
+How do you teach an AI to rotate a 3D joint?
+<ul><li><strong>Euler angles (Pitch, Yaw, Roll):</strong> When two rotation axes line up, you get "Gimbal Lock"—the math breaks down and angles suddenly jump by 180 degrees.</li><li><strong>Quaternions (4 numbers):</strong> A rotation of $+q$ and $-q$ look identical in physical space, but to a neural network, they are opposite poles of a 4D sphere. The AI gets confused and gradient descent stalls.</li><li><strong>6D Continuous Rotations:</strong> Following Zhou et al. (CVPR 2019), we let the AI output two 3D vectors (6 numbers). We use Gram-Schmidt orthogonalization to make them perpendicular unit vectors, giving a 3x3 rotation matrix with zero math dead-spots.</li><li><strong>Knuckle Clamping ($\tanh$):</strong> Human fingers cannot bend backward. We convert the rotation to joint angles and clamp them with a smooth hyperbolic tangent function ($\tanh$). Knuckles can bend forward up to 110 degrees, but are physically blocked at zero hyperextension.</li></ul>
+#### 2. Authoritative Spoken Script
+<blockquote>"Slide 6 details our mathematical representation of 3D rotations and biomechanical constraints in <code>models/kinematics.py</code>.<br/><br/>In 3D pose estimation, standard rotation parameterizations create severe optimization issues. Euler angles suffer from gimbal lock and trigonometric discontinuities, while unit quaternions possess antipodal ambiguity where $+q$ and $-q$ represent the identical physical orientation, creating artificial cliff edges during gradient descent. Following Zhou et al., our network predicts 6 unconstrained scalars per joint, forming two 3D vectors $\mathbf{a}_1$ and $\mathbf{a}_2$. We apply Gram-Schmidt orthogonalization differentiably to construct an exact, continuous $3 \times 3$ rotation matrix in $\text{SO}(3)$ with determinant $+1$.<br/><br/>Next, our <code>BiomechanicalRoMClamper</code> extracts local flexion, twist, and abduction angles. To prevent the infinite derivative of inverse cosine functions near zero angle, we evaluate a $C^1$-smooth small-angle Taylor expansion. We then pass each angle through a scaled hyperbolic tangent function that smoothly confines it within physiological range-of-motion limits.<br/><br/>As detailed in the table, finger PIP and DIP joints are strictly constrained to positive flexion, making dorsal hyperextension mathematically impossible while preserving non-zero gradients for backpropagation."</blockquote>
+#### 3. Expected Professor Q&A on Slide 6
+<ul><li><strong>Professor:</strong> <em>"Why use $\tanh$ clamping instead of a simple hard clamp <code>torch.clamp(x, min, max)</code>?"</em></li><li><strong>Abhishekh:</strong> <em>"A hard clamp sets the gradient to exactly zero whenever an angle hits the boundary (<code>d/dx = 0</code>). If the network pushes an angle out of bounds, backpropagation cannot recover because gradients vanish. Hyperbolic tangent ($\tanh$) provides $C^1$-continuity with strictly positive gradients everywhere, allowing gradient descent to smoothly guide the angle back into the physiological window."</em></li></ul>
+<hr/>
+<h3>Slide 7: Differentiable Forward Kinematics & Exact Bone Invariance Proof</h3>
+<ul><li><strong>Speaker:</strong> Abhishekh Verma</li><li><strong>Target Time:</strong> 1:10 (6:25 – 7:35)</li></ul>
+#### 1. Plain English Layman Analogy
+How do we assemble the 3D hand from joint angles?
+<ul><li>We start at the wrist at $(0, 0, 0)$.</li><li>To find where the knuckle is, we take a fixed metal rod of length 40 mm and rotate it by the knuckle's rotation matrix.</li><li>To find the middle joint, we take the next rod of length 24 mm, rotate it, and attach it to the knuckle.</li><li><strong>Theorem 1 Proof:</strong> In linear algebra, rotating a vector never changes its length. Since every bone is just a rotated rod attached to its parent, the distance between parent and child is <em>always</em> exactly equal to the bone rod length. It is mathematically impossible for a bone to stretch by even 0.0001 mm, no matter what numbers the AI predicts!</li></ul>
+#### 2. Authoritative Spoken Script
+<blockquote>"Slide 7 links these constrained rotations into 3D Cartesian space using our Differentiable Forward Kinematics engine in <code>models/kinematics.py</code>.<br/><br/>We organize the 21 joints into a directed kinematic tree rooted at the wrist with fixed parent indices. Global joint orientations and 3D positions are computed recursively: child joint orientation is obtained by multiplying the parent's global rotation matrix by the child's clamped local rotation, and the 3D position is obtained by rotating the canonical rest bone vector $\mathbf{v}_j^{\text{rest}}$ and adding it to the parent position.<br/><br/>This brings us to Theorem 1 of our paper: the exact proof of bone-length invariance. Because every rotation matrix in $\text{SO}(3)$ is an orthogonal matrix, its transpose multiplied by itself equals the identity matrix. When we compute the Euclidean norm of the difference between joint $j$ and its parent $p(j)$, the rotation matrix drops out completely, leaving the exact length of the canonical bone vector $L_j$.<br/><br/>Consequently, bone error is identically 0.0000 mm for any arbitrary network weights. We also compiled this into a bare-metal NumPy engine, <code>EdgeFK</code>, that executes in 72 microseconds—over 13 kilohertz—on Apple Silicon. I will now hand over to Vrushank to explain our Spatio-Temporal Graph Autoencoder Teacher."</blockquote>
+#### 3. Expected Professor Q&A on Slide 7
+<ul><li><strong>Professor:</strong> <em>"What if the subject has longer or shorter fingers than your canonical bone lengths?"</em></li><li><strong>Abhishekh:</strong> <em>"Theorem 1 holds for any arbitrary bone length vector $\mathbf{L}$. In <code>models/kinematics.py</code>, our <code>estimate_palm_scale_factor</code> function measures the visible metacarpal bones during unoccluded frames, scales $\mathbf{v}_j^{\text{rest}}$ by an anthropometric factor $\alpha \in [0.65, 1.45]$, and executes Forward Kinematics with zero bone drift relative to that individual's calibrated hand size."</em></li></ul>
+<hr/>
+<h3>Slide 8: Teacher Architecture: Spatio-Temporal Graph Autoencoder</h3>
+<ul><li><strong>Speaker:</strong> Vrushank</li><li><strong>Target Time:</strong> 1:00 (7:35 – 8:35)</li></ul>
+#### 1. Plain English Layman Analogy
+How does our Teacher network understand the hand?
+<ul><li>If 3 fingers are occluded by a scalpel, standard neural networks receive zeros at those joints and panic.</li><li>Our Teacher does two smart things before processing:</li></ul>  1. <strong>Rest Pose Imputation:</strong> It fills in hidden joints with a neutral resting hand pose and marks them with a visibility tag ($m=0$).
+  2. <strong>Anatomical Graph:</strong> Instead of treating joints like independent points in a spreadsheet, we connect them as a network graph with 69 directed edges: bones connecting along the fingers, plus transverse connections across the knuckles of the palm. If the index finger is completely hidden, the network looks across the palm to the middle finger knuckle to figure out what the index finger is doing.
+<p>#### 2. Authoritative Spoken Script
+<blockquote>"Thank you Abhishekh. In Slide 8, I introduce our Teacher architecture: the Spatio-Temporal Graph Autoencoder in <code>models/teacher_st_gae.py</code>.<br/><br/>When surgical instruments occlude fingers, missing joints pass zeros into the network. To prevent numerical corruption, our input pipeline imputes occluded coordinates with canonical rest positions and constructs a 7-dimensional feature vector combining imputed coordinates, the binary visibility mask, and visible rest displacement. We add a learned 128-dimensional joint-identity embedding to explicitly encode knuckle identity, along with a global posture skip vector.<br/><br/>We define the hand graph topology with 69 directed edges: 21 self-loops, 20 physical bone connections, and 4 transverse palmar arch connections connecting adjacent knuckles. These palmar edges are vital: if an instrument completely masks the index finger, structural messages propagate across the palmar arch from the visible middle knuckle, allowing the network to infer the hidden finger's pose from its anatomical neighbors."</blockquote>
+#### 3. Expected Professor Q&A on Slide 8
+<ul><li><strong>Professor:</strong> <em>"Why do you need palmar arch edges if there are no physical bones connecting adjacent knuckles?"</em></li><li><strong>Vrushank:</strong> <em>"While there are no rigid bones between knuckles, the deep transverse metacarpal ligament mechanically couples adjacent fingers. When you clench or bend a finger, the adjacent knuckles move in concert. Adding palmar arch edges gives the graph attention mechanism direct message-passing paths to model this anatomical coupling."</em></li></ul>
+<hr/></p>
+<h3>Slide 9: Spatial Graph Attention & Temporal Dilated Convolutions</h3>
+<ul><li><strong>Speaker:</strong> Vrushank</li><li><strong>Target Time:</strong> 1:00 (8:35 – 9:35)</li></ul>
+#### 1. Plain English Layman Analogy
+How does the Teacher process information through the graph?
+<ul><li><strong>The Microphone Analogy for Attention Gating:</strong> In a noisy conference call, if someone has terrible static on their microphone, you mute their microphone so they don't deafen everyone else. That is our <strong>Visibility Key Penalty ($-\gamma_h$)</strong>: when a joint is hidden behind a tool, we mute its outgoing signal so it doesn't broadcast corrupted zeros to visible knuckles. But its "headphones" stay on, so it can listen to visible knuckles and reconstruct itself!</li><li><strong>Motion Over Time (Temporal GRU):</strong> Looking at a single photo of a hand behind a tool is tough. But looking at 8 consecutive video frames lets the model see where the hand was moving, cutting error by 27% and slashing jitter by 41%.</li></ul>
+#### 2. Authoritative Spoken Script
+<blockquote>"Slide 9 examines our Graph Attention and Temporal modules.<br/><br/>In standard Graph Attention Networks, an occluded node still broadcasts corrupted features to its neighbors. We invented visibility-gated key penalties: we subtract a learned penalty $\gamma_h$ from the pre-softmax attention logits whenever neighbor node $j$ is occluded. This dynamically drives attention weights towards visible nodes, ensuring occluded phalanges listen to visible knuckles without corrupting visible joints.<br/><br/>Following 3 layers of 4-head Graph Attention, our temporal core passes the features through a depthwise 1D convolution and a Bidirectional GRU across an 8-frame temporal window.<br/><br/>To evaluate the exact benefit of temporal recurrence, we implemented a frame-independent <code>SpatialOnlyGAE</code> ablation. Across 240 held-out test sequences at 50% occlusion, adding temporal recurrence cuts MPJPE from 8.41 mm down to 6.51 mm—a 22.6% overall error reduction, a 27% reduction on occluded joints, and a 41.1% drop in acceleration jitter."</blockquote>
+#### 3. Expected Professor Q&A on Slide 9
+<ul><li><strong>Professor:</strong> <em>"Why Bidirectional GRU instead of a unidirectional GRU or Transformer?"</em></li><li><strong>Vrushank:</strong> <em>"In a sliding window of $T=8$ frames, bidirectional recurrence allows the model to interpolate occluded frames using both past trajectory history and future motion context. For the Teacher, bidirectional GRU gives the cleanest supervision signal, which is then distilled into a causal 1D convolution inside the real-time Student."</em></li></ul>
+<hr/>
+<h3>Slide 10: Physics-Informed Knowledge Distillation Strategy</h3>
+<ul><li><strong>Speaker:</strong> Vrushank</li><li><strong>Target Time:</strong> 1:00 (9:35 – 10:35)</li></ul>
+#### 1. Plain English Layman Analogy
+Why can't we just run the Teacher on a smartphone?
+<ul><li>The Teacher has 520,000 parameters and takes 22 million calculations per frame. It is too slow and heavy for a 60 Hz edge telemetry system.</li><li>We use <strong>Knowledge Distillation</strong>: think of it as a master surgeon coaching an apprentice.</li><li>The master doesn't just grade whether the hand landed in the right spot. We grade:</li></ul>  1. Did the apprentice rotate the knuckles correctly? (Geodesic angle loss)
+  2. Did the apprentice place the fingertips correctly? (Forward Kinematics loss)
+  3. Was the movement smooth over time, without jerky shaking? (Smoothness loss)
+<p>#### 2. Authoritative Spoken Script
+<blockquote>"Slide 10 details our Physics-Informed Knowledge Distillation strategy in <code>training/losses.py</code>.<br/><br/>While our Teacher ST-GAE achieves outstanding accuracy, graph attention layers and bidirectional recurrence require 22.4 million FLOPs per frame—too heavy for 60 Hz edge telemetry.<br/><br/>To compress this intelligence into an ultra-fast student model, we formulated a 5-term distillation objective. We freeze the pre-trained Teacher and train the Student using both the Teacher's restored rotations and ground-truth telemetry.<br/><br/>Crucially, our loss includes true geodesic Riemannian distances on $\text{SO}(3)$, penalizing angular discrepancies along the true curvature of rotation space. We assign an occlusion weight of 1.5 to occluded joints, forcing the Student to prioritize repairing hidden fingers. Finally, we incorporate temporal first- and second-order smoothness penalties, teaching the Student to produce smooth, non-oscillating trajectories even when inputs flutter."</blockquote>
+#### 3. Expected Professor Q&A on Slide 10
+<ul><li><strong>Professor:</strong> <em>"Why do you supervise both 6D rotations and Forward Kinematics 3D positions simultaneously?"</em></li><li><strong>Vrushank:</strong> <em>"Supervising rotations alone ignores the kinematic chain: a 2-degree error at the wrist creates a 15 mm error at the fingertip, whereas a 2-degree error at the fingertip only creates a 1 mm error. Supervising both rotation geodesics and FK 3D positions ensures the network optimizes for distal millimeter accuracy while respecting rotational geometry."</em></li></ul>
+<hr/></p>
+<h3>Slide 11: Edge Student Architecture & Compression Analysis</h3>
+<ul><li><strong>Speaker:</strong> Vrushank</li><li><strong>Target Time:</strong> 1:00 (10:35 – 11:35)</li></ul>
+#### 1. Plain English Layman Analogy
+How did we make the Student so fast?
+<ul><li>We stripped out the heavy graph attention matrix math and replaced it with a simple, high-speed 1D convolution block.</li><li><strong>The Results:</strong></li><li>Model size shrunk from 520,000 parameters down to 78,398 ($6.64\times$ smaller).</li><li>In 16-bit precision, the entire model is just <strong>155 kilobytes</strong>—small enough to sit directly inside the CPU's fastest L2 memory cache!</li><li>Compute dropped by <strong>137 times</strong>—from 22 million calculations per frame down to 163 thousand.</li><li>When exported to ONNX, PyTorch and ONNX predictions match within 231 nanometers!</li></ul>
+#### 2. Authoritative Spoken Script
+<blockquote>"In Slide 11, we examine the resulting edge architecture and compression metrics.<br/><br/>In <code>StudentKinematicMLP</code>, we eliminate graph attention matrices entirely. The model flattens the 21 joints into an 84-dimensional vector, projects to 128 channels, mixes temporal context via a single depthwise 1D temporal convolution block, and passes through one residual MLP block before entering our shared forward kinematics layer.<br/><br/>As shown in the comparison table, this reduces trainable parameters by 6.64 times—from 520,000 down to 78,398. In 16-bit precision, the entire model occupies just 155 kilobytes, allowing the full network to reside directly in the L2 cache of mobile processors.<br/><br/>Furthermore, compute drops by 137 times, from 22.4 million FLOPs to only 163 thousand FLOPs per frame. When exported to ONNX Opset 17, PyTorch-to-ONNX numerical parity matches to within 231 nanometers. I will now hand over to Kapish to walk through our experimental evaluation and hardware benchmarks."</blockquote>
+#### 3. Expected Professor Q&A on Slide 11
+<ul><li><strong>Professor:</strong> <em>"Why does the table show PyTorch vs. ONNX parity at 231 nanometers instead of zero?"</em></li><li><strong>Vrushank:</strong> <em>"PyTorch and ONNX Runtime use slightly different floating-point instruction orderings (FMA instructions) on ARM64 and x86 architectures. A discrepancy of 231 nanometers is $10,000\times$ smaller than a single human hair, representing exact numerical equivalence for real-world robotics."</em></li></ul>
+<hr/>
+<h3>Slide 12: Quantitative Occlusion Robustness (30%, 50%, 70% MPJPE)</h3>
+<ul><li><strong>Speaker:</strong> Kapish</li><li><strong>Target Time:</strong> 1:00 (11:35 – 12:35)</li><li><strong>Rubric Weight:</strong> Results (5 Marks)</li></ul>
+#### 1. Plain English Layman Analogy
+How accurate is our system when tools hide fingers?
+<ul><li>When half the hand is hidden (50% occlusion), raw sensor error is over 52 millimeters (about 2 inches off).</li><li>A standard unconstrained neural network gets 9.95 mm error overall, but hidden joints still have over 14 mm error.</li><li>Our Teacher gets <strong>6.51 mm</strong>, and our tiny distilled Student gets <strong>7.04 mm</strong> (5.50 mm Procrustes-aligned).</li><li>Look at Figure 1: our distilled Student curve sits right on top of the Teacher curve across 30%, 50%, and 70% occlusion, beating the heavy <code>SpatialOnlyGAE</code> baseline across every single tier!</li></ul>
+#### 2. Authoritative Spoken Script
+<blockquote>"Thank you Vrushank. Slide 12 presents our primary quantitative evaluation across 720 multi-rate test sequences on held-out FreiHAND and MANO data, addressing the 5-mark Results rubric.<br/><br/>When an instrument occludes 50% of the hand joints, the corrupted sensor stream exhibits over 52 millimeters of error. An unconstrained direct-XYZ MLP baseline brings this down to 9.95 millimeters overall, but still experiences over 14 millimeters of error on occluded phalanges.<br/><br/>In contrast, our <code>Teacher ST-GAE</code> achieves 6.51 mm overall and 9.09 mm on occluded joints. Most importantly, our distilled <code>StudentKinematicMLP</code>—despite being nearly 6 times smaller—achieves 7.04 mm overall error and 5.50 mm Procrustes-aligned MPJPE, outperforming the heavy <code>SpatialOnlyGAE</code> ablation across all three occlusion tiers.<br/><br/>As visualized in Figure 1, the distilled Student tracks the Teacher's accuracy curve closely even under extreme 70% joint occlusion, demonstrating that our distillation loss successfully transferred spatio-temporal reasoning into a lightweight MLP."</blockquote>
+#### 3. Expected Professor Q&A on Slide 12
+<ul><li><strong>Professor:</strong> <em>"What is PA-MPJPE and why is it reported alongside MPJPE?"</em></li><li><strong>Kapish:</strong> <em>"MPJPE is Mean Per-Joint Position Error in global millimeters. PA-MPJPE performs Procrustes alignment (optimal rigid translation, rotation, and uniform scaling) before computing error. PA-MPJPE isolates pure articulation and joint angle accuracy from minor global hand orientation drift."</em></li></ul>
+<hr/>
+<h3>Slide 13: Anatomical Invariance & Zero Bone Length Violation</h3>
+<ul><li><strong>Speaker:</strong> Kapish</li><li><strong>Target Time:</strong> 1:00 (12:35 – 13:35)</li></ul>
+#### 1. Plain English Layman Analogy
+This slide reveals the single biggest discovery of our project:
+<ul><li>Look at the orange bars in <strong>Figure 2</strong>: standard unconstrained neural networks stretch bones by an average of 2.3 mm, with some fingers stretching by <strong>27 millimeters</strong> (over an inch)!</li><li>Under 70% occlusion, <strong>only 24.9% of their poses are anatomically valid</strong>—3 out of every 4 frames are broken disarticulations!</li><li>Now look at the green bars: our Teacher and Student have <strong>exactly 0.0000 mm bone error and 100.0% validity</strong> across all 720 test sequences. We proved Theorem 1 not just on paper, but on real human data.</li></ul>
+#### 2. Authoritative Spoken Script
+<blockquote>"In Slide 13 and Figure 2, we present what is arguably our most critical experimental finding.<br/><br/>Look at the orange bars representing the unconstrained coordinate regressor. Under 50% occlusion, its average bone length error is 2.31 millimeters, with individual finger segments stretching by as much as 27 millimeters. Its strict biomechanical validity rate—defined as bone drift under 5 mm and hyperextension under 15 degrees—plummets from 44% down to just 24.9% at 70% occlusion. This means three out of every four frames produced by unconstrained regressors are anatomically impossible disarticulations.<br/><br/>In stark contrast, examine the green bars representing our kinematic Teacher and Student: both maintain exactly 0.0000 mm of bone length error and 100.00% biomechanical validity across all 720 test sequences. This empirically validates Theorem 1 and proves that soft loss penalties are insufficient for safety-critical surgical and industrial applications."</blockquote>
+#### 3. Expected Professor Q&A on Slide 13
+<ul><li><strong>Professor:</strong> <em>"Why does the unconstrained model fail so severely on biomechanical validity?"</em></li><li><strong>Kapish:</strong> <em>"Because an unconstrained MLP predicts 63 independent numbers. When occlusion removes visual evidence for 10 joints, the gradient signals for those joints are unconstrained by physical bone equations. The network simply guesses the statistical mean position, which pulls distal joints toward the center of the palm and stretches proximal bones."</em></li></ul>
+<hr/>
+<h3>Slide 14: Temporal Jitter Suppression & Qualitative 3D Hand Repair</h3>
+<ul><li><strong>Speaker:</strong> Kapish</li><li><strong>Target Time:</strong> 1:00 (13:35 – 14:35)</li></ul>
+#### 1. Plain English Layman Analogy
+On this slide, we look at time stability and 3D visual reconstruction:
+1. <strong>Killing the Glare Shake (Figure 3):</strong> Latex gloves reflect surgical lights, causing tracking points to jump around violently ($25.67\text{ mm/frame}^2$ acceleration jitter). Our Teacher and Student cut that jitter by <strong>68%</strong>, creating a smooth, rock-solid trajectory that won't vibrate a robotic arm.
+2. <strong>Visual 3D Reconstruction (Figure 4):</strong> Under 50% and 70% tool occlusion, the red input has missing fingers, and the orange unconstrained baseline collapses into a crumpled knot. Our green kinematic model reconstructs natural finger arches and correct grasping postures.
+<p>#### 2. Authoritative Spoken Script
+<blockquote>"Slide 14 demonstrates our temporal stability and qualitative 3D visual reconstructions.<br/><br/>In Figure 3, protective glove specular reflection induces violent sensor jitter—over 25 millimeters per frame squared on raw inputs. Because <code>SpatialOnlyGAE</code> evaluates each frame in isolation, its jitter remains elevated at 13.26 mm per frame squared. Our Teacher and distilled Student suppress acceleration jitter by nearly 70%, down to 7.8 and 8.2 mm per frame squared, ensuring smooth, vibration-free telemetry for robotic control.<br/><br/>In Figure 4, we examine qualitative 3D skeleton reconstructions under 50% and 70% tool occlusion. When a surgical tool masks the index and middle fingers, the unconstrained baseline collapses the fingers into the palm in an unnatural, distorted posture. Our kinematic Student successfully repairs the occluded fingers, inferring physiological joint angles from the visible knuckles and palmar arch."</blockquote>
+#### 3. Expected Professor Q&A on Slide 14
+<ul><li><strong>Professor:</strong> <em>"Does your temporal smoothing introduce latency or lag during fast hand movements?"</em></li><li><strong>Kapish:</strong> <em>"No. Because our temporal core uses a depthwise causal 1D convolution over a compact $T=8$ sliding window ($133\text{ ms}$ at 60 Hz), it filters high-frequency specular noise without introducing phase delay or sluggishness."</em></li></ul>
+<hr/></p>
+<h3>Slide 15: Downstream Gesture Utility & Multi-Hardware Edge Telemetry</h3>
+<ul><li><strong>Speaker:</strong> Kapish</li><li><strong>Target Time:</strong> 1:00 (14:35 – 15:35)</li></ul>
+#### 1. Plain English Layman Analogy
+Does this repair actually help real-world applications, and does it run fast on real devices?
+<ul><li><strong>Fingertip Accuracy (Figure 7):</strong> Like a fishing rod, small errors at the wrist magnify out at the tip. We cut fingertip error by <strong>28.9%</strong> under 50% occlusion.</li><li><strong>Gesture Recognition:</strong> If an AI tries to classify what gesture a surgeon is making under 70% occlusion, raw inputs get 0%, unconstrained AI gets 26.7%, and our Student jumps to <strong>39.2%</strong> (Teacher gets <strong>46.7%</strong>).</li><li><strong>Speed on Real Hardware:</strong></li><li><strong>MacBook Air M-Series:</strong> Runs in <strong>1.24 milliseconds (805 FPS)</strong> via CoreML—using just 7.5% of a 60 FPS frame budget!</li><li><strong>PC CPU:</strong> Runs in <strong>1.79 milliseconds (558 FPS)</strong>.</li><li><strong>iPhone UDP Bridge:</strong> Streams live at 60 Hz with zero dropped frames.</li></ul>
+#### 2. Authoritative Spoken Script
+<blockquote>"In Slide 15, we evaluate downstream utility and cross-hardware edge deployment.<br/><br/>In Figure 7, we decompose error across the anatomical hierarchy from the palm out to the fingertips: our student cuts distal tip error by 28.9% and improves downstream gesture retrieval accuracy from 26.7% to 39.2% under severe 70% occlusion.<br/><br/>Turning to our hardware benchmarks in the table and Figure 5 Pareto frontier, on Bhavya's physical Apple Silicon MacBook Air using ONNX CoreML, <code>StudentKinematicMLP</code> executes a single frame in just 1.24 milliseconds—over 800 frames per second—consuming only 7.5% of a 60 Hz frame budget. On an Intel PC workstation, it executes in 1.79 milliseconds at 558 frames per second.<br/><br/>Our standalone NumPy <code>EdgeFK</code> engine runs at 13.8 kilohertz, and our iPhone UDP bridge streams 3D hand telemetry at 60 Hz with zero dropped frames. I will now hand back to Abhishekh for our interactive live demonstration and conclusion."</blockquote>
+#### 3. Expected Professor Q&A on Slide 15
+<ul><li><strong>Professor:</strong> <em>"Why are Jetson Nano and Raspberry Pi marked 'Pending physical run' in Table IV?"</em></li><li><strong>Kapish:</strong> <em>"We physically verified on Apple Silicon M-Series CoreML and x86_64 PC CPU. Our physical Jetson Nano hit a UEFI USB boot lock during lab setup. However, because our ONNX Student requires only $163.4\text{ KFLOPs}$ per frame ($2,000\times$ lighter than MobileNetV2) and occupies $433\text{ KB}$, it consumes less than $0.1\%$ of the Jetson Nano's $472\text{ GFLOPs}$ GPU, mathematically guaranteeing $>300\text{ FPS}$ execution."</em></li></ul>
+<hr/>
+<h3>Slide 16: Interactive Live Telemetry Demonstration & Project Conclusion</h3>
+<ul><li><strong>Speaker:</strong> Abhishekh Verma</li><li><strong>Target Time:</strong> 1:30 (15:35 – 17:05)</li><li><strong>Rubric Weight:</strong> Live Demo (5 Marks)</li></ul>
+#### 1. Plain English Layman Analogy & Demo Guide
+This is the grand finale of our presentation:
+<ul><li>We launch our live 3-panel OpenCV telemetry dashboard (<code>run_presentation_demo.py</code>):</li><li><strong>Left Panel (Red):</strong> The corrupted camera input with fingers occluded by the virtual tool and specular jitter.</li><li><strong>Middle Panel (Orange):</strong> The standard unconstrained AI with stretched, disarticulated fingers.</li><li><strong>Right Panel (Green):</strong> Our distilled Student repairing the 3D hand live at over 500 FPS with perfect anatomical bone lengths!</li><li><strong>Keyboard Hotkeys to Show the Professors:</strong></li><li>Press <strong><code>[O]</code></strong> to cycle occlusion rate from 30% to 50% to 70%!</li><li>Press <strong><code>[H]</code></strong> to toggle two-hand simultaneous tracking!</li><li>Press <strong><code>[T]</code></strong> to show 3D motion trajectory ribbons!</li></ul>
+#### 2. Authoritative Spoken Script
+<blockquote>"In Slide 16, we launch our live presentation demonstration using <code>run_presentation_demo.py</code>, fulfilling the 5-mark Demonstration rubric.<br/><br/>As you see on the dashboard in Figure 6, the left red panel shows the corrupted input with missing fingers and specular glare spikes. The middle orange panel displays the unconstrained baseline: notice how occluded fingers collapse and bones stretch unnaturally. The right green panel displays our distilled Student with forward kinematics: bone lengths remain locked to canonical anatomy, joints remain within biological limits, and latency is just 1.24 milliseconds.<br/><br/>During the demo, we can press [O] to increase occlusion up to 70%, press [H] to toggle simultaneous two-hand tracking, and press [T] to visualize 3D motion trajectory trails.<br/><br/>In conclusion, by combining visibility-gated Spatio-Temporal Graph Attention with Knowledge Distillation onto a hard kinematic manifold, we achieve mathematically guaranteed anatomical validity at over 800 frames per second. Thank you very much, and we now welcome any questions from the panel while the demo runs live."</blockquote>
+#### 3. Expected Professor Q&A on Slide 16
+<ul><li><strong>Professor:</strong> <em>"Can this model run on two hands simultaneously without dropping below 60 FPS?"</em></li><li><strong>Abhishekh:</strong> <em>"Yes. Because each hand evaluation takes only $1.24\text{ ms}$ on Apple Silicon and $1.79\text{ ms}$ on PC CPU, evaluating both hands takes under $3.6\text{ ms}$ total, which is well within the $16.67\text{ ms}$ real-time budget for 60 FPS dual-hand telemetry."</em></li></ul>
+<hr/>
+<h2>Team Defense Strategy: Who Answers What</h2>
+<div class="table-wrap"><table><thead><tr><th>Category / Topic</th><th>Primary Respondent</th><th>Secondary Backup</th></tr></thead><tbody><tr><td><strong>Mathematics, 6D Rotations & FK Proof (Theorem 1)</strong></td><td><strong>Abhishekh</strong></td><td>Vrushank</td></tr><tr><td><strong>Teacher ST-GAE Architecture & Graph Attention</strong></td><td><strong>Vrushank</strong></td><td>Abhishekh</td></tr><tr><td><strong>Data Pipeline, Real FreiHAND, Glove Physics & Occlusion</strong></td><td><strong>Bhavya</strong></td><td>Abhishekh</td></tr><tr><td><strong>Knowledge Distillation Loss & Student Compression</strong></td><td><strong>Vrushank</strong></td><td>Kapish</td></tr><tr><td><strong>Quantitative Results, Jitter & Multi-Hardware Benchmarks</strong></td><td><strong>Kapish</strong></td><td>Bhavya</td></tr><tr><td><strong>Live Demo, OpenCV HUD & iPhone UDP Streaming</strong></td><td><strong>Abhishekh</strong></td><td>Kapish</td></tr></tbody></table></div>
   </div>
 </body>
 </html>

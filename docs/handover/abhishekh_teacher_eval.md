@@ -69,3 +69,8 @@ Update `docs/Final_Project_Report.md` and `docs/final_presentation_slides.md` wi
   - Added 300-DPI System Architecture Block Diagram (`results/figures/fig0_block_diagram.png`) and 3-panel Granular FDS Analysis (`results/figures/fig7_fds_granular_and_gesture_utility.png`: phalanx hierarchy error, per-gesture error, and downstream trajectory retrieval utility).
   - Built one-click presentation demo launcher (`run_presentation_demo.py`) and 24-frame animated demo backup (`results/figures/live_demo_telemetry.gif`).
   - Added dedicated **Objectives** subsection and formal IEEE **Algorithm 1 & Algorithm 2** pseudocode boxes to `docs/Final_Project_Report.md`, compiled `Final_Project_Report.pdf` and widescreen `Final_Presentation_Slides.pdf` (`docs/build_presentation_deck.py`).
+  - **16-Slide Presentation Reformatting & Canva Synchronization (2026-11-16):**
+    - Expanded presentation deck from 11 to 16 slides for Canva, reducing per-slide density and allocating equal speaking time (~4:15 min each, 16–18 min total).
+    - Speaker mapping: Abhishekh (S1, S6, S7, S16), Bhavya (S2, S3, S4, S5), Vrushank (S8, S9, S10, S11), Kapish (S12, S13, S14, S15).
+    - Recompiled `Final_Presentation_Slides.pdf` and `docs/Final_Presentation_Slides.html`.
+    - Synchronized `docs/Slide_By_Slide_Presentation_Guide.md` and `.html`, `docs/Feynman_Technique_Slide_Guide.md`, and `docs/Canva_Slide_Redesign_Blueprint.md`.
