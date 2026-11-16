@@ -242,6 +242,7 @@ def run_interactive_launcher() -> None:
     parser.add_argument("--num-sequences", type=int, default=30, help="Number of sequences to record in record-gloved mode")
     parser.add_argument("--headless", action="store_true", help="Run headless benchmark + save snapshot without GUI window")
     parser.add_argument("--export-gif", action="store_true", help="Export animated GIF of real-time 3D hand telemetry repair")
+    parser.add_argument("--two-hands", action="store_true", help="Enable dual-hand tracking in live camera mode")
     args = parser.parse_args()
 
     if args.export_gif:
@@ -259,8 +260,9 @@ def run_interactive_launcher() -> None:
         print("  [4] Extreme 70% Occlusion Stress Test (15/21 Joints Masked)")
         print("  [5] Export Animated Presentation GIF (results/figures/live_demo_telemetry.gif)")
         print("  [6] Record Physical Gloved Hand Dataset via Webcam (data/custom_gloved_dataset.npz)")
+        print("  [7] Dual-Hand Tracking Demo (Simultaneously Track & Constrain Both Hands)")
         print("=" * 78)
-        choice = input("Select demo mode [1-6, default=1]: ").strip() or "1"
+        choice = input("Select demo mode [1-7, default=1]: ").strip() or "1"
         if choice == "2":
             mode = "webcam"
         elif choice == "3":
@@ -273,6 +275,9 @@ def run_interactive_launcher() -> None:
             return
         elif choice == "6":
             mode = "record-gloved"
+        elif choice == "7":
+            mode = "webcam"
+            args.two_hands = True
         else:
             mode = "replay"
     elif mode == "menu":
@@ -313,6 +318,8 @@ def run_interactive_launcher() -> None:
     ]
     if args.headless:
         cmd.append("--headless")
+    if args.two_hands:
+        cmd.append("--two-hands")
     print(f"[Presentation Demo] Launching: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
 
