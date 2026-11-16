@@ -21,6 +21,7 @@ from collections import deque
 import json
 from pathlib import Path
 import socket
+import sys
 import time
 from typing import Any, Deque, Dict, List, Optional, Tuple, Union
 
@@ -554,7 +555,28 @@ class MediaPipeCameraStreamer:
                 if cap is None or not cap.isOpened():
                     cap = cv2.VideoCapture(self.camera_index)
             else:
-                cap = cv2.VideoCapture(self.camera_index)
+                candidates = [self.camera_index]
+                for alt_idx in [0, 1, 2]:
+                    if alt_idx not in candidates:
+                        candidates.append(alt_idx)
+
+                for c_idx in candidates:
+                    apis = [cv2.CAP_AVFOUNDATION, cv2.CAP_ANY] if sys.platform == "darwin" else [cv2.CAP_ANY]
+                    for api in apis:
+                        try:
+                            test_cap = cv2.VideoCapture(c_idx, api)
+                            if test_cap is not None and test_cap.isOpened():
+                                cap = test_cap
+                                self.camera_index = c_idx
+                                api_str = "AVFoundation" if api == cv2.CAP_AVFOUNDATION else "Default"
+                                print(f"[MediaPipeCameraStreamer] Successfully opened camera index {c_idx} ({api_str}).")
+                                break
+                            elif test_cap is not None:
+                                test_cap.release()
+                        except Exception:
+                            pass
+                    if cap is not None and cap.isOpened():
+                        break
 
             if cap is not None and cap.isOpened():
                 # Request 720p HD capture resolution for higher landmark tracking precision
