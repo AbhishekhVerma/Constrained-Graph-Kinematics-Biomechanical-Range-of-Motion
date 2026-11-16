@@ -27,6 +27,7 @@ show_menu() {
     echo "  [6] Open Presentation Slides (Final_Presentation_Slides.pdf)"
     echo "  [7] Open IEEE Project Report (Final_Project_Report.pdf)"
     echo "  [8] Open Examiner 1-Page Cheat Sheet (docs/EXAMINER_CHEATSHEET.md)"
+    echo "  [9] Open Slide-by-Slide Speaker Script (docs/Slide_By_Slide_Presentation_Guide.md)"
     echo "  [Q] Quit"
     echo ""
     echo "=============================================================================="
@@ -34,7 +35,7 @@ show_menu() {
 
 while true; do
     show_menu
-    read -rp "Enter choice [1-8, default=1, Q to quit]: " CHOICE
+    read -rp "Enter choice [1-9, default=1, Q to quit]: " CHOICE
     CHOICE="${CHOICE:-1}"
 
     case "$CHOICE" in
@@ -97,6 +98,15 @@ while true; do
                 open "$SCRIPT_DIR/docs/EXAMINER_CHEATSHEET.md"
             elif command -v xdg-open &>/dev/null; then
                 xdg-open "$SCRIPT_DIR/docs/EXAMINER_CHEATSHEET.md"
+            fi
+            ;;
+        9)
+            echo ""
+            echo "[*] Opening Slide-by-Slide Speaker Script..."
+            if command -v open &>/dev/null; then
+                open "$SCRIPT_DIR/docs/Slide_By_Slide_Presentation_Guide.md"
+            elif command -v xdg-open &>/dev/null; then
+                xdg-open "$SCRIPT_DIR/docs/Slide_By_Slide_Presentation_Guide.md"
             fi
             ;;
         [qQ])
