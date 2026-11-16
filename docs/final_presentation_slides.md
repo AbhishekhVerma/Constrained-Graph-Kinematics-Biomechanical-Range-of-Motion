@@ -115,7 +115,7 @@
 
 | Finger Joint Group | Joint Indices | Flexion / Extension ($r_x$) | Axial Twist ($r_y$) | Abduction / Adduction ($r_z$) | Canonical Bone Lengths $L_j$ (mm) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Thumb Chain** | $1, 2, 3, 4$ | $[-15^\circ, +85^\circ]$ (IP $[0^\circ, 80^\circ]$) | $[-10^\circ, +10^\circ]$ | $[-35^\circ, +45^\circ]$ | $34, 46, 30, 20\text{ mm}$ |
+| **Thumb Chain** | $1, 2, 3, 4$ | $[-15^\circ, +80^\circ]$ (MCP $[0^\circ, 60^\circ]$, IP $[-10^\circ, 80^\circ]$) | $[-15^\circ, +35^\circ]$ | $[-45^\circ, +25^\circ]$ | $34, 46, 30, 20\text{ mm}$ |
 | **Finger MCPs** | $6, 10, 14, 18$ | $[-15^\circ, +90^\circ]$ | $[-5^\circ, +5^\circ]$ | $[-20^\circ, +20^\circ]$ | Proximal: $40, 42, 39, 31\text{ mm}$ |
 | **Finger PIPs** | $7, 11, 15, 19$ | $[0^\circ, +110^\circ]$ (No hyperext.) | $[-2^\circ, +2^\circ]$ | $[-2^\circ, +2^\circ]$ | Middle: $24, 27, 25, 19\text{ mm}$ |
 | **Finger DIPs** | $8, 12, 16, 20$ | $[0^\circ, +80^\circ]$ (No hyperext.) | $[-2^\circ, +2^\circ]$ | $[-2^\circ, +2^\circ]$ | Distal: $17, 18, 17, 16\text{ mm}$ |
@@ -135,7 +135,7 @@
     $$\mathbf{x}_{t,j}^{\text{imp}} = m_{t,j}\tilde{\mathbf{x}}_{t,j} + (1 - m_{t,j})\bar{\mathbf{x}}_j^{\text{rest}}, \quad \mathbf{f}_{t,j}^{\text{in}} = \left[\mathbf{x}_{t,j}^{\text{imp}} \;\|\; m_{t,j} \;\|\; m_{t,j}(\tilde{\mathbf{x}}_{t,j} - \bar{\mathbf{x}}_j^{\text{rest}})\right] \in \mathbb{R}^7$$
     $$\mathbf{h}_{t,j}^{(0)} = \text{GELU}\!\left(\text{LN}(\mathbf{W}_{\text{in}}\mathbf{f}_{t,j}^{\text{in}})\right) + \mathbf{e}_j^{\text{joint}} + \mathbf{h}_t^{\text{pose}} \in \mathbb{R}^{128}$$
 * **2. 3-Layer 4-Head Mask-Aware Graph Attention (`MultiHeadGraphAttentionLayer`):**
-  * Operates over the 21-joint adjacency matrix $\mathbf{A} \in \{0, 1\}^{21 \times 21}$ (21 self-loops + 20 kinematic bone edges + 4 inter-MCP palmar arch edges $= 69$ directed edges).
+  * Operates over the 21-joint adjacency matrix $\mathbf{A} \in \{0, 1\}^{21 \times 21}$ (21 self-loops + 20 bidirectional bone edges $[40]$ + 4 bidirectional inter-MCP palmar arch edges $[8]$ $= 69$ directed edges).
   * Combines scaled dot-product attention, GATv2 additive scoring, learnable topological edge bias $B_{h,i,j}$, and a **visibility key penalty** $\gamma_h (1 - m_{t,j})$ (initialized at $\gamma_h = 1.5$) that suppresses message passing from occluded key nodes ($m_{t,j} = 0$):
     $$e_{t,i,j}^{(h)} = \frac{\mathbf{q}_{t,i}^{(h)} \cdot \mathbf{k}_{t,j}^{(h)}}{\sqrt{d_h}} + 0.25\,\text{LeakyReLU}\!\left(\mathbf{a}_{\text{src}}^{(h)}\cdot\mathbf{q}_{t,i}^{(h)} + \mathbf{a}_{\text{dst}}^{(h)}\cdot\mathbf{k}_{t,j}^{(h)}\right) + B_{h,i,j} - \gamma_h(1 - m_{t,j}), \quad \alpha_{t,i,j}^{(h)} = \text{softmax}_{j \in \mathcal{N}(i)}\!\left(e_{t,i,j}^{(h)}\right)$$
 * **3. Depthwise 1D Temporal Convolution + Bidirectional GRU Processor:**
@@ -145,7 +145,7 @@
 
 #### Speaker Script — Slide 6
 * **Abhishekh (0:00–0:50):** "Slide 6 details the Spatio-Temporal Graph Autoencoder Teacher in `models/teacher_st_gae.py`. When a surgical instrument masks a finger subtree, its input coordinates are zeroed ($m_{t,j}=0$). Before entering the graph layers, we impute masked coordinates with canonical rest positions $\bar{\mathbf{x}}_j^{\text{rest}}$ and construct a 7-dimensional feature vector combining imputed position, binary visibility, and visible displacement from rest, summed with a learned joint-identity embedding $\mathbf{e}_j^{\text{joint}}$ and a global posture skip $\mathbf{h}_t^{\text{pose}}$. We then pass the 21 nodes through three 4-head Graph Attention layers masked by the anatomical adjacency matrix—comprising the 20 bone segments plus 4 inter-MCP palmar arch connections."
-* **Abhishekh (0:50–1:30):** "A key design choice in `MultiHeadGraphAttentionLayer` is visibility-aware key gating: we subtract a learnable penalty $\gamma_h(1 - m_{t,j})$ from the pre-softmax attention logits whenever key node $j$ is occluded. This forces occluded distal phalanges to attend strongly to visible proximal knuckles and neighboring fingers across the palmar arch rather than propagating corrupted zeros. Next, our temporal core applies a depthwise 1D convolution and a Bidirectional GRU across the $T=8$ window, reducing 50%-occlusion MPJPE from $8.41\text{ mm}$ in our `SpatialOnlyGAE` ablation down to $6.51\text{ mm}$ in the full `SpatioTemporalGAE` Teacher—a $22.6\%$ overall error reduction ($27.0\%$ on occluded joints, from $12.45\text{ mm}$ to $9.09\text{ mm}$) while cutting temporal acceleration jitter by $41.1\%$ ($13.26 \to 7.81\text{ mm/s}^2$)."
+* **Abhishekh (0:50–1:30):** "A key design choice in `MultiHeadGraphAttentionLayer` is visibility-aware key gating: we subtract a learnable penalty $\gamma_h(1 - m_{t,j})$ from the pre-softmax attention logits whenever key node $j$ is occluded. This forces occluded distal phalanges to attend strongly to visible proximal knuckles and neighboring fingers across the palmar arch rather than propagating corrupted zeros. Next, our temporal core applies a depthwise 1D convolution and a Bidirectional GRU across the $T=8$ window, reducing 50%-occlusion MPJPE from $8.41\text{ mm}$ in our `SpatialOnlyGAE` ablation down to $6.51\text{ mm}$ in the full `SpatioTemporalGAE` Teacher—a $22.6\%$ overall error reduction ($27.0\%$ on occluded joints, from $12.45\text{ mm}$ to $9.09\text{ mm}$) while cutting temporal acceleration jitter by $41.1\%$ ($13.26 \to 7.81\text{ mm/frame}^2$)."
 
 ---
 
@@ -179,7 +179,7 @@
 
 ### Held-Out Test Split Evaluation on Hybrid Real FreiHAND + MANO ($N_{\text{test}} = 240$ Sequences/Tier)
 
-| Occlusion Tier | Evaluated Model / Pipeline | Overall MPJPE (mm) $\downarrow$ | Visible MPJPE (mm) $\downarrow$ | Occluded MPJPE (mm) $\downarrow$ | PA-MPJPE (mm) $\downarrow$ | Bone-Length Error (mm) $\downarrow$ | Biomechanical Validity (%) $\uparrow$ | Temporal Jitter ($\text{mm/s}^2$) $\downarrow$ |
+| Occlusion Tier | Evaluated Model / Pipeline | Overall MPJPE (mm) $\downarrow$ | Visible MPJPE (mm) $\downarrow$ | Occluded MPJPE (mm) $\downarrow$ | PA-MPJPE (mm) $\downarrow$ | Bone-Length Error (mm) $\downarrow$ | Biomechanical Validity (%) $\uparrow$ | Temporal Jitter ($\text{mm/frame}^2$) $\downarrow$ |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **30% Occlusion** | Corrupted Input (Raw Gloved/Occluded) | $35.55$ | $8.61$ | $102.89$ | $36.37$ | $15.2458$ | $0.00\%$ | $28.88$ |
 | *(6/21 joints)* | `UnconstrainedStudentMLP` (Direct XYZ, No FK) | $8.23$ | $6.31$ | $13.04$ | $7.01$ | $1.9598$ | $44.43\%$ | $10.27$ |
@@ -232,7 +232,7 @@
 ![Figure 7: Granular Phalanx Hierarchy Error, Per-Gesture Robustness & Downstream Telemetry Utility](../results/figures/fig7_fds_granular_and_gesture_utility.png)
 
 #### Speaker Script — Slide 9
-* **Bhavya (0:00–0:45):** "Slide 9 presents our temporal jitter analysis (Figure 3), qualitative 3D reconstructions (Figure 4), our custom gloved benchmark table, and our new FDS granular analysis (Figure 7). In Figure 3, $12\text{ mm}$ latex specular spikes induce $25.67\text{ mm/s}^2$ of acceleration jitter on the corrupted input at 50% occlusion. Our Teacher ($7.81\text{ mm/s}^2$) and Student ($8.27\text{ mm/s}^2$) suppress acceleration jitter by $67.8\%$ relative to the corrupted input and by $37.6\%$ relative to `SpatialOnlyGAE` ($13.26\text{ mm/s}^2$)."
+* **Bhavya (0:00–0:45):** "Slide 9 presents our temporal jitter analysis (Figure 3), qualitative 3D reconstructions (Figure 4), our custom gloved benchmark table, and our new FDS granular analysis (Figure 7). In Figure 3, $12\text{ mm}$ latex specular spikes induce $25.67\text{ mm/frame}^2$ of acceleration jitter on the corrupted input at 50% occlusion. Our Teacher ($7.81\text{ mm/frame}^2$) and Student ($8.27\text{ mm/frame}^2$) suppress acceleration jitter by $69.6\%$ and $67.8\%$ respectively relative to the corrupted input, and by $37.6\%$ relative to `SpatialOnlyGAE` ($13.26\text{ mm/frame}^2$)."
 * **Abhishekh (0:45–1:30):** "In Figure 7, we decompose error across the anatomical phalanx hierarchy from the palm out to the distal fingertips: at the distal tips under 50% occlusion, `UnconstrainedStudentMLP` suffers $16.90\text{ mm}$ error, whereas our Teacher and Student reduce distal tip error to $10.98\text{ mm}$ and $12.02\text{ mm}$. Across all six clinical gesture classes (Panel b), our models achieve $4.25\text{–}5.44\text{ mm}$ on Needle Driver and Flat Palpation, and improve downstream telemetry trajectory retrieval accuracy (Panel c) from $26.7\%$ to $39.2\%\text{–}46.7\%$ under extreme 70% occlusion."
 
 ---
@@ -247,7 +247,7 @@
 | **PC Workstation** *(Measured: Abhishekh, 24-Thread Intel x86_64)* | ONNX Runtime `CPUExecutionProvider` | $29.34\text{ ms}$ ($34.1\text{ FPS}$) | **$1.792\text{ ms}$ / $2.546\text{ ms}$** | **$557.9\text{ – }3,142\text{ FPS}$** | $0.199\text{ ms}$ ($5.02\text{ kHz}$) | **$10.7\%$** ($9.3\times$ headroom) |
 | **NVIDIA Jetson Nano** *(Assigned: Kapish, Maxwell GPU)* | TensorRT FP16 / CUDAExecutionProvider | *Pending physical run* | *Pending physical run* | *Target: > 300 FPS* | *Pending physical run* | *Target: < 15% budget* |
 | **Raspberry Pi 5 / Pi 4B** *(Quad Cortex-A76 / A72)* | ONNX Runtime ARM64 NEON SIMD | *Pending physical run* | *Pending physical run* | *Target: > 150 FPS* | *Pending physical run* | *Target: < 20% budget* |
-| **iPhone ARKit Stream** *(A-Series ANE $\to$ UDP Port 5005)* | `ARKitUDPStreamer` ($0.08\text{ ms}$) + Host ORT | — | **$1.322\text{ ms}$ End-to-End** | **$756.2\text{ Hz}$ Max Rate** | $0.0725\text{ ms}$ | **Sustains $60\text{ Hz}$ Zero-Drop** |
+| **iPhone ARKit Stream** *(A-Series ANE $\to$ UDP Port 5005)* | `ARKitUDPStreamer` ($0.08\text{ ms}$) + Host ORT | — | **$1.322\text{ ms}$ End-to-End** | **$756.4\text{ Hz}$ Max Rate** | $0.0725\text{ ms}$ | **Sustains $60\text{ Hz}$ Zero-Drop** |
 
 ![Figure 5: Pareto Frontier of Accuracy (MPJPE) vs. Edge Latency and Model Size](../results/figures/fig5_edge_latency_pareto.png)
 

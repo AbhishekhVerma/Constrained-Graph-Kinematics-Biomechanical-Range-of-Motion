@@ -521,13 +521,13 @@
       <div class="section-box layman-box">
         <span class="box-title">1. Layman Explanation (Plain English Analogy)</span>
         <ul>
-          <li><strong>Cutting Glare Jitter by 68% (Figure 3):</strong> Shiny latex glare spikes cause raw input acceleration jitter of $25.67\text{ mm/s}^2$. Our Teacher ($7.81\text{ mm/s}^2$) and Student ($8.27\text{ mm/s}^2$) act like a shock absorber, smoothing out nearly 70% of the shake.</li>
+          <li><strong>Cutting Glare Jitter by ~68–70% (Figure 3):</strong> Shiny latex glare spikes cause raw input acceleration jitter of $25.67\text{ mm/frame}^2$. Our Teacher ($7.81\text{ mm/frame}^2$, $-69.6\%$) and Student ($8.27\text{ mm/frame}^2$, $-67.8\%$) act like a shock absorber, smoothing out the shake.</li>
           <li><strong>Fingertip Lever Effect &amp; Gesture Utility (Figure 7):</strong> At the distal fingertips under 50% occlusion, unconstrained AI is off by $16.90\text{ mm}$; our models slash fingertip error to $10.98\text{–}12.02\text{ mm}$ ($-29\%$). Under extreme 70% occlusion, downstream surgical gesture recognition jumps from $26.7\%$ (unconstrained) to <strong>$39.2\%\text{–}46.7\%$</strong>!</li>
         </ul>
       </div>
       <div class="section-box script-box">
         <span class="box-title">2. Exact Speaker Script &amp; Pointers</span>
-        <p><strong>Bhavya (10:55–11:15):</strong> "Slide 9 presents our temporal jitter analysis (Figure 3), qualitative 3D reconstructions (Figure 4), our custom gloved benchmark table, and our FDS granular analysis (Figure 7). In Figure 3, 12 mm latex specular spikes induce 25.67 mm/s^2 of acceleration jitter on the corrupted input at 50% occlusion. Our Teacher (7.81 mm/s^2) and Student (8.27 mm/s^2) suppress acceleration jitter by 67.8% relative to the corrupted input and by 37.6% relative to SpatialOnlyGAE."</p>
+        <p><strong>Bhavya (10:55–11:15):</strong> "Slide 9 presents our temporal jitter analysis (Figure 3), qualitative 3D reconstructions (Figure 4), our custom gloved benchmark table, and our FDS granular analysis (Figure 7). In Figure 3, 12 mm latex specular spikes induce 25.67 mm/frame^2 of acceleration jitter on the corrupted input at 50% occlusion. Our Teacher (7.81 mm/frame^2) and Student (8.27 mm/frame^2) suppress acceleration jitter by 67.8% relative to the corrupted input and by 37.6% relative to SpatialOnlyGAE."</p>
         <p><strong>Abhishekh (11:15–11:30):</strong> "In Figure 7, we decompose error across the anatomical phalanx hierarchy from the palm out to the distal fingertips: at the distal tips under 50% occlusion, UnconstrainedStudentMLP suffers 16.90 mm error, whereas our Teacher and Student reduce distal tip error to 10.98 mm and 12.02 mm. Across all six clinical gesture classes (Panel b), our models achieve 4.25 to 5.44 mm on Needle Driver and Flat Palpation, and improve downstream telemetry trajectory retrieval accuracy (Panel c) from 26.7% to 39.2%–46.7% under extreme 70% occlusion."</p>
       </div>
     </div>
