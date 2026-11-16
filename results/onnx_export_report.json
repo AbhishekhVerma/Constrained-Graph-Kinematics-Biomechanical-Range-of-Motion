@@ -14,10 +14,10 @@
     "max_rot6d_parity_error": 1.4677643775939941e-06,
     "onnx_bone_length_error_mm": 3e-06,
     "onnx_biomechanical_validity_pct": 100.0,
-    "ort_sequence_latency_ms": 0.9083,
-    "ort_sequence_mean_ms": 0.9323,
-    "ort_per_frame_latency_ms": 0.1135,
-    "ort_fps": 8807.7,
+    "ort_sequence_latency_ms": 3.6276,
+    "ort_sequence_mean_ms": 3.3817,
+    "ort_per_frame_latency_ms": 0.4535,
+    "ort_fps": 2205.3,
     "checkpoint_info": {
       "loaded_from_disk": true,
       "checkpoint_path": "checkpoints\\student_kinematic_mlp.pt",
@@ -71,10 +71,10 @@
     "max_rot6d_parity_error": 0.0,
     "onnx_bone_length_error_mm": 8.726073,
     "onnx_biomechanical_validity_pct": 3.12,
-    "ort_sequence_latency_ms": 0.1721,
-    "ort_sequence_mean_ms": 0.174,
-    "ort_per_frame_latency_ms": 0.0215,
-    "ort_fps": 46498.1,
+    "ort_sequence_latency_ms": 0.5195,
+    "ort_sequence_mean_ms": 0.5265,
+    "ort_per_frame_latency_ms": 0.0649,
+    "ort_fps": 15400.9,
     "checkpoint_info": {
       "loaded_from_disk": true,
       "checkpoint_path": "checkpoints\\student_unconstrained_xyz.pt",
@@ -120,8 +120,8 @@
     "primary_size_mb": 0.423,
     "primary_parameters": 78398,
     "max_onnx_parity_error_mm": 0.0002307891845703125,
-    "ort_sequence_latency_ms": 0.9083,
-    "ort_per_frame_latency_ms": 0.1135,
-    "ort_fps": 8807.7
+    "ort_sequence_latency_ms": 3.6276,
+    "ort_per_frame_latency_ms": 0.4535,
+    "ort_fps": 2205.3
   }
 }
