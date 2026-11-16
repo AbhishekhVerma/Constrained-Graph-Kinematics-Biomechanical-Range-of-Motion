@@ -9,7 +9,7 @@
 
 ---
 
-## 1. Clean Presentation Choreography (4 Clean Blocks, Zero Dead Air)
+## 1. Clean Presentation Choreography (4 Contiguous Blocks, Zero Dead Air)
 
 Passing the microphone randomly between slides wastes precious presentation time and confuses the audience. We use 4 clean, contiguous speaker segments totaling ~17 minutes:
 
@@ -29,124 +29,142 @@ Passing the microphone randomly between slides wastes precious presentation time
 
 ---
 
-## 2. Universal Canva Styling Rules (16:9 Widescreen)
+## 2. Universal Canva Styling Rules (Executive Cinematic Dark Glass)
+
+To achieve the exact Apple/OpenAI keynote visual language of our reference design:
 
 * **Canvas Dimensions:** 1920 × 1080 px (16:9 Widescreen).
-* **Color Palette:**
-  * **Background:** Clean White (`#FFFFFF`) or Slate Dark (`#0F172A`).
-  * **Card Fills:** Soft Off-White (`#F8FAFC`) with subtle border (`#E2E8F0`).
-  * **Primary Accent (Trust / Tech):** Deep Indigo (`#4338CA`) or Electric Blue (`#2563EB`).
-  * **Success Accent (Kinematics / Valid):** Emerald Mint (`#10B981` / `#ECFDF5`).
-  * **Warning Accent (Unconstrained / Failure):** Amber Orange (`#F59E0B` / `#FEF3C7`).
-  * **Error / Occlusion Accent:** Rose Crimson (`#E11D48` / `#FFF1F2`).
+* **Base & Atmosphere:**
+  * **Base Background:** Deep Pitch Black (`#000000` / `#030305`).
+  * **Ambient Mesh / Radial Glows:**
+    * **Electric Cobalt Blue Aura:** `#2563EB` / `#1E40AF` radiating across the lower-left to mid-left quadrant (opacity ~40–50%, blur ~120px).
+    * **Subtle Cyan Accent:** `#38BDF8` / `#06B6D4` highlighting technical elements and kickers.
+    * **Warm Golden Amber / Orange Arc:** `#F59E0B` / `#D97706` sweeping across the mid-right quadrant (opacity ~40–48%, blur ~140px).
+    * **Top Vignette:** Pitch black `#000000` across the header region ensuring 100% pure contrast for slide titles.
 * **Typography Hierarchy:**
-  * **Slide Title:** `28pt–32pt` Bold (Sans-serif: Montserrat, Inter, or Segoe UI).
-  * **Subtitle / Section Tag:** `14pt–16pt` Semibold Uppercase with tracking (+50).
-  * **Card Headings:** `18pt–20pt` Bold.
-  * **Body / Bullet Text:** `14pt–16pt` Regular (never drop below `14pt` on a projector!).
-  * **Key Stat Callouts:** `36pt–48pt` Extra Bold with small `12pt` unit label underneath.
+  * **Font Family:** Modern geometric sans-serif (Plus Jakarta Sans, Inter, Montserrat, or Segoe UI).
+  * **Slide Title:** `26pt–30pt` Extra Bold / Black (`#FFFFFF`), uppercase, letter-spacing `+0.05em`.
+  * **Title Accent Bar:** Sleek warm gold/amber horizontal bar (`#F59E0B`, width `60–75px`, height `3.5–4px`) directly beneath the first word of the title.
+  * **Slide Kicker:** `9pt–10pt` Bold Uppercase (`#38BDF8`), letter-spacing `+0.08em` (`FOUNDATIONS OF DATA SCIENCE • FINAL EVALUATION`).
+  * **Slide Badge:** Top-right glass pill (`#0F172A` with `1px solid rgba(255, 255, 255, 0.15)`, text `#F1F5F9`).
+  * **Section Subtitle:** `12pt–14pt` Medium (`#94A3B8`).
+  * **Numbered Items:** Large modern numbers (`01`, `02`, `03`, `04`, `05`) in `30pt–36pt` Bold (`#FFFFFF`), paired with clean thin divider lines (`1px solid rgba(255, 255, 255, 0.18)`).
+  * **Body / Bullet Text:** `12pt–14pt` Regular (`#CBD5E1`), strong text in `#FFFFFF`.
+* **Dark Glass Cards & Containers:**
+  * **Card Fills:** `rgba(15, 23, 42, 0.70)` with `backdrop-filter: blur(8px)`.
+  * **Card Border:** `1px solid rgba(255, 255, 255, 0.12)`, corner radius `8px`.
+  * **Card Shadow:** `0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(37, 99, 235, 0.10)`.
+* **Tables in Sleek Dark Glass:**
+  * Container in dark glass with rounded corners.
+  * Header in deep navy (`rgba(10, 15, 30, 0.95)`), cyan text (`#38BDF8`), and a gold (`#F59E0B`) underline.
+  * **Teacher ST-GAE** & **StudentKinematicMLP** rows highlighted in glowing mint green (`rgba(16, 185, 129, 0.18)` fill, `#10B981` border, `#34D399` bold text).
+  * **Unconstrained baseline** row highlighted in amber warning (`rgba(245, 158, 11, 0.12)`).
+* **Figures & Image Embeds:**
+  * Centered in dark glass frames with cyan/blue rim glow (`box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(37, 99, 235, 0.12)`).
+  * Captions in `9pt–10pt` Medium Gray (`#94A3B8`).
 
 ---
 
 ## 3. Slide-by-Slide Canva Layout & Asset Guide
 
 ### Slide 1: Introduction — Problem Context, Motivation & Team Roles (Abhishekh)
-* **Visual Structure:** Split 2-Column Hero layout.
-  * **Left Column (50%):** 2 Failure Mode cards (Rose `#FFF1F2` for tool occlusion, Amber `#FEF3C7` for latex glare) + 1 emerald solution pill.
-  * **Right Column (50%):** Hero GIF/Video embed (`results/figures/live_demo_telemetry.gif`) with 3 stat badges underneath (`0.0000 mm` Bone Error, `805 FPS` CoreML, `100%` Valid).
-  * **Bottom Footer:** 4 Team Role chips (Abhishekh, Bhavya, Vrushank, Kapish).
+* **Visual Structure:** Problem Context + Solution Summary + Team Ownership Table.
+  * **Top Section:** 2 Failure Mode callouts (Surgical/Tool Occlusion with $15\text{–}27\text{ mm}$ bone stretch, Latex Glove glare with $\sigma = 4.5\text{ mm}$ noise) + Our Kinematic Solution.
+  * **Bottom Section:** 4-row Team Ownership Table in sleek dark glass (`Abhishekh Verma`, `Bhavya`, `Vrushank`, `Kapish`) with cyan headers and gold accent.
 
-### Slide 2: Five Core Research Objectives (Bhavya)
-* **Visual Structure:** 5-Box Horizontal / Staggered Cards (Numbered 1 to 5).
-  * Each card has a colorful number badge (`01` to `05`), a bold title, and 2 concise bullet points.
-  * Card 1: Hybrid Real Data (FreiHAND + MANO)
-  * Card 2: Hard Forward Kinematics (0.0000 mm error)
-  * Card 3: Spatio-Temporal Graph Autoencoder (Visibility GAT + Bi-GRU)
-  * Card 4: Knowledge Distillation (78.4K Student, 137x fewer FLOPs)
-  * Card 5: Real-Time Edge Telemetry (>500 FPS on Apple Silicon & PC)
+### Slide 2: Five Core Research Objectives (Bhavya) — Exact Match to Reference Image
+* **Visual Structure:** 2-Column Numbered Objectives Grid.
+  * **Left Column:** Objectives `01`, `03`, `05`.
+  * **Right Column:** Objectives `02`, `04`.
+  * Each item features:
+    * Large bold white number (`32pt` Bold, `#FFFFFF`).
+    * 2-line title in crisp off-white (`16pt` SemiBold, `#F8FAFC`).
+    * 1-line concise technical description underneath (`10pt` Regular, `#94A3B8`).
+    * Clean horizontal divider line (`1px solid rgba(255, 255, 255, 0.18)`) beneath each item.
+  * **Item Text:**
+    * **01:** Hybrid Real FreiHAND + Clinical / MANO Benchmark
+    * **02:** Zero-Bone-Error Differentiable Forward / Kinematics
+    * **03:** Mask-Aware Spatio-Temporal Graph / Autoencoder Teacher
+    * **04:** Knowledge Distillation into a Lightweight Edge / Student
+    * **05:** Real-Time Edge Deployment & Live / Telemetry Demo
 
 ### Slide 3: State-of-the-Art Literature Gap & Comparative Matrix (Bhavya)
-* **Visual Structure:** Clean Comparison Table (7 rows × 7 columns).
-  * Top competitors: HandGCN, HOPE-Net, Spurr et al., HandOccNet, Unconstrained Student.
-  * Bottom 2 rows highlighted in Emerald Green (`#ECFDF5` fill, `#10B981` border): `Teacher ST-GAE` and `StudentKinematicMLP`.
-  * Highlight the **Bone-Length Error** column (competitors at $0.80\text{–}4.80\text{ mm}$ vs. our **$0.0000\text{ mm}$**).
+* **Visual Structure:** Bullet Flaws + 7-Row Comparative Matrix.
+  * Comparative Table: HandGCN, HOPE-Net, Spurr et al., HandOccNet, Unconstrained Student, Teacher ST-GAE, StudentKinematicMLP.
+  * Highlight Teacher and Student rows in glowing emerald mint green (`rgba(16, 185, 129, 0.18)`).
+  * Bold callout on **$0.0000\text{ mm}$ bone error** vs. competitors' $0.80\text{–}4.80\text{ mm}$.
 
 ### Slide 4: System Architecture & End-to-End Block Diagram (Bhavya)
-* **Visual Structure:** Full-slide High-Resolution Diagram Showcase.
-  * Place `results/figures/fig0_block_diagram.png` in the center spanning 85% of slide width.
-  * Add 4 clean corner annotations highlighting Stage 1 (Data), Stage 2 (Teacher), Stage 3 (Student Distillation), and Stage 4 (Hard Kinematic Manifold).
+* **Visual Structure:** Diagram Showcase + 4 Horizontal Stage Cards.
+  * Center: Embed `results/figures/fig0_block_diagram.png` in a dark glass card spanning 86% slide width.
+  * Bottom Strip: 4 horizontal cards (`01 Data Ingestion`, `02 Teacher ST-GAE`, `03 Student Distillation`, `04 Hard Kinematic Manifold`) with gold top borders.
 
 ### Slide 5: Data Engineering: Hybrid FreiHAND+MANO Pipeline & Transforms (Bhavya)
 * **Visual Structure:** 2-Column Engineering Pipeline layout.
-  * **Left Column:** Hybrid Dataset Card ($32,560$ real FreiHAND poses + 6 clinical MANO gestures, zero-leakage 80/20 train/test split).
-  * **Right Column:** 2 Physics Transform cards:
-    * `SyntheticGloveTransform`: $12\%$ elastic resistance equation + AR(1) specular noise ($\rho=0.65$) + $12\text{ mm}$ glare spikes.
-    * `SyntheticOcclusionTransform`: 3D cylindrical clipping ($R=28\text{ mm}$) with distal-to-proximal priority (TIP $\to$ DIP $\to$ PIP $\to$ MCP).
+  * Left: Hybrid Dataset Card ($32,560$ real FreiHAND poses + 6 clinical gestures, 80/20 train/test split).
+  * Right: 2 Physics Transform cards with styled math equations:
+    * `SyntheticGloveTransform`: $12\%$ elastic resistance equation + AR(1) specular noise ($\rho=0.65$).
+    * `SyntheticOcclusionTransform`: 3D cylindrical clipping ($R=28\text{ mm}$) with distal-to-proximal priority.
 
 ### Slide 6: 6D Continuous Rotations & Anatomical RoM Clamping (Abhishekh)
-* **Visual Structure:** Mathematical Formulation + Anatomical Limits Table.
-  * **Left Side:** Why 6D? (Euler Gimbal lock & Quaternion antipodal ambiguity) + Gram-Schmidt $\mathbb{R}^6 \to \text{SO}(3)$ formulas.
-  * **Right Side:** $C^1$-smooth $\tanh$ RoM clamping equation + anatomical joint boundary table (PIP/DIP hinges clamped to $[0^\circ, 110^\circ]$ and $[0^\circ, 80^\circ]$ with zero hyperextension).
+* **Visual Structure:** Math Formulation + Anatomical Limits Table.
+  * Top: 6D Gram-Schmidt $\text{SO}(3)$ continuous mapping formulas and $\tanh$ RoM clamping equation in gold-bordered glass math cards.
+  * Bottom: Anatomical joint boundary table (Thumb Ray, MCP, PIP, DIP) in dark glass. Highlight zero dorsal hyperextension on PIP and DIP hinges.
 
 ### Slide 7: Differentiable Forward Kinematics & Theorem 1 Proof (Abhishekh)
-* **Visual Structure:** Kinematic Tree Diagram + Formal Theorem Card.
-  * **Left Side:** Directed tree traversal diagram showing parent indices from wrist to fingertips.
-  * **Right Side:** Theorem 1 proof card: $\|\mathbf{P}_j - \mathbf{P}_{p(j)}\|_2 = \|\mathbf{R}_j^{\text{global}} \mathbf{v}_j^{\text{rest}}\|_2 = \sqrt{(\mathbf{v}_j^{\text{rest}})^\top \mathbf{I}_3 \mathbf{v}_j^{\text{rest}}} = L_j \implies \varepsilon_{\text{bone}} \equiv 0.0000\text{ mm}$.
-  * **Stat Callout:** Bare-metal NumPy `EdgeFK` runs in **$0.0725\text{ ms}$ ($13,790\text{ Hz}$)**.
+* **Visual Structure:** Hierarchical Kinematic Tree + Formal Theorem 1 Card.
+  * Top: `PARENT_INDICES` tree traversal formula.
+  * Center: Dedicated **Theorem 1 Proof Card** with warm gold left border:
+    $$\|\mathbf{P}_j - \mathbf{P}_{p(j)}\|_2 = \|\mathbf{R}_j^{\text{global}} \mathbf{v}_j^{\text{rest}}\|_2 = \sqrt{(\mathbf{v}_j^{\text{rest}})^\top \mathbf{I}_3 \mathbf{v}_j^{\text{rest}}} = L_j \implies \varepsilon_{\text{bone}} \equiv 0.0000\text{ mm} \quad \blacksquare$$
+  * Bottom: Bare-metal NumPy `EdgeFK` speed badge: **$0.0725\text{ ms}$ ($13,790\text{ Hz}$)**.
 
 ### Slide 8: Teacher Architecture: Spatio-Temporal Graph Autoencoder (Vrushank)
 * **Visual Structure:** 2-Column Deep Architecture breakdown.
-  * **Left Side:** 7D Imputed Input formulation ($[\mathbf{x}^{\text{imp}} \,\|\, m \,\|\, m(\mathbf{x}-\bar{\mathbf{x}}^{\text{rest}})]$) + Joint Identity Embedding $\mathbf{e}_j^{\text{joint}}$.
-  * **Right Side:** 69-Edge Anatomical Skeleton Graph: 21 self-loops + 20 bone edges + 4 inter-MCP palmar arch edges. Explain why palmar arch edges allow occluded fingers to borrow context from visible knuckles.
+  * Left: 7D Imputed Input formulation ($[\mathbf{x}^{\text{imp}} \,\|\, m \,\|\, m(\mathbf{x}-\bar{\mathbf{x}}^{\text{rest}})]$) + learned joint-identity embedding $\mathbf{e}_j^{\text{joint}}$.
+  * Right: 69-Edge Anatomical Skeleton Graph (21 self-loops + 20 bone edges + 4 inter-MCP palmar arch edges). Explain palmar arch feature borrowing.
 
 ### Slide 9: Spatial Graph Attention & Temporal Dilated Convolutions (Vrushank)
 * **Visual Structure:** Attention Mechanism Card + Temporal Recurrence Gain.
-  * **Top / Left:** Visibility Key Penalty equation ($-\gamma_h(1-m_{t,j})$). Explain the "muted microphone" concept.
-  * **Bottom / Right:** Temporal Bi-GRU ablation comparison (`SpatialOnlyGAE` $8.41\text{ mm}$ vs. `Teacher ST-GAE` **$6.51\text{ mm}$**, showing $22.6\%$ error reduction and $41.1\%$ jitter reduction).
+  * Top: Visibility Key Penalty equation ($-\gamma_h(1-m_{t,j})$).
+  * Bottom: Bi-GRU recurrence gain: cuts 50% occlusion error by $22.6\%$ ($8.41 \to 6.51\text{ mm}$), occluded phalanx error by $27.0\%$, and acceleration jitter by $41.1\%$.
 
 ### Slide 10: Physics-Informed Knowledge Distillation Strategy (Vrushank)
 * **Visual Structure:** 5-Term Multi-Objective Loss Breakdown.
-  * Master equation at top: $\mathcal{L}_{\text{KD}} = 35.0 \mathcal{L}_{6\text{D}}^{\text{Teacher}} + 0.45 \mathcal{L}_{\text{MPJPE}}^{\text{Teacher}} + 0.55 \mathcal{L}_{\text{MPJPE}}^{\text{GT}} + 25.0 \mathcal{L}_{6\text{D}}^{\text{GT}} + 0.35 \mathcal{L}_{\text{smooth}}$.
-  * 3 Visual Pillars underneath:
-    * Geodesic $\text{SO}(3)$ distance: $\arccos((\text{Tr}(\hat{\mathbf{R}}^\top\mathbf{R})-1)/2)$.
-    * Occlusion-weighted spatial loss: $1.5\times$ penalty on occluded joints.
-    * Temporal velocity & acceleration smoothness.
+  * Master equation at top with underbraces:
+    $$\mathcal{L}_{\text{KD}} = 35.0 \mathcal{L}_{6\text{D}}^{\text{Teacher}} + 0.45 \mathcal{L}_{\text{MPJPE}}^{\text{Teacher}} + 0.55 \mathcal{L}_{\text{MPJPE}}^{\text{GT}} + 25.0 \mathcal{L}_{6\text{D}}^{\text{GT}} + 0.35 \mathcal{L}_{\text{smooth}}$$
+  * 3 Visual Pillars underneath: Geodesic $\text{SO}(3)$ distance, $1.5\times$ occlusion-weighted spatial loss, and temporal smoothness.
 
 ### Slide 11: Edge Student Architecture & Compression Analysis (Vrushank)
-* **Visual Structure:** Student Architecture Flow + Compression Table.
-  * **Left Side:** Lightweight pipeline: Flat 84D projection $\to$ 1D depthwise convolution $\to$ Residual MLP $\to$ Shared Forward Kinematics.
-  * **Right Side:** Compression stat grid:
-    * **$6.64\times$ smaller** ($520\text{K} \to 78.4\text{K}$ parameters)
-    * **$137.3\times$ fewer FLOPs** ($22.43\text{M} \to 0.163\text{M}$)
-    * **$155\text{ KB}$ FP16** (fits entirely in CPU L2 cache)
-    * **$231\text{ nm}$ ONNX parity**
+* **Visual Structure:** Student Architecture Flow + Complexity Table.
+  * Left: Lightweight pipeline: Flat 84D projection $\to$ 1D depthwise convolution $\to$ Residual MLP $\to$ Shared Forward Kinematics.
+  * Right: Compression comparison table showing $6.64\times$ parameter reduction ($520\text{K} \to 78.4\text{K}$), $137.3\times$ FLOPs compression, and $231\text{ nm}$ ONNX numerical parity.
 
 ### Slide 12: Quantitative Occlusion Robustness (30%, 50%, 70% MPJPE) (Kapish)
-* **Visual Structure:** Split Results Table & Chart.
-  * **Top / Left:** 3-Tier Multi-Rate Occlusion Table showing Corrupted Input, Unconstrained Student, Spatial-Only GAE, Teacher ST-GAE, and Student Kinematic MLP.
-  * **Bottom / Right:** High-resolution embed of `results/figures/fig1_occlusion_robustness.png` showing how the distilled Student closely hugs the Teacher curve.
+* **Visual Structure:** Side-by-Side Table & Chart Dashboard.
+  * Left (57% width): 15-row Multi-Rate MPJPE Table in dark glass with mint green highlighted Student and Teacher rows.
+  * Right (43% width): High-resolution embed of `results/figures/fig1_occlusion_robustness.png` in a dark glass card.
 
 ### Slide 13: Anatomical Invariance & Zero Bone Length Violation (Kapish)
-* **Visual Structure:** Chart Showcase & Failure Analysis.
-  * Embed `results/figures/fig2_bone_length_and_biovalidity.png` spanning 55% width.
-  * Side-by-side callout cards:
-    * Unconstrained Regressor Failure: $2.31\text{ mm}$ mean bone error, up to $27.0\text{ mm}$ stretching, validity collapses to $24.95\%$.
+* **Visual Structure:** Side-by-Side Chart & Empirical Findings.
+  * Left (48% width): `results/figures/fig2_bone_length_and_biovalidity.png`.
+  * Right (52% width): Empirical verification cards:
+    * Unconstrained Regressor Failure: $2.31\text{ mm}$ mean bone error, $27.0\text{ mm}$ peak stretching, validity drops to $24.95\%$.
     * Kinematic Guarantee: Exactly **$0.0000\text{ mm}$ bone error** and **$100.00\%$ validity** across all 720 test sequences.
 
 ### Slide 14: Temporal Jitter Suppression & Qualitative 3D Hand Repair (Kapish)
-* **Visual Structure:** 2-Image Comparative Showcase.
-  * **Left Side:** `results/figures/fig3_temporal_jitter_comparison.png` showing how Teacher and Student cut acceleration jitter by $\sim 68\%$ ($25.67 \to 8.27\text{ mm/frame}^2$).
-  * **Right Side:** `results/figures/fig4_qualitative_3d_hand_repair.png` showing 3D skeleton reconstructions under 50% and 70% tool occlusion (unconstrained collapse vs. kinematic restoration).
+* **Visual Structure:** Dual Image Comparative Showcase.
+  * Left Card: `results/figures/fig3_temporal_jitter_comparison.png` (Teacher and Student cut acceleration jitter by $\sim 68\%$).
+  * Right Card: `results/figures/fig4_qualitative_3d_hand_repair.png` (3D skeleton reconstruction under 50% and 70% tool occlusion).
 
 ### Slide 15: Downstream Gesture Utility & Multi-Hardware Edge Telemetry (Kapish)
-* **Visual Structure:** FDS Analysis & Hardware Benchmark Grid.
-  * **Left Side:** `results/figures/fig7_fds_granular_and_gesture_utility.png` (Phalanx depth error, $-28.9\%$ distal tip error reduction, and gesture classification utility).
-  * **Right Side:** Multi-Hardware Benchmark Table & `results/figures/fig5_edge_latency_pareto.png` (MacBook Air $1.24\text{ ms}$ / $805\text{ FPS}$, PC $1.79\text{ ms}$ / $558\text{ FPS}$, Bare-metal FK $13.8\text{ kHz}$).
+* **Visual Structure:** Hardware Benchmark Table + Dual Research Figures.
+  * Top: Hardware Benchmark Table in dark glass (MacBook Air $1.24\text{ ms}$ / $805\text{ FPS}$, PC $1.79\text{ ms}$ / $558\text{ FPS}$, iPhone 60 Hz zero-drop).
+  * Bottom: `results/figures/fig7_fds_granular_and_gesture_utility.png` and `results/figures/fig5_edge_latency_pareto.png` side-by-side.
 
 ### Slide 16: Interactive Live Telemetry Demonstration & Project Conclusion (Abhishekh)
-* **Visual Structure:** Live Demo HUD Showcase + Conclusion Highlights.
-  * Embed `results/figures/fig6_live_demo_dashboard.png` in the center.
-  * 3 Panel Callouts: Red (Corrupted), Orange (Unconstrained), Green (Kinematic Student).
-  * Command Box: `.\.venv\Scripts\python.exe run_presentation_demo.py`
-  * Keyboard Hotkeys: `[O]` cycle occlusion, `[H]` toggle 2-hand tracking, `[T]` toggle 3D trails.
-  * Final takeaway bullet: Hard kinematic constraints eliminate disarticulation under extreme occlusion at 800+ FPS on edge hardware.
+* **Visual Structure:** Live Demo HUD Showcase + Interactive Controls.
+  * Left Side: `results/figures/fig6_live_demo_dashboard.png` in dark glass card + PowerShell launcher box:
+    ```powershell
+    .\.venv\Scripts\python.exe run_presentation_demo.py
+    ```
+  * Right Side: Interactive Keyboard Controls (`[O]` cycle occlusion, `[H]` toggle 2-hand tracking, `[T]` toggle 3D trails, `[M]` switch stream) + Key Project Conclusions.
