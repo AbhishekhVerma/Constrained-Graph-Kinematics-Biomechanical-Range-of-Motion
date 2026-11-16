@@ -487,6 +487,7 @@ class MediaPipeCameraStreamer:
         self.simulated_occlusion_rate = float(simulated_occlusion_rate)
         self.task_model_path = Path(task_model_path)
         self.tool_box: Optional[Tuple[int, int, int, int]] = None  # (x1, y1, x2, y2)
+        self._smooth_raw_mm: Optional[np.ndarray] = None
 
         self._cap: Any = None
         self._landmarker: Any = None
@@ -671,6 +672,17 @@ class MediaPipeCameraStreamer:
 
         # Palmar normal (+Z): e_x x e_y
         v_z = np.cross(v_lat, e_y)
+        v_thumb = pts[4] - pts[0]
+        # Detect chirality: Right Hand has negative triple product, Left Hand has positive
+        chirality = float(np.dot(v_z, v_thumb))
+        if chirality > 0.0:
+            # Symmetrically mirror Left Hand across lateral palm plane to map into canonical Right Hand
+            pts[:, 0] = -pts[:, 0]
+            v_y = pts[9].copy()
+            e_y = v_y / max(float(np.linalg.norm(v_y)), 1e-6)
+            v_lat = pts[5] - pts[17]
+            v_z = np.cross(v_lat, e_y)
+
         norm_z = float(np.linalg.norm(v_z))
         if norm_z < 1e-3:
             e_z = np.array([0.0, 0.0, 1.0], dtype=np.float64)
@@ -704,34 +716,41 @@ class MediaPipeCameraStreamer:
         import cv2
 
         h_img, w_img = bgr_frame.shape[:2]
+        ui_scale = max(float(w_img) / 640.0, 1.0)
+        line_thick = max(int(round(2.2 * ui_scale)), 2)
+        circle_rad = max(int(round(5.0 * ui_scale)), 4)
+        wrist_rad = max(int(round(8.0 * ui_scale)), 7)
+        outline_thick = max(int(round(1.2 * ui_scale)), 1)
+
         if self.tool_box is not None:
             bx1, by1, bx2, by2 = self.tool_box
             overlay = bgr_frame.copy()
             cv2.rectangle(overlay, (bx1, by1), (bx2, by2), (0, 110, 255), -1)
             cv2.addWeighted(overlay, 0.22, bgr_frame, 0.78, 0, bgr_frame)
-            cv2.rectangle(bgr_frame, (bx1, by1), (bx2, by2), (0, 165, 255), 2)
+            cv2.rectangle(bgr_frame, (bx1, by1), (bx2, by2), (0, 165, 255), max(int(2 * ui_scale), 2))
             cv2.putText(
                 bgr_frame,
                 "SURGICAL INSTRUMENT OCCLUSION ZONE [Press T to Toggle]",
                 (bx1 + 6, max(by1 - 8, 18)),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.44,
+                0.44 * ui_scale,
                 (0, 200, 255),
-                1,
+                max(int(1 * ui_scale), 1),
                 cv2.LINE_AA,
             )
 
         if not detected:
-            cv2.rectangle(bgr_frame, (12, h_img - 54), (w_img - 12, h_img - 12), (20, 25, 40), -1)
-            cv2.rectangle(bgr_frame, (12, h_img - 54), (w_img - 12, h_img - 12), (0, 180, 255), 1)
+            bar_h = max(int(42 * ui_scale), 40)
+            cv2.rectangle(bgr_frame, (12, h_img - bar_h - 12), (w_img - 12, h_img - 12), (20, 25, 40), -1)
+            cv2.rectangle(bgr_frame, (12, h_img - bar_h - 12), (w_img - 12, h_img - 12), (0, 180, 255), 1)
             cv2.putText(
                 bgr_frame,
                 "LIVE CAMERA ACTIVE - Place gloved or bare hand in view...",
-                (24, h_img - 28),
+                (24, h_img - int(bar_h * 0.45)),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.54,
+                0.50 * ui_scale,
                 (0, 215, 255),
-                1,
+                max(int(1 * ui_scale), 1),
                 cv2.LINE_AA,
             )
             return
@@ -741,15 +760,15 @@ class MediaPipeCameraStreamer:
             p = PARENT_INDICES[j]
             vis_both = (visibility_mask[j] > 0.5) and (visibility_mask[p] > 0.5)
             color = (90, 235, 130) if vis_both else (60, 70, 245)
-            thickness = 2 if vis_both else 1
+            thickness = line_thick if vis_both else max(line_thick - 1, 1)
             cv2.line(bgr_frame, tuple(pts_2d[p]), tuple(pts_2d[j]), color, thickness, cv2.LINE_AA)
 
         for j in range(NUM_JOINTS):
             vis = visibility_mask[j] > 0.5
             c_fill = (255, 255, 255) if j == 0 else ((100, 250, 140) if vis else (50, 60, 250))
-            rad = 6 if j == 0 else (4 if vis else 5)
+            rad = wrist_rad if j == 0 else circle_rad
             cv2.circle(bgr_frame, tuple(pts_2d[j]), rad, c_fill, -1, cv2.LINE_AA)
-            cv2.circle(bgr_frame, tuple(pts_2d[j]), rad + 1, (15, 23, 42), 1, cv2.LINE_AA)
+            cv2.circle(bgr_frame, tuple(pts_2d[j]), rad + outline_thick, (15, 23, 42), outline_thick, cv2.LINE_AA)
 
     def read_frame(
         self,
@@ -826,6 +845,13 @@ class MediaPipeCameraStreamer:
                                     vis_mask[j_idx] = 0.0
 
                 if detected:
+                    # Apply responsive EMA temporal smoothing (75/25) to suppress Wi-Fi camera packet latency jitter
+                    if self._smooth_raw_mm is None:
+                        self._smooth_raw_mm = raw_mm.copy()
+                    else:
+                        self._smooth_raw_mm = 0.75 * raw_mm + 0.25 * self._smooth_raw_mm
+                    raw_mm = self._smooth_raw_mm.copy()
+
                     # Align camera-space 3D hand to canonical training frame
                     aligned_mm = self._align_hand_to_canonical_frame(raw_mm)
                     unmasked_norm_xyz, _, _ = normalize_hand_sequence(
@@ -893,6 +919,7 @@ class MediaPipeCameraStreamer:
                         "hand_detected": True,
                     }
                 else:
+                    self._smooth_raw_mm = None
                     # Physical camera is open, but no hand was detected in this frame.
                     # Never overwrite the real webcam frame with a fake synthetic canvas!
                     self._draw_2d_skeleton_on_frame(bgr_frame, landmarks_2d, vis_mask, detected=False)
