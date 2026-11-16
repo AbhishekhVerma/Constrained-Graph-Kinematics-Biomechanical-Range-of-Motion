@@ -544,7 +544,7 @@ class MediaPipeCameraStreamer:
                     base_opts = mp_python.BaseOptions(model_asset_path=str(resolved_task))
                     options = vision.HandLandmarkerOptions(
                         base_options=base_opts,
-                        num_hands=self.num_hands,
+                        num_hands=max(self.num_hands, 2),
                         min_hand_detection_confidence=self.min_detection_confidence,
                         min_tracking_confidence=self.min_tracking_confidence,
                     )
@@ -559,7 +559,7 @@ class MediaPipeCameraStreamer:
                 if mp_hands_mod is not None and hasattr(mp_hands_mod, "hands"):
                     self._mp_legacy_hands = mp_hands_mod.hands.Hands(
                         static_image_mode=False,
-                        max_num_hands=self.num_hands,
+                        max_num_hands=max(self.num_hands, 2),
                         model_complexity=1,
                         min_detection_confidence=self.min_detection_confidence,
                         min_tracking_confidence=self.min_tracking_confidence,

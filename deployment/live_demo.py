@@ -1043,7 +1043,7 @@ def render_live_opencv_frame(
         )
 
     # Footer
-    footer_text = "[Q/ESC]: Quit  |  [T]: Toggle Virtual Tool Bar  |  [O]: Cycle Occlusion (0%/30%/50%/70%)  |  [S]: Save Snapshot"
+    footer_text = "[Q/ESC]: Quit  |  [H]: Toggle 1/2 Hands  |  [T]: Toggle Tool Bar  |  [O]: Cycle Occlusion (0%/30%/50%/70%)  |  [S]: Snapshot"
     cv2.putText(
         canvas,
         footer_text,
@@ -1158,8 +1158,18 @@ def run_live_demo(
                 # Compact surgical instrument bar across the middle/distal phalanges when enabled
                 streamer.tool_box = (180, 110, 460, 235) if tool_box_active else None
 
+            if source == "mediapipe" and hasattr(streamer, "num_hands"):
+                streamer.num_hands = 2 if two_hands else 1
+
             pkt = streamer.read_sequence()
-            hands_seqs = pkt.get("hands_sequences", [])
+            hands_seqs = list(pkt.get("hands_sequences", []))
+            if two_hands and len(hands_seqs) < 2 and (source != "mediapipe" or pkt.get("simulated", False)):
+                base_h = dict(hands_seqs[0]) if len(hands_seqs) == 1 else dict(pkt)
+                h0_item = dict(base_h)
+                h1_item = dict(base_h)
+                h0_item["handedness"] = "Left Hand"
+                h1_item["handedness"] = "Right Hand"
+                hands_seqs = [h0_item, h1_item]
             use_dual = (two_hands and len(hands_seqs) >= 2)
             cam_frame = pkt.get("frame_bgr")
 
@@ -1322,6 +1332,11 @@ def run_live_demo(
                     elif key in (ord("t"), ord("T")):
                         tool_box_active = not tool_box_active
                         print(f"\n[live_demo] Virtual surgical tool bar: {'ENABLED' if tool_box_active else 'DISABLED'}")
+                    elif key in (ord("h"), ord("H")):
+                        two_hands = not two_hands
+                        if hasattr(streamer, "num_hands"):
+                            streamer.num_hands = 2 if two_hands else 1
+                        print(f"\n[live_demo] Hand tracking mode toggled to: {'DUAL-HAND (2 Hands)' if two_hands else 'SINGLE-HAND (1 Hand)'}")
                     elif key in (ord("o"), ord("O")):
                         curr_r = getattr(streamer, "simulated_occlusion_rate", getattr(streamer, "occlusion_rate", occlusion_rate))
                         next_idx = 0
