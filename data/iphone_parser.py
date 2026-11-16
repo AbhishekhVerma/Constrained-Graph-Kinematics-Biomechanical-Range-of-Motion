@@ -556,6 +556,10 @@ class MediaPipeCameraStreamer:
                 cap = cv2.VideoCapture(self.camera_index)
 
             if cap is not None and cap.isOpened():
+                # Request 720p HD capture resolution for higher landmark tracking precision
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+                cap.set(cv2.CAP_PROP_FPS, 30)
                 self._cap = cap
                 self._is_simulated = False
             else:
