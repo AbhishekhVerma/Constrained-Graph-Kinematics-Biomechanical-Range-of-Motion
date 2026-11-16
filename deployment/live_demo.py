@@ -1178,7 +1178,10 @@ def run_live_demo(
                         repaired_pos_mm=repaired_f,
                         hud_info=frame_hud_info,
                     )
-                    cv2.imshow("Constrained Graph Kinematics - Real-Time Surgical Telemetry HUD", live_frame)
+                    win_name = "Constrained Graph Kinematics - Real-Time Surgical Telemetry HUD"
+                    if step == 0:
+                        cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
+                    cv2.imshow(win_name, live_frame)
                     wait_ms = 35 if source == "replay" else 1
                     key = cv2.waitKey(wait_ms) & 0xFF
                     if key in (27, ord("q"), ord("Q")):
