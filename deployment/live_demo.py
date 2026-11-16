@@ -1104,6 +1104,7 @@ def run_live_demo(
         streamer = ARKitUDPStreamer(
             port=udp_port,
             seq_len=8,
+            timeout_sec=0.03,
             fallback_to_mock=True,
         )
         source_label = f"iPhone ARKit UDP Stream (Port {udp_port})"
@@ -1305,7 +1306,10 @@ def run_live_demo(
                         repaired_pos_mm_2=repaired_f_2,
                         hands_labels=dual_labels,
                     )
-                    cv2.imshow("Constrained Graph Kinematics - Real-Time Surgical Telemetry HUD", live_frame)
+                    win_name = "Constrained Graph Kinematics - Real-Time Surgical Telemetry HUD"
+                    if step == 0:
+                        cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
+                    cv2.imshow(win_name, live_frame)
                     wait_ms = 35 if source == "replay" else 1
                     key = cv2.waitKey(wait_ms) & 0xFF
                     if key in (27, ord("q"), ord("Q")):

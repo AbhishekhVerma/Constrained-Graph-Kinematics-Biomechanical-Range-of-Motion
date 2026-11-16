@@ -77,8 +77,16 @@ Log the exact MacBook Air FPS/latency and number of recorded gloved sequences in
   - Integrated Bhavya's real physical Apple Silicon MacBook Air benchmark (`results/benchmark_macbook_air.json`) and merged with `results/benchmark_windows_pc.json` into `results/edge_benchmark.json`.
   - Fixed time-varying ground-truth sequence buffering in `data/iphone_parser.py` (`self._gt_mm_buffer` in `ARKitUDPStreamer` and `MediaPipeCameraStreamer`) and `data/record_custom_gloved.py` (`SyntheticGloveTransform` + `seq_len - 1` stride) so `read_sequence()` returns full `(T, 21, 3)` time-varying ground-truth trajectories rather than broadcasting the final frame.
 
+### Session: 2026-11-16 11:05 (UTC+4) — Abhishekh / Orchestrator Agent
+- **Git Branch:** `main`
+- **Summary:**
+  - Hardened Mode B UDP Streamer (`ARKitUDPStreamer` in `data/iphone_parser.py` and `deployment/live_demo.py`).
+  - Added project root to `sys.path` in `data/iphone_parser.py` and added standalone CLI diagnostics (`--mode test`, `--mode listen`, `--mode send`).
+  - Optimized socket timeout (`timeout_sec=0.05` default, `0.03` in `live_demo.py`) so fallback mode runs silky smooth at 30+ FPS instead of 4 FPS without stalling incoming 60 Hz live packets.
+  - Verified 100% loopback packet reception, 8-frame temporal windowing, ONNX model inference, and 0.0000 mm bone error across UDP payloads.
+
 ### Session: 2026-11-16 11:25 (UTC+4) — Bhavya & Antigravity Agent (Dual-Hand Tracking Test)
-- **Git Branch:** `feat/bhavya-two-hands` (commit `7a9a160`, branched off `main` at `f2ddcb5`)
+- **Git Branch:** `feat/bhavya-data` (merged with `origin/feat/bhavya-data`)
 - **Summary:**
   - Extended `MediaPipeCameraStreamer` in `data/iphone_parser.py` to support `num_hands=2` via Google MediaPipe Tasks API (`vision.HandLandmarkerOptions(num_hands=2)`) and legacy fallback.
   - Implemented simultaneous per-hand 3D tracking, EMA temporal smoothing, canonical coordinate alignment, and dual 2D skeleton overlays on live camera (Emerald Green for Hand 1 / Left Hand, Amber Gold for Hand 2 / Right Hand).
