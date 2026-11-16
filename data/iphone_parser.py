@@ -481,6 +481,7 @@ class MediaPipeCameraStreamer:
         simulate_if_unavailable: bool = True,
         simulated_occlusion_rate: float = 0.30,
         task_model_path: str = "checkpoints/hand_landmarker.task",
+        num_hands: int = 1,
     ) -> None:
         self.camera_index = int(camera_index)
         self.use_jetson_csi = bool(use_jetson_csi)
@@ -491,8 +492,9 @@ class MediaPipeCameraStreamer:
         self.simulate_if_unavailable = bool(simulate_if_unavailable)
         self.simulated_occlusion_rate = float(simulated_occlusion_rate)
         self.task_model_path = Path(task_model_path)
+        self.num_hands = int(num_hands)
         self.tool_box: Optional[Tuple[int, int, int, int]] = None  # (x1, y1, x2, y2)
-        self._smooth_raw_mm: Optional[np.ndarray] = None
+        self._smooth_raw_mm: Dict[int, np.ndarray] = {}
 
         self._cap: Any = None
         self._landmarker: Any = None
@@ -504,6 +506,20 @@ class MediaPipeCameraStreamer:
         self._pos_mm_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
         self._gt_mm_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
         self._mask_buffer: Deque[np.ndarray] = deque(maxlen=self.seq_len)
+
+        # Multi-hand sliding window buffers
+        self._hands_frame_buffer: List[Deque[np.ndarray]] = [
+            deque(maxlen=self.seq_len) for _ in range(max(self.num_hands, 2))
+        ]
+        self._hands_pos_buffer: List[Deque[np.ndarray]] = [
+            deque(maxlen=self.seq_len) for _ in range(max(self.num_hands, 2))
+        ]
+        self._hands_gt_buffer: List[Deque[np.ndarray]] = [
+            deque(maxlen=self.seq_len) for _ in range(max(self.num_hands, 2))
+        ]
+        self._hands_mask_buffer: List[Deque[np.ndarray]] = [
+            deque(maxlen=self.seq_len) for _ in range(max(self.num_hands, 2))
+        ]
 
         self._init_hardware_or_fallback()
 
@@ -528,7 +544,7 @@ class MediaPipeCameraStreamer:
                     base_opts = mp_python.BaseOptions(model_asset_path=str(resolved_task))
                     options = vision.HandLandmarkerOptions(
                         base_options=base_opts,
-                        num_hands=1,
+                        num_hands=self.num_hands,
                         min_hand_detection_confidence=self.min_detection_confidence,
                         min_tracking_confidence=self.min_tracking_confidence,
                     )
@@ -543,7 +559,7 @@ class MediaPipeCameraStreamer:
                 if mp_hands_mod is not None and hasattr(mp_hands_mod, "hands"):
                     self._mp_legacy_hands = mp_hands_mod.hands.Hands(
                         static_image_mode=False,
-                        max_num_hands=1,
+                        max_num_hands=self.num_hands,
                         model_complexity=1,
                         min_detection_confidence=self.min_detection_confidence,
                         min_tracking_confidence=self.min_tracking_confidence,
@@ -559,7 +575,28 @@ class MediaPipeCameraStreamer:
                 if cap is None or not cap.isOpened():
                     cap = cv2.VideoCapture(self.camera_index)
             else:
-                cap = cv2.VideoCapture(self.camera_index)
+                candidates = [self.camera_index]
+                for alt_idx in [0, 1, 2]:
+                    if alt_idx not in candidates:
+                        candidates.append(alt_idx)
+
+                for c_idx in candidates:
+                    apis = [cv2.CAP_AVFOUNDATION, cv2.CAP_ANY] if sys.platform == "darwin" else [cv2.CAP_ANY]
+                    for api in apis:
+                        try:
+                            test_cap = cv2.VideoCapture(c_idx, api)
+                            if test_cap is not None and test_cap.isOpened():
+                                cap = test_cap
+                                self.camera_index = c_idx
+                                api_str = "AVFoundation" if api == cv2.CAP_AVFOUNDATION else "Default"
+                                print(f"[MediaPipeCameraStreamer] Successfully opened camera index {c_idx} ({api_str}).")
+                                break
+                            elif test_cap is not None:
+                                test_cap.release()
+                        except Exception:
+                            pass
+                    if cap is not None and cap.isOpened():
+                        break
 
             if cap is not None and cap.isOpened():
                 # Request 720p HD capture resolution for higher landmark tracking precision
@@ -716,6 +753,8 @@ class MediaPipeCameraStreamer:
         landmarks_2d: np.ndarray,
         visibility_mask: np.ndarray,
         detected: bool,
+        hand_idx: int = 0,
+        hand_label: str = "Hand 1",
     ) -> None:
         """Draws the 21-joint 2D skeleton and visibility status onto the live BGR camera frame."""
         import cv2
@@ -727,7 +766,7 @@ class MediaPipeCameraStreamer:
         wrist_rad = max(int(round(8.0 * ui_scale)), 7)
         outline_thick = max(int(round(1.2 * ui_scale)), 1)
 
-        if self.tool_box is not None:
+        if hand_idx == 0 and self.tool_box is not None:
             bx1, by1, bx2, by2 = self.tool_box
             overlay = bgr_frame.copy()
             cv2.rectangle(overlay, (bx1, by1), (bx2, by2), (0, 110, 255), -1)
@@ -745,35 +784,57 @@ class MediaPipeCameraStreamer:
             )
 
         if not detected:
-            bar_h = max(int(42 * ui_scale), 40)
-            cv2.rectangle(bgr_frame, (12, h_img - bar_h - 12), (w_img - 12, h_img - 12), (20, 25, 40), -1)
-            cv2.rectangle(bgr_frame, (12, h_img - bar_h - 12), (w_img - 12, h_img - 12), (0, 180, 255), 1)
-            cv2.putText(
-                bgr_frame,
-                "LIVE CAMERA ACTIVE - Place gloved or bare hand in view...",
-                (24, h_img - int(bar_h * 0.45)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.50 * ui_scale,
-                (0, 215, 255),
-                max(int(1 * ui_scale), 1),
-                cv2.LINE_AA,
-            )
+            if hand_idx == 0:
+                bar_h = max(int(42 * ui_scale), 40)
+                cv2.rectangle(bgr_frame, (12, h_img - bar_h - 12), (w_img - 12, h_img - 12), (20, 25, 40), -1)
+                cv2.rectangle(bgr_frame, (12, h_img - bar_h - 12), (w_img - 12, h_img - 12), (0, 180, 255), 1)
+                cv2.putText(
+                    bgr_frame,
+                    "LIVE CAMERA ACTIVE - Place gloved or bare hand in view...",
+                    (24, h_img - int(bar_h * 0.45)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.50 * ui_scale,
+                    (0, 215, 255),
+                    max(int(1 * ui_scale), 1),
+                    cv2.LINE_AA,
+                )
             return
+
+        is_h0 = (hand_idx == 0)
+        bone_col_vis = (90, 235, 130) if is_h0 else (50, 195, 255)
+        bone_col_occ = (60, 70, 245)
+        joint_col_vis = (100, 250, 140) if is_h0 else (70, 215, 255)
+        joint_col_occ = (50, 60, 250)
+        lbl_col = (100, 255, 150) if is_h0 else (60, 215, 255)
 
         pts_2d = np.clip(landmarks_2d.astype(np.int32), 0, [w_img - 1, h_img - 1])
         for j in range(1, NUM_JOINTS):
             p = PARENT_INDICES[j]
             vis_both = (visibility_mask[j] > 0.5) and (visibility_mask[p] > 0.5)
-            color = (90, 235, 130) if vis_both else (60, 70, 245)
+            color = bone_col_vis if vis_both else bone_col_occ
             thickness = line_thick if vis_both else max(line_thick - 1, 1)
             cv2.line(bgr_frame, tuple(pts_2d[p]), tuple(pts_2d[j]), color, thickness, cv2.LINE_AA)
 
         for j in range(NUM_JOINTS):
             vis = visibility_mask[j] > 0.5
-            c_fill = (255, 255, 255) if j == 0 else ((100, 250, 140) if vis else (50, 60, 250))
+            c_fill = (255, 255, 255) if j == 0 else (joint_col_vis if vis else joint_col_occ)
             rad = wrist_rad if j == 0 else circle_rad
             cv2.circle(bgr_frame, tuple(pts_2d[j]), rad, c_fill, -1, cv2.LINE_AA)
             cv2.circle(bgr_frame, tuple(pts_2d[j]), rad + outline_thick, (15, 23, 42), outline_thick, cv2.LINE_AA)
+
+        wrist_pt = pts_2d[0]
+        lx = max(int(wrist_pt[0] - 30 * ui_scale), 10)
+        ly = max(int(wrist_pt[1] - 16 * ui_scale), 20)
+        cv2.putText(
+            bgr_frame,
+            hand_label.upper(),
+            (lx, ly),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45 * ui_scale,
+            lbl_col,
+            max(int(1 * ui_scale), 1),
+            cv2.LINE_AA,
+        )
 
     def read_frame(
         self,
@@ -783,6 +844,7 @@ class MediaPipeCameraStreamer:
         Captures a single frame from the camera (or simulated stream) and extracts
         21 3D hand world landmarks in millimeters plus `[x, y, z, m]` features,
         returning the image frame (`frame_bgr`) and 2D pixel coordinates (`landmarks_2d`).
+        Supports both single-hand and dual-hand tracking.
         """
         if tool_box is not None:
             self.tool_box = tool_box
@@ -796,137 +858,165 @@ class MediaPipeCameraStreamer:
                 h_img, w_img = bgr_frame.shape[:2]
                 rgb_frame = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2RGB)
 
-                raw_mm = np.zeros((NUM_JOINTS, 3), dtype=np.float32)
-                landmarks_2d = np.zeros((NUM_JOINTS, 2), dtype=np.float32)
-                vis_mask = np.ones((NUM_JOINTS,), dtype=np.float32)
-                detected = False
+                detected_hands_raw: List[Tuple[Any, Any, str]] = []
 
                 # 1. Try HandLandmarker (Tasks API)
                 if self._landmarker is not None:
                     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
                     det_result = self._landmarker.detect(mp_image)
                     if det_result.hand_world_landmarks and len(det_result.hand_world_landmarks) > 0:
-                        detected = True
-                        world_lms = det_result.hand_world_landmarks[0]
-                        screen_lms = (
-                            det_result.hand_landmarks[0]
-                            if det_result.hand_landmarks
-                            else None
-                        )
-                        for j_idx in range(NUM_JOINTS):
-                            lm = world_lms[j_idx]
-                            raw_mm[j_idx, 0] = float(lm.x) * 1000.0
-                            raw_mm[j_idx, 1] = -float(lm.y) * 1000.0
-                            raw_mm[j_idx, 2] = -float(lm.z) * 1000.0
-                            if screen_lms is not None:
-                                slm = screen_lms[j_idx]
-                                landmarks_2d[j_idx, 0] = float(slm.x) * w_img
-                                landmarks_2d[j_idx, 1] = float(slm.y) * h_img
-                                # Detect natural edge-of-frame or self-occlusion drop
-                                if not (0.01 <= float(slm.x) <= 0.99 and 0.01 <= float(slm.y) <= 0.99):
-                                    vis_mask[j_idx] = 0.0
+                        n_det = min(len(det_result.hand_world_landmarks), self.num_hands)
+                        for h_idx in range(n_det):
+                            w_lms = det_result.hand_world_landmarks[h_idx]
+                            s_lms = (
+                                det_result.hand_landmarks[h_idx]
+                                if det_result.hand_landmarks and len(det_result.hand_landmarks) > h_idx
+                                else None
+                            )
+                            h_str = f"Hand {h_idx + 1}"
+                            if det_result.handedness and len(det_result.handedness) > h_idx:
+                                cats = det_result.handedness[h_idx]
+                                if cats and len(cats) > 0:
+                                    h_str = cats[0].category_name or cats[0].display_name or f"Hand {h_idx + 1}"
+                            detected_hands_raw.append((w_lms, s_lms, h_str))
 
                 # 2. Try legacy solutions.hands fallback
                 elif self._mp_legacy_hands is not None:
                     results = self._mp_legacy_hands.process(rgb_frame)
-                    if getattr(results, "multi_hand_world_landmarks", None):
-                        detected = True
-                        hand_world = results.multi_hand_world_landmarks[0]
-                        hand_screen = (
-                            results.multi_hand_landmarks[0]
-                            if getattr(results, "multi_hand_landmarks", None)
-                            else None
-                        )
+                    multi_w = getattr(results, "multi_hand_world_landmarks", None)
+                    multi_s = getattr(results, "multi_hand_landmarks", None)
+                    multi_h = getattr(results, "multi_handedness", None)
+                    if multi_w and len(multi_w) > 0:
+                        n_det = min(len(multi_w), self.num_hands)
+                        for h_idx in range(n_det):
+                            w_lms = multi_w[h_idx]
+                            s_lms = multi_s[h_idx] if multi_s and len(multi_s) > h_idx else None
+                            h_str = f"Hand {h_idx + 1}"
+                            if multi_h and len(multi_h) > h_idx and multi_h[h_idx].classification:
+                                h_str = multi_h[h_idx].classification[0].label or f"Hand {h_idx + 1}"
+                            detected_hands_raw.append((w_lms, s_lms, h_str))
+
+                if len(detected_hands_raw) > 0:
+                    hands_data = []
+                    for h_idx, (w_lms, s_lms, h_str) in enumerate(detected_hands_raw):
+                        raw_mm = np.zeros((NUM_JOINTS, 3), dtype=np.float32)
+                        landmarks_2d = np.zeros((NUM_JOINTS, 2), dtype=np.float32)
+                        vis_mask = np.ones((NUM_JOINTS,), dtype=np.float32)
+
+                        # Extract joints
                         for j_idx in range(NUM_JOINTS):
-                            lm = hand_world.landmark[j_idx]
+                            lm = w_lms.landmark[j_idx] if hasattr(w_lms, "landmark") else w_lms[j_idx]
                             raw_mm[j_idx, 0] = float(lm.x) * 1000.0
                             raw_mm[j_idx, 1] = -float(lm.y) * 1000.0
                             raw_mm[j_idx, 2] = -float(lm.z) * 1000.0
-                            if hand_screen is not None:
-                                slm = hand_screen.landmark[j_idx]
+                            if s_lms is not None:
+                                slm = s_lms.landmark[j_idx] if hasattr(s_lms, "landmark") else s_lms[j_idx]
                                 landmarks_2d[j_idx, 0] = float(slm.x) * w_img
                                 landmarks_2d[j_idx, 1] = float(slm.y) * h_img
                                 if not (0.01 <= float(slm.x) <= 0.99 and 0.01 <= float(slm.y) <= 0.99):
                                     vis_mask[j_idx] = 0.0
 
-                if detected:
-                    # Apply responsive EMA temporal smoothing (75/25) to suppress Wi-Fi camera packet latency jitter
-                    if self._smooth_raw_mm is None:
-                        self._smooth_raw_mm = raw_mm.copy()
-                    else:
-                        self._smooth_raw_mm = 0.75 * raw_mm + 0.25 * self._smooth_raw_mm
-                    raw_mm = self._smooth_raw_mm.copy()
+                        # Apply responsive EMA temporal smoothing (75/25)
+                        if h_idx not in self._smooth_raw_mm:
+                            self._smooth_raw_mm[h_idx] = raw_mm.copy()
+                        else:
+                            self._smooth_raw_mm[h_idx] = 0.75 * raw_mm + 0.25 * self._smooth_raw_mm[h_idx]
+                        raw_mm = self._smooth_raw_mm[h_idx].copy()
 
-                    # Align camera-space 3D hand to canonical training frame
-                    aligned_mm = self._align_hand_to_canonical_frame(raw_mm)
-                    unmasked_norm_xyz, _, _ = normalize_hand_sequence(
-                        aligned_mm.copy(), scale_mm=self.scale_mm, visibility_mask=None
-                    )
-                    unmasked_centered_mm = unmasked_norm_xyz * self.scale_mm
-                    obs_mm = aligned_mm.copy()
+                        # Align camera-space 3D hand to canonical training frame
+                        aligned_mm = self._align_hand_to_canonical_frame(raw_mm)
+                        unmasked_norm_xyz, _, _ = normalize_hand_sequence(
+                            aligned_mm.copy(), scale_mm=self.scale_mm, visibility_mask=None
+                        )
+                        unmasked_centered_mm = unmasked_norm_xyz * self.scale_mm
+                        obs_mm = aligned_mm.copy()
 
-                    # Apply virtual surgical tool occlusion region if active
-                    if self.tool_box is not None:
-                        bx1, by1, bx2, by2 = self.tool_box
-                        for j in range(1, NUM_JOINTS):
-                            jx, jy = landmarks_2d[j]
-                            if bx1 <= jx <= bx2 and by1 <= jy <= by2:
-                                vis_mask[j] = 0.0
-                                obs_mm[j] = 0.0
-                        # Enforce contiguous distal subtree masking when a knuckle is inside the tool box
-                        for chain in KINEMATIC_CHAINS.values():
-                            parent_masked = False
-                            for j_c in chain:
-                                if vis_mask[j_c] <= 0.5:
-                                    parent_masked = True
-                                if parent_masked:
-                                    vis_mask[j_c] = 0.0
-                                    obs_mm[j_c] = 0.0
+                        # Apply virtual surgical tool occlusion region if active
+                        if self.tool_box is not None:
+                            bx1, by1, bx2, by2 = self.tool_box
+                            for j in range(1, NUM_JOINTS):
+                                jx, jy = landmarks_2d[j]
+                                if bx1 <= jx <= bx2 and by1 <= jy <= by2:
+                                    vis_mask[j] = 0.0
+                                    obs_mm[j] = 0.0
+                            for chain in KINEMATIC_CHAINS.values():
+                                parent_masked = False
+                                for j_c in chain:
+                                    if vis_mask[j_c] <= 0.5:
+                                        parent_masked = True
+                                    if parent_masked:
+                                        vis_mask[j_c] = 0.0
+                                        obs_mm[j_c] = 0.0
 
-                    # Optionally apply controlled subtree occlusion rate if requested
-                    if self.simulated_occlusion_rate > 0.0:
-                        target_k = int(round(self.simulated_occlusion_rate * NUM_JOINTS))
-                        curr_k = int(np.sum(vis_mask <= 0.5))
-                        if curr_k < target_k:
-                            # Mask contiguous distal joints starting from index/middle/thumb tips
-                            priority_order = [8, 7, 12, 11, 4, 3, 16, 15, 20, 19, 6, 10, 2, 14, 18, 5, 9, 1, 13, 17]
-                            for j_p in priority_order:
-                                if curr_k >= target_k:
-                                    break
-                                if vis_mask[j_p] > 0.5:
-                                    vis_mask[j_p] = 0.0
-                                    obs_mm[j_p] = 0.0
-                                    curr_k += 1
+                        # Optionally apply controlled subtree occlusion rate
+                        if self.simulated_occlusion_rate > 0.0:
+                            target_k = int(round(self.simulated_occlusion_rate * NUM_JOINTS))
+                            curr_k = int(np.sum(vis_mask <= 0.5))
+                            if curr_k < target_k:
+                                priority_order = [8, 7, 12, 11, 4, 3, 16, 15, 20, 19, 6, 10, 2, 14, 18, 5, 9, 1, 13, 17]
+                                for j_p in priority_order:
+                                    if curr_k >= target_k:
+                                        break
+                                    if vis_mask[j_p] > 0.5:
+                                        vis_mask[j_p] = 0.0
+                                        obs_mm[j_p] = 0.0
+                                        curr_k += 1
 
-                    vis_mask[0] = 1.0
-                    norm_xyz, _, _ = normalize_hand_sequence(
-                        obs_mm, scale_mm=self.scale_mm, visibility_mask=vis_mask
-                    )
-                    centered_mm = norm_xyz * self.scale_mm
-                    features_4d = build_node_features_4d(norm_xyz, vis_mask)
+                        vis_mask[0] = 1.0
+                        norm_xyz, _, _ = normalize_hand_sequence(
+                            obs_mm, scale_mm=self.scale_mm, visibility_mask=vis_mask
+                        )
+                        centered_mm = norm_xyz * self.scale_mm
+                        features_4d = build_node_features_4d(norm_xyz, vis_mask)
 
-                    self._draw_2d_skeleton_on_frame(bgr_frame, landmarks_2d, vis_mask, detected=True)
+                        self._draw_2d_skeleton_on_frame(
+                            bgr_frame, landmarks_2d, vis_mask, detected=True, hand_idx=h_idx, hand_label=h_str
+                        )
 
+                        if h_idx < len(self._hands_frame_buffer):
+                            self._hands_frame_buffer[h_idx].append(features_4d)
+                            self._hands_pos_buffer[h_idx].append(centered_mm)
+                            self._hands_gt_buffer[h_idx].append(unmasked_centered_mm)
+                            self._hands_mask_buffer[h_idx].append(vis_mask)
+
+                        hands_data.append({
+                            "features_4d": features_4d,
+                            "positions_mm": centered_mm,
+                            "gt_positions_mm": unmasked_centered_mm,
+                            "visibility_mask": vis_mask,
+                            "landmarks_2d": landmarks_2d,
+                            "handedness": h_str,
+                        })
+
+                    # Clean up EMA for any disappeared hand
+                    for old_h in list(self._smooth_raw_mm.keys()):
+                        if old_h >= len(detected_hands_raw):
+                            del self._smooth_raw_mm[old_h]
+
+                    h0 = hands_data[0]
                     self._step_counter += 1
-                    self._frame_buffer.append(features_4d)
-                    self._pos_mm_buffer.append(centered_mm)
-                    self._gt_mm_buffer.append(unmasked_centered_mm)
-                    self._mask_buffer.append(vis_mask)
+                    self._frame_buffer.append(h0["features_4d"])
+                    self._pos_mm_buffer.append(h0["positions_mm"])
+                    self._gt_mm_buffer.append(h0["gt_positions_mm"])
+                    self._mask_buffer.append(h0["visibility_mask"])
+
                     return {
-                        "features_4d": features_4d,
-                        "positions_mm": centered_mm,
-                        "gt_positions_mm": unmasked_centered_mm,
-                        "visibility_mask": vis_mask,
-                        "landmarks_2d": landmarks_2d,
+                        "features_4d": h0["features_4d"],
+                        "positions_mm": h0["positions_mm"],
+                        "gt_positions_mm": h0["gt_positions_mm"],
+                        "visibility_mask": h0["visibility_mask"],
+                        "landmarks_2d": h0["landmarks_2d"],
                         "frame_bgr": bgr_frame,
                         "scale_mm": self.scale_mm,
                         "simulated": False,
                         "hand_detected": True,
+                        "num_detected_hands": len(hands_data),
+                        "hands": hands_data,
                     }
                 else:
-                    self._smooth_raw_mm = None
-                    # Physical camera is open, but no hand was detected in this frame.
-                    # Never overwrite the real webcam frame with a fake synthetic canvas!
+                    self._smooth_raw_mm.clear()
+                    landmarks_2d = np.zeros((NUM_JOINTS, 2), dtype=np.float32)
+                    vis_mask = np.ones((NUM_JOINTS,), dtype=np.float32)
                     self._draw_2d_skeleton_on_frame(bgr_frame, landmarks_2d, vis_mask, detected=False)
                     if len(self._frame_buffer) > 0:
                         features_4d = self._frame_buffer[-1].copy()
@@ -947,6 +1037,7 @@ class MediaPipeCameraStreamer:
                     self._pos_mm_buffer.append(centered_mm)
                     self._gt_mm_buffer.append(unmasked_centered_mm)
                     self._mask_buffer.append(vis_mask)
+
                     return {
                         "features_4d": features_4d,
                         "positions_mm": centered_mm,
@@ -957,6 +1048,8 @@ class MediaPipeCameraStreamer:
                         "scale_mm": self.scale_mm,
                         "simulated": False,
                         "hand_detected": False,
+                        "num_detected_hands": 0,
+                        "hands": [],
                     }
 
         # Fallback: generate simulated MediaPipe world landmarks frame
@@ -985,16 +1078,30 @@ class MediaPipeCameraStreamer:
         )
         parsed["frame_bgr"] = synth_bgr
         parsed["landmarks_2d"] = np.zeros((NUM_JOINTS, 2), dtype=np.float32)
+        parsed["num_detected_hands"] = 1
+        parsed["hands"] = [{
+            "features_4d": parsed["features_4d"],
+            "positions_mm": parsed["positions_mm"],
+            "gt_positions_mm": parsed.get("gt_positions_mm", parsed["positions_mm"]),
+            "visibility_mask": parsed["visibility_mask"],
+            "landmarks_2d": parsed["landmarks_2d"],
+            "handedness": "Simulated Hand",
+        }]
 
         self._step_counter += 1
         self._frame_buffer.append(parsed["features_4d"])
         self._pos_mm_buffer.append(parsed["positions_mm"])
         self._gt_mm_buffer.append(parsed.get("gt_positions_mm", parsed["positions_mm"]))
         self._mask_buffer.append(parsed["visibility_mask"])
+        if len(self._hands_frame_buffer) > 0:
+            self._hands_frame_buffer[0].append(parsed["features_4d"])
+            self._hands_pos_buffer[0].append(parsed["positions_mm"])
+            self._hands_gt_buffer[0].append(parsed.get("gt_positions_mm", parsed["positions_mm"]))
+            self._hands_mask_buffer[0].append(parsed["visibility_mask"])
         return parsed
 
     def read_sequence(self, seq_len: Optional[int] = None) -> Dict[str, Any]:
-        """Returns a sliding window sequence `(T, 21, 4)` of 4D node features."""
+        """Returns sliding window sequence `(T, 21, 4)` of 4D node features for all tracked hands."""
         target_len = int(seq_len or self.seq_len)
         last_frame = self.read_frame()
         while len(self._frame_buffer) < target_len:
@@ -1004,6 +1111,33 @@ class MediaPipeCameraStreamer:
         pos_mm = np.stack(list(self._pos_mm_buffer)[-target_len:], axis=0)
         gt_mm = np.stack(list(self._gt_mm_buffer)[-target_len:], axis=0)
         mask = np.stack(list(self._mask_buffer)[-target_len:], axis=0)
+
+        hands_seqs = []
+        n_hands = max(last_frame.get("num_detected_hands", 1), 1)
+        for h_idx in range(n_hands):
+            if h_idx < len(self._hands_frame_buffer) and len(self._hands_frame_buffer[h_idx]) >= target_len:
+                h_frames_4d = np.stack(list(self._hands_frame_buffer[h_idx])[-target_len:], axis=0)
+                h_pos_mm = np.stack(list(self._hands_pos_buffer[h_idx])[-target_len:], axis=0)
+                h_gt_mm = np.stack(list(self._hands_gt_buffer[h_idx])[-target_len:], axis=0)
+                h_mask = np.stack(list(self._hands_mask_buffer[h_idx])[-target_len:], axis=0)
+            else:
+                h_frames_4d = frames_4d
+                h_pos_mm = pos_mm
+                h_gt_mm = gt_mm
+                h_mask = mask
+
+            h_dict = last_frame.get("hands", [{}])[h_idx] if (last_frame.get("hands") and len(last_frame.get("hands")) > h_idx) else {}
+            hands_seqs.append({
+                "node_features": h_frames_4d,
+                "features_4d": h_frames_4d,
+                "positions_mm": h_pos_mm,
+                "gt_positions_mm": h_gt_mm,
+                "visibility_mask": h_mask,
+                "landmarks_2d": h_dict.get("landmarks_2d", last_frame.get("landmarks_2d")),
+                "handedness": h_dict.get("handedness", f"Hand {h_idx + 1}"),
+                "scale_mm": self.scale_mm,
+            })
+
         out = {
             "node_features": frames_4d,
             "features_4d": frames_4d,
@@ -1014,6 +1148,8 @@ class MediaPipeCameraStreamer:
             "landmarks_2d": last_frame.get("landmarks_2d"),
             "scale_mm": self.scale_mm,
             "simulated": bool(last_frame.get("simulated", True)),
+            "num_detected_hands": last_frame.get("num_detected_hands", 1),
+            "hands_sequences": hands_seqs,
         }
         return out
 

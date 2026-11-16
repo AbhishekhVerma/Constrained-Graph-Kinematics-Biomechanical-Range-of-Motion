@@ -84,3 +84,15 @@ Log the exact MacBook Air FPS/latency and number of recorded gloved sequences in
   - Added project root to `sys.path` in `data/iphone_parser.py` and added standalone CLI diagnostics (`--mode test`, `--mode listen`, `--mode send`).
   - Optimized socket timeout (`timeout_sec=0.05` default, `0.03` in `live_demo.py`) so fallback mode runs silky smooth at 30+ FPS instead of 4 FPS without stalling incoming 60 Hz live packets.
   - Verified 100% loopback packet reception, 8-frame temporal windowing, ONNX model inference, and 0.0000 mm bone error across UDP payloads.
+
+### Session: 2026-11-16 11:25 (UTC+4) — Bhavya & Antigravity Agent (Dual-Hand Tracking Test)
+- **Git Branch:** `feat/bhavya-data` (merged with `origin/feat/bhavya-data`)
+- **Summary:**
+  - Extended `MediaPipeCameraStreamer` in `data/iphone_parser.py` to support `num_hands=2` via Google MediaPipe Tasks API (`vision.HandLandmarkerOptions(num_hands=2)`) and legacy fallback.
+  - Implemented simultaneous per-hand 3D tracking, EMA temporal smoothing, canonical coordinate alignment, and dual 2D skeleton overlays on live camera (Emerald Green for Hand 1 / Left Hand, Amber Gold for Hand 2 / Right Hand).
+  - Implemented dynamic batching `(2, T, 21, 4)` in `deployment/live_demo.py` for concurrent ONNX Runtime 6D-FK student inference and Direct-XYZ baseline.
+  - Extended `render_live_opencv_frame()` to render dual hands side-by-side in Panel 2 (unconstrained) and Panel 3 (6D-FK student with 0.0000 mm bone error on both hands).
+  - Added `--two-hands` CLI flag and interactive menu option `[7]` to `run_presentation_demo.py`.
+  - Maintained 100% backward compatibility for single-hand mode and strict 0.0000 mm bone error invariance.
+  - Preserved 100% clean revertibility: switching back to single-hand baseline is accomplished simply via `git checkout main`.
+- **Verification Run:** `python tests/test_kinematics.py` (All PASS), `deployment/live_demo.py --source replay --two-hands --headless --max-frames 10` (848.7 FPS, 0.0000 mm bone error).

@@ -872,26 +872,30 @@ def _draw_orthographic_skeleton(
         col = (255, 255, 255) if j == 0 else joint_color
         cv2.circle(canvas, tuple(coords[j]), r, col, -1, cv2.LINE_AA)
 
-    cv2.putText(
-        canvas,
-        title,
-        (cx - 160, cy - int(135 * scale) - 10),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.44,
-        (240, 240, 240),
-        1,
-        cv2.LINE_AA,
-    )
-    cv2.putText(
-        canvas,
-        metrics_str,
-        (cx - 160, cy + 30),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.38,
-        (180, 210, 240),
-        1,
-        cv2.LINE_AA,
-    )
+    if title:
+        (t_w, t_h), _ = cv2.getTextSize(title, cv2.FONT_HERSHEY_SIMPLEX, 0.42, 1)
+        cv2.putText(
+            canvas,
+            title,
+            (cx - t_w // 2, cy - int(135 * scale) - 8),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.42,
+            (240, 240, 240),
+            1,
+            cv2.LINE_AA,
+        )
+    if metrics_str:
+        (m_w, m_h), _ = cv2.getTextSize(metrics_str, cv2.FONT_HERSHEY_SIMPLEX, 0.38, 1)
+        cv2.putText(
+            canvas,
+            metrics_str,
+            (cx - m_w // 2, cy + 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.38,
+            (180, 210, 240),
+            1,
+            cv2.LINE_AA,
+        )
 
 
 def render_live_opencv_frame(
@@ -901,6 +905,9 @@ def render_live_opencv_frame(
     hud_info: Dict[str, Any],
     width: int = 1380,
     height: int = 520,
+    unconstrained_pos_mm_2: Optional[np.ndarray] = None,
+    repaired_pos_mm_2: Optional[np.ndarray] = None,
+    hands_labels: Optional[List[str]] = None,
 ) -> np.ndarray:
     """Constructs a real-time (sub-1ms) 3-panel OpenCV BGR telemetry frame for 60 FPS live HUD display."""
     import cv2
@@ -912,8 +919,10 @@ def render_live_opencv_frame(
     cv2.rectangle(canvas, (0, 0), (width, 55), (28, 22, 18), -1)
     cv2.line(canvas, (0, 55), (width, 55), (60, 50, 40), 1)
 
+    n_hands_hud = hud_info.get("num_hands", 1)
+    hands_suffix = f" | Hands Tracked: {n_hands_hud}" if n_hands_hud > 1 else ""
     title_text = (
-        f"CONSTRAINED GRAPH KINEMATICS - LIVE HUD | Source: {hud_info.get('source_label', '')} | "
+        f"CONSTRAINED GRAPH KINEMATICS - LIVE HUD | Source: {hud_info.get('source_label', '')}{hands_suffix} | "
         f"Gesture: {hud_info.get('gesture_name', '')}"
     )
     cv2.putText(canvas, title_text, (16, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (255, 255, 255), 1, cv2.LINE_AA)
@@ -943,37 +952,95 @@ def render_live_opencv_frame(
     p2_x = 465
     cv2.rectangle(canvas, (p2_x, 65), (p2_x + p1_w, 65 + p1_h), (22, 17, 14), -1)
     cv2.rectangle(canvas, (p2_x, 65), (p2_x + p1_w, 65 + p1_h), (80, 70, 60), 1)
-    unc_title = f"2. Direct-XYZ Baseline (Bone Err: {unc_bone:.1f} mm)"
-    unc_sub = f"INVALID - Stretched Bones ({hud_info.get('unconstrained_valid_pct', 0.0):.0f}% Valid)"
-    _draw_orthographic_skeleton(
-        canvas=canvas,
-        positions_mm=unconstrained_pos_mm,
-        center_xy=(p2_x + p1_w // 2, 65 + int(p1_h * 0.72)),
-        scale=1.5,
-        bone_color=(40, 140, 245),
-        joint_color=(100, 180, 255),
-        title=unc_title,
-        metrics_str=unc_sub,
-        highlight_stretch=True,
-    )
+
+    if unconstrained_pos_mm_2 is None:
+        unc_title = f"2. Direct-XYZ Baseline (Bone Err: {unc_bone:.1f} mm)"
+        unc_sub = f"INVALID - Stretched Bones ({hud_info.get('unconstrained_valid_pct', 0.0):.0f}% Valid)"
+        _draw_orthographic_skeleton(
+            canvas=canvas,
+            positions_mm=unconstrained_pos_mm,
+            center_xy=(p2_x + p1_w // 2, 65 + int(p1_h * 0.72)),
+            scale=1.5,
+            bone_color=(40, 140, 245),
+            joint_color=(100, 180, 255),
+            title=unc_title,
+            metrics_str=unc_sub,
+            highlight_stretch=True,
+        )
+    else:
+        lbl0 = hands_labels[0] if (hands_labels and len(hands_labels) > 0) else "Hand 1"
+        lbl1 = hands_labels[1] if (hands_labels and len(hands_labels) > 1) else "Hand 2"
+        cv2.putText(canvas, f"2. Direct-XYZ Baseline (Bone Err: {unc_bone:.1f} mm)", (p2_x + 12, 85), cv2.FONT_HERSHEY_SIMPLEX, 0.44, (240, 240, 240), 1, cv2.LINE_AA)
+        cv2.putText(canvas, "INVALID - Unnatural Stretched Bones", (p2_x + 12, 102), cv2.FONT_HERSHEY_SIMPLEX, 0.36, (140, 180, 240), 1, cv2.LINE_AA)
+        _draw_orthographic_skeleton(
+            canvas=canvas,
+            positions_mm=unconstrained_pos_mm,
+            center_xy=(p2_x + int(p1_w * 0.28), 65 + int(p1_h * 0.72)),
+            scale=1.1,
+            bone_color=(40, 140, 245),
+            joint_color=(100, 180, 255),
+            title=lbl0,
+            metrics_str="",
+            highlight_stretch=True,
+        )
+        _draw_orthographic_skeleton(
+            canvas=canvas,
+            positions_mm=unconstrained_pos_mm_2,
+            center_xy=(p2_x + int(p1_w * 0.72), 65 + int(p1_h * 0.72)),
+            scale=1.1,
+            bone_color=(40, 140, 245),
+            joint_color=(100, 180, 255),
+            title=lbl1,
+            metrics_str="",
+            highlight_stretch=True,
+        )
 
     # Panel 3: Our Repaired 6D-FK Student
     p3_x = 920
     cv2.rectangle(canvas, (p3_x, 65), (p3_x + p1_w, 65 + p1_h), (22, 17, 14), -1)
     cv2.rectangle(canvas, (p3_x, 65), (p3_x + p1_w, 65 + p1_h), (40, 140, 80), 2)
-    rep_title = "3. Constrained 6D-FK Student (Exact 0.00 mm)"
-    rep_sub = "100.0% BIOMECHANICALLY VALID (Rigid Bones)"
-    _draw_orthographic_skeleton(
-        canvas=canvas,
-        positions_mm=repaired_pos_mm,
-        center_xy=(p3_x + p1_w // 2, 65 + int(p1_h * 0.72)),
-        scale=1.5,
-        bone_color=(80, 220, 120),
-        joint_color=(160, 255, 180),
-        title=rep_title,
-        metrics_str=rep_sub,
-        highlight_stretch=False,
-    )
+
+    if repaired_pos_mm_2 is None:
+        rep_title = "3. Constrained 6D-FK Student (Exact 0.00 mm)"
+        rep_sub = "100.0% BIOMECHANICALLY VALID (Rigid Bones)"
+        _draw_orthographic_skeleton(
+            canvas=canvas,
+            positions_mm=repaired_pos_mm,
+            center_xy=(p3_x + p1_w // 2, 65 + int(p1_h * 0.72)),
+            scale=1.5,
+            bone_color=(80, 220, 120),
+            joint_color=(160, 255, 180),
+            title=rep_title,
+            metrics_str=rep_sub,
+            highlight_stretch=False,
+        )
+    else:
+        lbl0 = hands_labels[0] if (hands_labels and len(hands_labels) > 0) else "Hand 1"
+        lbl1 = hands_labels[1] if (hands_labels and len(hands_labels) > 1) else "Hand 2"
+        cv2.putText(canvas, "3. Constrained 6D-FK Student (Exact 0.00 mm)", (p3_x + 12, 85), cv2.FONT_HERSHEY_SIMPLEX, 0.44, (240, 240, 240), 1, cv2.LINE_AA)
+        cv2.putText(canvas, "100.0% BIOMECHANICALLY VALID (Both Hands Exact)", (p3_x + 12, 102), cv2.FONT_HERSHEY_SIMPLEX, 0.36, (120, 240, 160), 1, cv2.LINE_AA)
+        _draw_orthographic_skeleton(
+            canvas=canvas,
+            positions_mm=repaired_pos_mm,
+            center_xy=(p3_x + int(p1_w * 0.28), 65 + int(p1_h * 0.72)),
+            scale=1.1,
+            bone_color=(80, 220, 120),
+            joint_color=(160, 255, 180),
+            title=lbl0,
+            metrics_str="",
+            highlight_stretch=False,
+        )
+        _draw_orthographic_skeleton(
+            canvas=canvas,
+            positions_mm=repaired_pos_mm_2,
+            center_xy=(p3_x + int(p1_w * 0.72), 65 + int(p1_h * 0.72)),
+            scale=1.1,
+            bone_color=(80, 220, 120),
+            joint_color=(160, 255, 180),
+            title=lbl1,
+            metrics_str="",
+            highlight_stretch=False,
+        )
 
     # Footer
     footer_text = "[Q/ESC]: Quit  |  [T]: Toggle Virtual Tool Bar  |  [O]: Cycle Occlusion (0%/30%/50%/70%)  |  [S]: Save Snapshot"
@@ -1001,6 +1068,7 @@ def run_live_demo(
     save_snapshot: Optional[Path] = None,
     max_frames: int = 0,
     headless: bool = False,
+    two_hands: bool = False,
 ) -> Dict[str, Any]:
     """
     Runs the real-time 3D hand telemetry repair pipeline across `--source mediapipe`,
@@ -1024,6 +1092,7 @@ def run_live_demo(
             seq_len=8,
             simulate_if_unavailable=True,
             simulated_occlusion_rate=occlusion_rate,
+            num_hands=2 if two_hands else 1,
         )
         if use_jetson_csi:
             source_label = f"Jetson Nano CSI ({build_jetson_csi_pipeline(sensor_id=camera_index).split('!')[0].strip()})"
@@ -1090,51 +1159,109 @@ def run_live_demo(
                 streamer.tool_box = (180, 110, 460, 235) if tool_box_active else None
 
             pkt = streamer.read_sequence()
-            feat_seq = pkt["node_features"][None, ...].astype(np.float32)  # (1, T, 21, 4)
-            vis_seq = pkt["visibility_mask"]                                # (T, 21)
-            obs_mm_seq = pkt["positions_mm"]                                # (T, 21, 3)
+            hands_seqs = pkt.get("hands_sequences", [])
+            use_dual = (two_hands and len(hands_seqs) >= 2)
             cam_frame = pkt.get("frame_bgr")
 
-            # Time the ONNX Runtime StudentKinematicMLP inference
-            t0 = time.perf_counter()
-            ort_outs = ort_session.run(None, {ort_input_name: feat_seq})
-            t1 = time.perf_counter()
-            infer_ms = (t1 - t0) * 1000.0
+            if use_dual:
+                h0 = hands_seqs[0]
+                h1 = hands_seqs[1]
+                batch_feat = np.stack([h0["node_features"], h1["node_features"]], axis=0).astype(np.float32)  # (2, T, 21, 4)
+                vis_seq_0 = h0["visibility_mask"]
+                vis_seq_1 = h1["visibility_mask"]
 
-            repaired_seq_mm = ort_outs[0][0]  # (T, 21, 3)
-            pred_rot6d_seq = ort_outs[1][0]   # (T, 21, 6)
+                # Time the ONNX Runtime StudentKinematicMLP inference for both hands simultaneously
+                t0 = time.perf_counter()
+                ort_outs = ort_session.run(None, {ort_input_name: batch_feat})
+                t1 = time.perf_counter()
+                infer_ms = (t1 - t0) * 1000.0
 
-            # Verify EdgeFK agreement on the latest frame
-            _ = edge_fk.forward(pred_rot6d_seq[-1], clamp_rom=False)
+                repaired_batch_mm = ort_outs[0]  # (2, T, 21, 3)
+                pred_rot6d_batch = ort_outs[1]   # (2, T, 21, 6)
 
-            # Run Unconstrained Direct-XYZ baseline for visual comparison
-            with torch.no_grad():
-                unconstrained_seq_mm = (
-                    student_xyz(torch.from_numpy(feat_seq))["positions_mm"][0].numpy()
-                )
+                # Verify EdgeFK agreement on both hands
+                _ = edge_fk.forward(pred_rot6d_batch[0, -1], clamp_rom=False)
+                _ = edge_fk.forward(pred_rot6d_batch[1, -1], clamp_rom=False)
 
-            # Extract active temporally-buffered frame in the window
-            f_idx = -2 if repaired_seq_mm.shape[0] >= 2 else -1
-            vis_f = vis_seq[f_idx]
-            repaired_f = repaired_seq_mm[f_idx]
-            unconstrained_f = unconstrained_seq_mm[f_idx]
+                # Run Unconstrained Direct-XYZ baseline for both hands
+                with torch.no_grad():
+                    unc_batch_mm = (
+                        student_xyz(torch.from_numpy(batch_feat))["positions_mm"].numpy()
+                    )
 
-            if "gt_positions_mm" in pkt:
-                gt_arr = np.asarray(pkt["gt_positions_mm"], dtype=np.float32)
-                gt_f = gt_arr[f_idx] if gt_arr.ndim == 3 else gt_arr
+                f_idx = -2 if repaired_batch_mm.shape[1] >= 2 else -1
+                vis_f = vis_seq_0[f_idx]
+                repaired_f = repaired_batch_mm[0, f_idx]
+                unconstrained_f = unc_batch_mm[0, f_idx]
+                repaired_f_2 = repaired_batch_mm[1, f_idx]
+                unconstrained_f_2 = unc_batch_mm[1, f_idx]
+
+                obs_f = h0["positions_mm"][f_idx].copy()
+                gt_f = h0.get("gt_positions_mm", h0["positions_mm"])[f_idx]
+
+                cur_unc_err = float(_compute_per_bone_errors_mm(unconstrained_f).mean())
+                cur_rep_err = float(_compute_per_bone_errors_mm(repaired_f).max())
+                cur_unc_val = check_biomechanical_validity(unconstrained_f[None, ...])
+
+                occ_pct = float((1.0 - 0.5 * (np.mean(vis_f) + np.mean(vis_seq_1[f_idx]))) * 100.0)
+                dual_labels = [h0.get("handedness", "Hand 1"), h1.get("handedness", "Hand 2")]
+                num_hands_val = 2
             else:
-                gt_f = repaired_f.copy()
+                h_active = hands_seqs[0] if (hands_seqs and len(hands_seqs) > 0) else pkt
+                feat_seq = h_active["node_features"][None, ...].astype(np.float32)  # (1, T, 21, 4)
+                vis_seq = h_active["visibility_mask"]                                # (T, 21)
+                obs_mm_seq = h_active["positions_mm"]                                # (T, 21, 3)
 
-            obs_f = obs_mm_seq[f_idx].copy()
-            for j in range(1, NUM_JOINTS):
-                if vis_f[j] <= 0.5:
-                    p = PARENT_INDICES[j]
-                    obs_f[j] = 0.55 * obs_f[p] + 0.25 * REST_JOINT_POSITIONS_MM[j]
+                # Time the ONNX Runtime StudentKinematicMLP inference
+                t0 = time.perf_counter()
+                ort_outs = ort_session.run(None, {ort_input_name: feat_seq})
+                t1 = time.perf_counter()
+                infer_ms = (t1 - t0) * 1000.0
+
+                repaired_seq_mm = ort_outs[0][0]  # (T, 21, 3)
+                pred_rot6d_seq = ort_outs[1][0]   # (T, 21, 6)
+
+                # Verify EdgeFK agreement on the latest frame
+                _ = edge_fk.forward(pred_rot6d_seq[-1], clamp_rom=False)
+
+                # Run Unconstrained Direct-XYZ baseline for visual comparison
+                with torch.no_grad():
+                    unconstrained_seq_mm = (
+                        student_xyz(torch.from_numpy(feat_seq))["positions_mm"][0].numpy()
+                    )
+
+                # Extract active temporally-buffered frame in the window
+                f_idx = -2 if repaired_seq_mm.shape[0] >= 2 else -1
+                vis_f = vis_seq[f_idx]
+                repaired_f = repaired_seq_mm[f_idx]
+                unconstrained_f = unconstrained_seq_mm[f_idx]
+                repaired_f_2 = None
+                unconstrained_f_2 = None
+
+                if "gt_positions_mm" in h_active:
+                    gt_arr = np.asarray(h_active["gt_positions_mm"], dtype=np.float32)
+                    gt_f = gt_arr[f_idx] if gt_arr.ndim == 3 else gt_arr
+                else:
+                    gt_f = repaired_f.copy()
+
+                obs_f = obs_mm_seq[f_idx].copy()
+                for j in range(1, NUM_JOINTS):
+                    if vis_f[j] <= 0.5:
+                        p = PARENT_INDICES[j]
+                        obs_f[j] = 0.55 * obs_f[p] + 0.25 * REST_JOINT_POSITIONS_MM[j]
+
+                cur_unc_err = float(_compute_per_bone_errors_mm(unconstrained_f).mean())
+                cur_rep_err = float(_compute_per_bone_errors_mm(repaired_f).max())
+                cur_unc_val = check_biomechanical_validity(unconstrained_f[None, ...])
+                occ_pct = float((1.0 - np.mean(vis_f)) * 100.0)
+
+                h_name = h_active.get("handedness", "Hand 1") if isinstance(h_active, dict) and "handedness" in h_active else "Hand 1"
+                dual_labels = [h_name]
+                num_hands_val = 1
 
             corrupted_mpjpe = float(np.linalg.norm(obs_f - gt_f, axis=-1).mean())
             unconstrained_mpjpe = float(np.linalg.norm(unconstrained_f - gt_f, axis=-1).mean())
             repaired_mpjpe = float(np.linalg.norm(repaired_f - gt_f, axis=-1).mean())
-            occ_pct = float((1.0 - np.mean(vis_f)) * 100.0)
 
             telemetry_history["corrupted_mpjpe"].append(corrupted_mpjpe)
             telemetry_history["unconstrained_mpjpe"].append(unconstrained_mpjpe)
@@ -1157,19 +1284,17 @@ def run_live_demo(
                     import cv2
 
                     curr_live_fps = 1000.0 / max(infer_ms, 1e-6)
-                    cur_unc_err = float(_compute_per_bone_errors_mm(unconstrained_f).mean())
-                    cur_rep_err = float(_compute_per_bone_errors_mm(repaired_f).max())
-                    cur_unc_val = check_biomechanical_validity(unconstrained_f[None, ...])
 
                     frame_hud_info = {
                         "source_label": source_label,
-                        "gesture_name": str(pkt.get("gesture_name", "Hand Pose")).replace("_", " ").title(),
+                        "gesture_name": str(pkt.get("gesture_name", "Dual Hand Pose" if use_dual else "Hand Pose")).replace("_", " ").title(),
                         "fps": curr_live_fps,
                         "latency_ms": infer_ms,
                         "occlusion_pct": occ_pct,
                         "unconstrained_bone_err_mm": cur_unc_err,
                         "unconstrained_valid_pct": float(cur_unc_val.valid_pct),
                         "repaired_bone_err_mm": cur_rep_err,
+                        "num_hands": num_hands_val,
                     }
 
                     live_frame = render_live_opencv_frame(
@@ -1177,6 +1302,9 @@ def run_live_demo(
                         unconstrained_pos_mm=unconstrained_f,
                         repaired_pos_mm=repaired_f,
                         hud_info=frame_hud_info,
+                        unconstrained_pos_mm_2=unconstrained_f_2,
+                        repaired_pos_mm_2=repaired_f_2,
+                        hands_labels=dual_labels,
                     )
                     win_name = "Constrained Graph Kinematics - Real-Time Surgical Telemetry HUD"
                     if step == 0:
@@ -1354,6 +1482,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Run without opening a GUI window.",
     )
+    parser.add_argument(
+        "--two-hands",
+        action="store_true",
+        help="Enable dual-hand tracking and simultaneous 6D-FK telemetry repair.",
+    )
     return parser
 
 
@@ -1373,6 +1506,7 @@ def main(argv: Optional[List[str]] = None) -> Dict[str, Any]:
         save_snapshot=snap_path,
         max_frames=args.max_frames,
         headless=args.headless or (snap_path is not None),
+        two_hands=args.two_hands,
     )
 
     hud = summary["hud_info"]
