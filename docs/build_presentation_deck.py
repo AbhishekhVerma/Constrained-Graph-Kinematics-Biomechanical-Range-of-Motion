@@ -7,6 +7,7 @@ Compiles `docs/final_presentation_slides.md` into a widescreen 16:9 visual prese
 from __future__ import annotations
 
 import base64
+import os
 from pathlib import Path
 import re
 import shutil
@@ -42,7 +43,17 @@ def render_table(table_lines: list[str]) -> str:
 SLIDES_MD_PATH = ROOT_DIR / "docs" / "final_presentation_slides.md"
 SLIDES_HTML_PATH = ROOT_DIR / "docs" / "Final_Presentation_Slides.html"
 SLIDES_PDF_PATH = ROOT_DIR / "Final_Presentation_Slides.pdf"
-ARTIFACT_DIR = Path(r"C:\Users\abhis\.gemini\antigravity\brain\eadea8b3-1a42-47b9-b2b0-400855dbf6f9")
+
+_env_art = os.environ.get("ANTIGRAVITY_ARTIFACT_DIR")
+if _env_art and Path(_env_art).exists():
+    ARTIFACT_DIR = Path(_env_art)
+else:
+    _brain_root = Path.home() / ".gemini" / "antigravity" / "brain"
+    if _brain_root.exists():
+        _dirs = [d for d in _brain_root.iterdir() if d.is_dir() and not d.name.startswith(".")]
+        ARTIFACT_DIR = max(_dirs, key=lambda d: d.stat().st_mtime) if _dirs else _brain_root
+    else:
+        ARTIFACT_DIR = ROOT_DIR / "results"
 
 
 def build_slide_html_from_section(slide_md: str, slide_index: int, total_slides: int) -> str:

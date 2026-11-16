@@ -25,6 +25,7 @@ Usage on Presentation Day:
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -63,9 +64,7 @@ from training.utils import (
 
 def export_animated_demo_gif(
     output_gif_path: Path = Path("results/figures/live_demo_telemetry.gif"),
-    artifact_dir: Path | None = Path(
-        r"C:\Users\abhis\.gemini\antigravity\brain\eadea8b3-1a42-47b9-b2b0-400855dbf6f9"
-    ),
+    artifact_dir: Path | None = None,
     num_frames: int = 24,
 ) -> Path:
     """
@@ -73,6 +72,15 @@ def export_animated_demo_gif(
     across 30%, 50%, and 70% surgical tool occlusion for embedding in the PowerPoint
     presentation deck and backup demo.
     """
+    if artifact_dir is None:
+        _env_art = os.environ.get("ANTIGRAVITY_ARTIFACT_DIR")
+        if _env_art and Path(_env_art).exists():
+            artifact_dir = Path(_env_art)
+        else:
+            _brain_root = Path.home() / ".gemini" / "antigravity" / "brain"
+            if _brain_root.exists():
+                _dirs = [d for d in _brain_root.iterdir() if d.is_dir() and not d.name.startswith(".")]
+                artifact_dir = max(_dirs, key=lambda d: d.stat().st_mtime) if _dirs else None
     output_gif_path = PROJECT_ROOT / output_gif_path
     output_gif_path.parent.mkdir(parents=True, exist_ok=True)
 
