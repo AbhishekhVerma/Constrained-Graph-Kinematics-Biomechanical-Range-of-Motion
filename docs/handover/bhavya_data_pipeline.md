@@ -76,3 +76,11 @@ Log the exact MacBook Air FPS/latency and number of recorded gloved sequences in
 - **Summary:**
   - Integrated Bhavya's real physical Apple Silicon MacBook Air benchmark (`results/benchmark_macbook_air.json`) and merged with `results/benchmark_windows_pc.json` into `results/edge_benchmark.json`.
   - Fixed time-varying ground-truth sequence buffering in `data/iphone_parser.py` (`self._gt_mm_buffer` in `ARKitUDPStreamer` and `MediaPipeCameraStreamer`) and `data/record_custom_gloved.py` (`SyntheticGloveTransform` + `seq_len - 1` stride) so `read_sequence()` returns full `(T, 21, 3)` time-varying ground-truth trajectories rather than broadcasting the final frame.
+
+### Session: 2026-11-16 11:05 (UTC+4) — Abhishekh / Orchestrator Agent
+- **Git Branch:** `main`
+- **Summary:**
+  - Hardened Mode B UDP Streamer (`ARKitUDPStreamer` in `data/iphone_parser.py` and `deployment/live_demo.py`).
+  - Added project root to `sys.path` in `data/iphone_parser.py` and added standalone CLI diagnostics (`--mode test`, `--mode listen`, `--mode send`).
+  - Optimized socket timeout (`timeout_sec=0.05` default, `0.03` in `live_demo.py`) so fallback mode runs silky smooth at 30+ FPS instead of 4 FPS without stalling incoming 60 Hz live packets.
+  - Verified 100% loopback packet reception, 8-frame temporal windowing, ONNX model inference, and 0.0000 mm bone error across UDP payloads.

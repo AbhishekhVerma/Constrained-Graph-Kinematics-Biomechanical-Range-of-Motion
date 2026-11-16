@@ -21,10 +21,15 @@ from collections import deque
 import json
 from pathlib import Path
 import socket
+import sys
 import time
 from typing import Any, Deque, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from data.dataloader import build_node_features_4d, normalize_hand_sequence
 from data.dataset_ingestion import (
@@ -215,7 +220,7 @@ class ARKitUDPStreamer:
         port: int = 5005,
         confidence_threshold: float = 0.50,
         scale_mm: float = DEFAULT_PALM_SCALE_MM,
-        timeout_sec: float = 0.25,
+        timeout_sec: float = 0.05,
         seq_len: int = 8,
         fallback_to_mock: bool = True,
     ) -> None:
@@ -1037,3 +1042,116 @@ class MediaPipeCameraStreamer:
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.close()
+
+
+# ---------------------------------------------------------------------------
+# 5. Standalone CLI Diagnostics & Network Streaming Tool
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    import argparse
+
+    cli_parser = argparse.ArgumentParser(
+        description="Mode B UDP Streamer Diagnostics: Test, Listen, or Send ARKit 3D Hand Telemetry"
+    )
+    cli_parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["test", "listen", "send"],
+        default="test",
+        help="Execution mode: 'test' (automated loopback), 'listen' (receive UDP frames), or 'send' (transmit UDP frames)",
+    )
+    cli_parser.add_argument("--host", type=str, default="0.0.0.0", help="Host IP address to bind/send to")
+    cli_parser.add_argument("--port", type=int, default=5005, help="UDP port (default: 5005)")
+    cli_parser.add_argument("--fps", type=float, default=60.0, help="Transmission rate for --mode send (default: 60 FPS)")
+    cli_parser.add_argument("--occlusion", type=float, default=0.30, help="Occlusion rate for simulated send frames (default: 0.30)")
+    cli_args = cli_parser.parse_args()
+
+    if cli_args.mode == "test":
+        print(f"[Mode B Test] Running automated UDP loopback test on 127.0.0.1:{cli_args.port}...")
+        import threading
+
+        test_streamer = ARKitUDPStreamer(host="127.0.0.1", port=cli_args.port, timeout_sec=0.10, fallback_to_mock=False)
+        stop_evt = threading.Event()
+
+        def _bg_sender() -> None:
+            time.sleep(0.05)
+            s_idx = 0
+            while not stop_evt.is_set():
+                send_mock_arkit_udp_packet(host="127.0.0.1", port=cli_args.port, step_idx=s_idx)
+                s_idx += 1
+                time.sleep(0.016)
+
+        sender_thread = threading.Thread(target=_bg_sender, daemon=True)
+        sender_thread.start()
+
+        try:
+            for f_i in range(10):
+                f_data = test_streamer.read_frame()
+                assert f_data["positions_mm"].shape == (NUM_JOINTS, 3)
+                assert f_data["visibility_mask"].shape == (NUM_JOINTS,)
+                assert f_data["visibility_mask"][0] == 1.0  # Wrist anchored
+            seq_data = test_streamer.read_sequence(8)
+            assert seq_data["node_features"].shape == (8, NUM_JOINTS, 4)
+            print("[Mode B Test] PASS: 10 live UDP frames + 8-frame temporal window successfully parsed!")
+            print(f"[Mode B Test] Telemetry wire format: Wrist anchored at (0,0,0), scale={seq_data['scale_mm']} mm.")
+        finally:
+            stop_evt.set()
+            test_streamer.close()
+            sender_thread.join(timeout=0.5)
+
+    elif cli_args.mode == "send":
+        target_ip = "127.0.0.1" if cli_args.host in ("0.0.0.0", "") else cli_args.host
+        interval = 1.0 / max(cli_args.fps, 1.0)
+        print(f"[Mode B Sender] Streaming simulated ARKit UDP packets to {target_ip}:{cli_args.port} @ {cli_args.fps:.0f} Hz...")
+        print("[Mode B Sender] Press Ctrl+C to terminate transmission.")
+        s_idx = 0
+        t_prev = time.time()
+        try:
+            while True:
+                send_mock_arkit_udp_packet(
+                    host=target_ip,
+                    port=cli_args.port,
+                    step_idx=s_idx,
+                    occlusion_rate=cli_args.occlusion,
+                    apply_glove=True,
+                )
+                s_idx += 1
+                if s_idx % int(cli_args.fps) == 0:
+                    now = time.time()
+                    actual_hz = cli_args.fps / max(now - t_prev, 1e-6)
+                    t_prev = now
+                    print(f"[Mode B Sender] Transmitted {s_idx} packets | Live rate: {actual_hz:.1f} Hz")
+                time.sleep(interval)
+        except KeyboardInterrupt:
+            print(f"\n[Mode B Sender] Stopped after {s_idx} packets.")
+
+    elif cli_args.mode == "listen":
+        print(f"[Mode B Receiver] Listening for ARKit UDP packets on {cli_args.host}:{cli_args.port}...")
+        print("[Mode B Receiver] Press Ctrl+C to terminate receiver.")
+        listener = ARKitUDPStreamer(
+            host=cli_args.host,
+            port=cli_args.port,
+            timeout_sec=0.5,
+            fallback_to_mock=False,
+        )
+        count = 0
+        t_start = time.time()
+        try:
+            while True:
+                try:
+                    f_data = listener.read_frame()
+                    count += 1
+                    vis_count = int(np.sum(f_data["visibility_mask"]))
+                    if count % 30 == 0:
+                        hz = count / max(time.time() - t_start, 1e-6)
+                        print(
+                            f"[Mode B Receiver] Frame {count:05d} | Rate: {hz:.1f} Hz | "
+                            f"Tracked Joints: {vis_count}/21 | Wrist: {f_data['positions_mm'][0].round(2)}"
+                        )
+                except TimeoutError:
+                    print(f"[Mode B Receiver] Awaiting packets on port {cli_args.port} (timeout)...")
+        except KeyboardInterrupt:
+            print(f"\n[Mode B Receiver] Stopped after {count} frames.")
+        finally:
+            listener.close()

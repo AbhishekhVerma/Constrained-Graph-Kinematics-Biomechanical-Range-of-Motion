@@ -1035,6 +1035,7 @@ def run_live_demo(
         streamer = ARKitUDPStreamer(
             port=udp_port,
             seq_len=8,
+            timeout_sec=0.03,
             fallback_to_mock=True,
         )
         source_label = f"iPhone ARKit UDP Stream (Port {udp_port})"
