@@ -76,3 +76,15 @@ Log the exact MacBook Air FPS/latency and number of recorded gloved sequences in
 - **Summary:**
   - Integrated Bhavya's real physical Apple Silicon MacBook Air benchmark (`results/benchmark_macbook_air.json`) and merged with `results/benchmark_windows_pc.json` into `results/edge_benchmark.json`.
   - Fixed time-varying ground-truth sequence buffering in `data/iphone_parser.py` (`self._gt_mm_buffer` in `ARKitUDPStreamer` and `MediaPipeCameraStreamer`) and `data/record_custom_gloved.py` (`SyntheticGloveTransform` + `seq_len - 1` stride) so `read_sequence()` returns full `(T, 21, 3)` time-varying ground-truth trajectories rather than broadcasting the final frame.
+
+### Session: 2026-11-16 11:25 (UTC+4) — Bhavya & Antigravity Agent (Dual-Hand Tracking Test)
+- **Git Branch:** `feat/bhavya-two-hands` (commit `7a9a160`, branched off `main` at `f2ddcb5`)
+- **Summary:**
+  - Extended `MediaPipeCameraStreamer` in `data/iphone_parser.py` to support `num_hands=2` via Google MediaPipe Tasks API (`vision.HandLandmarkerOptions(num_hands=2)`) and legacy fallback.
+  - Implemented simultaneous per-hand 3D tracking, EMA temporal smoothing, canonical coordinate alignment, and dual 2D skeleton overlays on live camera (Emerald Green for Hand 1 / Left Hand, Amber Gold for Hand 2 / Right Hand).
+  - Implemented dynamic batching `(2, T, 21, 4)` in `deployment/live_demo.py` for concurrent ONNX Runtime 6D-FK student inference and Direct-XYZ baseline.
+  - Extended `render_live_opencv_frame()` to render dual hands side-by-side in Panel 2 (unconstrained) and Panel 3 (6D-FK student with 0.0000 mm bone error on both hands).
+  - Added `--two-hands` CLI flag and interactive menu option `[7]` to `run_presentation_demo.py`.
+  - Maintained 100% backward compatibility for single-hand mode and strict 0.0000 mm bone error invariance.
+  - Preserved 100% clean revertibility: switching back to single-hand baseline is accomplished simply via `git checkout main`.
+- **Verification Run:** `python tests/test_kinematics.py` (All PASS), `deployment/live_demo.py --source replay --two-hands --headless --max-frames 10` (848.7 FPS, 0.0000 mm bone error).
